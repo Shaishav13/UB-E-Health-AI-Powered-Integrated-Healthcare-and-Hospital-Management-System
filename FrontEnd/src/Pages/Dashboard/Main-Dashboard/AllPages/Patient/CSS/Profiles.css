@@ -1,0 +1,199 @@
+.firstBox {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  padding: 2rem;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.firstBox::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--primary-gradient);
+}
+
+.firstBox:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+.maindoctorProfile {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.singleitemdiv {
+  display: flex;
+  justify-content: flex-start;
+  gap: 20px;
+  padding: 16px;
+  font-size: 1.2rem;
+  align-items: center;
+  margin: 0.5rem 1rem;
+  border-radius: var(--border-radius-sm);
+  transition: var(--transition);
+  background: transparent;
+}
+
+.singleitemdiv:hover {
+  background: rgba(102, 126, 234, 0.05);
+  transform: translateX(5px);
+}
+
+.singleitemdiv:nth-child(even) .singledivicons {
+  color: #ff6f6f;
+  font-size: 1.5rem;
+  transition: var(--transition);
+}
+
+.singleitemdiv:nth-child(odd) .singledivicons {
+  color: #43e97b;
+  font-size: 1.5rem;
+  transition: var(--transition);
+}
+
+.singleitemdiv:hover .singledivicons {
+  transform: scale(1.2);
+}
+
+.firstBox div {
+  display: flex;
+  padding: 1.5rem;
+  justify-content: center;
+}
+
+.firstBox div img {
+  width: 50%;
+  margin: auto;
+  border-radius: 50%;
+  background: var(--primary-gradient);
+  padding: 4px;
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+}
+
+.firstBox div img:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg);
+}
+
+.subfirstbox {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
+  border-radius: var(--border-radius);
+  height: 53%;
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  transition: var(--transition);
+}
+
+.subfirstbox:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+.subSecondBox {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
+  border-radius: var(--border-radius);
+  height: 45%;
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  transition: var(--transition);
+}
+
+.subSecondBox:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+.subfirstbox h2,
+.subSecondBox h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.singleitemdiv button {
+  width: 60%;
+  margin: auto;
+  font-size: 1.2rem;
+  padding: 14px 24px;
+  border-radius: var(--border-radius-sm);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  background: var(--primary-gradient);
+  color: white;
+  font-weight: 600;
+  transition: var(--transition);
+  text-align: center;
+}
+
+.singleitemdiv button:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.SecondBox {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.singleitemdiv p {
+  color: var(--text-primary);
+  font-weight: 500;
+  margin: 0;
+}
+
+@media only screen and (max-width: 1024px) {
+  .maindoctorProfile {
+    display: block;
+  }
+  .firstBox {
+    width: 100%;
+    margin-bottom: 2rem;
+  }
+
+  .SecondBox {
+    gap: 2rem;
+  }
+  .firstBox div img {
+    width: 40%;
+  }
+  .singleitemdiv button {
+    width: 50%;
+  }
+}
+
+@media only screen and (max-width: 500px) {
+  .singleitemdiv button {
+    width: 80%;
+    font-size: 1rem;
+    padding: 12px 20px;
+  }
+  .firstBox,
+  .subfirstbox,
+  .subSecondBox {
+    padding: 1.5rem;
+  }
+}

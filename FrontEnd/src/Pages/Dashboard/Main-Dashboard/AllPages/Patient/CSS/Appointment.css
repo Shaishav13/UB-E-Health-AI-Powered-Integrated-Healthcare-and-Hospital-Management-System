@@ -1,0 +1,152 @@
+.MainAppointment {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 3rem;
+  background: var(--card-bg);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  width: 100%;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+form::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: var(--primary-gradient);
+}
+
+form:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
+}
+
+:where(.css-dev-only-do-not-override-1s3dcof).ant-select-single:not(
+    .ant-select-customize-input
+  )
+  .ant-select-selector {
+  width: 100%;
+  height: 48px;
+  padding: 0 16px;
+  justify-content: flex-start;
+  display: flex;
+  align-items: center;
+  border-radius: var(--border-radius-sm);
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  transition: var(--transition);
+}
+
+:where(.css-dev-only-do-not-override-1s3dcof).ant-select-focused:not(
+    .ant-select-disabled
+  )
+  .ant-select-selector {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}
+
+.dateofAppointment div {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.SubmitButton {
+  height: 3.5rem;
+  font-size: 1.2rem;
+  border-radius: var(--border-radius-sm);
+  background: var(--primary-gradient);
+  border: none;
+  color: white;
+  font-weight: 600;
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+  letter-spacing: 0.5px;
+}
+
+.SubmitButton:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+.GenderClass {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.GenderClass div {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 20px;
+  border-radius: var(--border-radius-sm);
+  background: rgba(102, 126, 234, 0.05);
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.GenderClass div:hover {
+  background: rgba(102, 126, 234, 0.1);
+  transform: translateY(-2px);
+}
+
+.ChangeDisplayProblem {
+  border: 2px solid rgba(102, 126, 234, 0.2);
+  border-radius: var(--border-radius-sm);
+  padding: 12px 16px;
+  transition: var(--transition);
+}
+
+.ChangeDisplayProblem:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+@media only screen and (max-width: 768px) {
+  .MainAppointment {
+    padding: 1rem;
+  }
+  
+  form {
+    padding: 2rem;
+  }
+  
+  .dateofAppointment div {
+    flex-direction: column;
+  }
+  
+  .GenderClass {
+    flex-direction: column;
+  }
+}
+
+@media only screen and (max-width: 480px) {
+  form {
+    padding: 1.5rem;
+  }
+  
+  .SubmitButton {
+    height: 3rem;
+    font-size: 1.1rem;
+  }
+}

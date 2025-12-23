@@ -54,11 +54,11 @@ export const GetDoctorDetails = () => async (dispatch) => {
   try {
     dispatch({ type: types.GET_DOCTOR_REQUEST });
     const res = await axios.get("http://127.0.0.1:3001/doctors");
-    console.log("this", res);
-    const doctors = { doctors: res.data };
+    console.log("Doctor details fetched:", res.data);
+    // Fix: Send the array directly, not wrapped in an object
     dispatch({
       type: types.GET_DOCTOR_SUCCESS,
-      payload: doctors,
+      payload: res.data, // Send array directly
     });
   } catch (error) {
     dispatch({
@@ -74,11 +74,11 @@ export const GetAdminDetails = () => async (dispatch) => {
   try {
     dispatch({ type: types.GET_ADMIN_REQUEST });
     const res = await axios.get("http://127.0.0.1:3001/admin");
-    console.log(res.data);
-    const admins = { admins: res.data };
+    console.log("Admin details fetched:", res.data);
+    // Fix: Send the array directly, not wrapped in an object
     dispatch({
       type: types.GET_ADMIN_SUCCESS,
-      payload: admins,
+      payload: res.data, // Send array directly
     });
   } catch (error) {
     dispatch({
@@ -96,15 +96,19 @@ export const GetMedicineDetails = (patientid) => async (dispatch) => {
     const res = await axios.post(
       `http://127.0.0.1:3001/prescriptions/${patientid}`
     );
-    //axios.post
-    console.log(res.data);
-    const medicines = { medicines: res.data };
+    console.log("Medicine details fetched:", res.data);
+    // Fix: Send the array directly, not wrapped in an object
     dispatch({
       type: types.GET_MEDICINE_SUCCESS,
-      payload: medicines,
+      payload: res.data, // Send array directly
     });
   } catch (error) {
-    console.log(error);
+    dispatch({
+      type: types.GET_MEDICINE_ERROR,
+      payload: {
+        message: error,
+      },
+    });
   }
 };
 

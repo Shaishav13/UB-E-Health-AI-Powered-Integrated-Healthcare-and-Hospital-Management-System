@@ -14,10 +14,23 @@ import adminImage from "../../../../../img/profile.png";
 
 const Admin_Profile = () => {
   const { data } = useSelector((store) => store.auth);
-  const { admins } = useSelector((store) => store.data.admins);
+  const { admins, loading, error: dataError } = useSelector((store) => store.data);
   const dispatch = useDispatch();
 
-  const admin = admins.find((x) => x.email === data.user.email);
+  // Fix: Add proper null checks and error handling
+  const admin = admins && Array.isArray(admins) 
+    ? admins.find((x) => x.email === data?.user?.email)
+    : null;
+
+  // Debug logging
+  useEffect(() => {
+    console.log("Admin Profile Debug:");
+    console.log("Auth data:", JSON.stringify(data, null, 2));
+    console.log("Admins from Redux:", admins);
+    console.log("Found admin:", admin);
+    console.log("User email:", data?.user?.email);
+    console.log("User object:", JSON.stringify(data?.user, null, 2));
+  }, [data, admins, admin]);
 
   useEffect(() => {
     dispatch(GetAdminDetails());
@@ -41,10 +54,10 @@ const Admin_Profile = () => {
   const error = (t) => msgApi.error(t);
 
   const submitPassword = () => {
-    if (formData.oldPassword !== data.user.password)
+    if (formData.oldPassword !== data?.user?.password)
       return error("Old password incorrect");
 
-    if (formData.newPassword === data.user.password)
+    if (formData.newPassword === data?.user?.password)
       return error("New password cannot be same as old");
 
     if (formData.newPassword !== formData.confirmNewPassword)
@@ -63,9 +76,70 @@ const Admin_Profile = () => {
   };
 
   if (!data?.isAuthenticated) return <Navigate to="/" />;
-  if (data?.user.userType !== "admin") return <Navigate to="/dashboard" />;
+  if (data?.user?.userType !== "admin") return <Navigate to="/dashboard" />;
 
-  const formattedDob = new Date(admin.dob).toLocaleDateString("en-US");
+  // -------------------- LOADING STATE --------------------
+  if (loading) {
+    return (
+      <div className="profile-page">
+        <Sidebar />
+        <div className="profile-container">
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            height: '50vh',
+            fontSize: '1.2rem',
+            color: '#0b6b61'
+          }}>
+            Loading admin profile...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // -------------------- ERROR STATE --------------------
+  if (dataError || (!admin && !loading)) {
+    return (
+      <div className="profile-page">
+        <Sidebar />
+        <div className="profile-container">
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            height: '50vh',
+            fontSize: '1.2rem',
+            color: '#dc3545'
+          }}>
+            <p>Unable to load admin profile</p>
+            <p style={{ fontSize: '1rem', color: '#666' }}>
+              Debug info: {admins ? `Found ${admins.length} admins` : 'No admins data'}, 
+              User email: {data?.user?.email || 'No email'}
+            </p>
+            <button 
+              onClick={() => dispatch(GetAdminDetails())}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#0b6b61',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                marginTop: '1rem'
+              }}
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const formattedDob = admin?.dob ? new Date(admin.dob).toLocaleDateString("en-US") : "Not available";
 
   return (
     <>
@@ -210,15 +284,15 @@ const Admin_Profile = () => {
               <img src={adminImage} alt="Admin" />
 
               <div className="info-item">
-                <GiMeditation /> <p>{admin.name}</p>
+                <GiMeditation /> <p>{admin?.name || "Not available"}</p>
               </div>
 
               <div className="info-item">
-                <BsFillTelephoneFill /> <p>{admin.phonenum}</p>
+                <BsFillTelephoneFill /> <p>{admin?.phonenum || admin?.phoneNum || "Not available"}</p>
               </div>
 
               <div className="info-item">
-                <MdEmail /> <p>{admin.email}</p>
+                <MdEmail /> <p>{admin?.email || "Not available"}</p>
               </div>
 
               <div className="info-item">
@@ -235,15 +309,15 @@ const Admin_Profile = () => {
               <h2>Personal Information</h2>
 
               <div className="info-item">
-                <BsGenderAmbiguous /> <p>{admin.gender}</p>
+                <BsGenderAmbiguous /> <p>{admin?.gender || "Not specified"}</p>
               </div>
 
               <div className="info-item">
-                <GiAges /> <p>{admin.age}</p>
+                <GiAges /> <p>{admin?.age || "Not specified"}</p>
               </div>
 
               <div className="info-item">
-                <BsHouseFill /> <p>{admin.address}</p>
+                <BsHouseFill /> <p>{admin?.address || "Not provided"}</p>
               </div>
             </div>
 

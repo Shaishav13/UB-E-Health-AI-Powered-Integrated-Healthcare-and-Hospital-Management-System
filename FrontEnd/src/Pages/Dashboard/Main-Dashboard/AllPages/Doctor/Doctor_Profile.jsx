@@ -16,13 +16,16 @@ import doctorImage from "../../../../../img/doctoravatar.png";
 const Doctor_Profile = () => {
   const { data } = useSelector((store) => store.auth);
   const dispatch = useDispatch();
-  const { doctors } = useSelector((store) => store.data.doctors);
+  const { doctors, loading, error: dataError } = useSelector((store) => store.data);
 
-  const doctor = doctors.find((d) => d.email === data?.user?.email);
+  // Fix: Add proper null checks and error handling
+  const doctor = doctors && Array.isArray(doctors) 
+    ? doctors.find((d) => d.email === data?.user?.email)
+    : null;
 
   useEffect(() => {
     dispatch(GetDoctorDetails());
-  }, []);
+  }, [dispatch]);
 
   // -------------------- MODAL STATES --------------------
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -87,12 +90,69 @@ const Doctor_Profile = () => {
   };
 
   // -------------------- DOB FORMAT --------------------
-  const dobDate = new Date(doctor?.dob);
-  const formattedDob = dobDate.toLocaleDateString("en-US");
+  const dobDate = doctor?.dob ? new Date(doctor.dob) : null;
+  const formattedDob = dobDate ? dobDate.toLocaleDateString("en-US") : "Not available";
 
   // -------------------- AUTH CHECK --------------------
   if (!data?.isAuthenticated) return <Navigate to="/" />;
   if (data?.user?.userType !== "doctor") return <Navigate to="/dashboard" />;
+
+  // -------------------- LOADING STATE --------------------
+  if (loading) {
+    return (
+      <div className="doctor-profile-container">
+        <Sidebar />
+        <div className="doctor-main">
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            height: '50vh',
+            fontSize: '1.2rem',
+            color: '#0b6b61'
+          }}>
+            Loading doctor profile...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // -------------------- ERROR STATE --------------------
+  if (dataError || !doctor) {
+    return (
+      <div className="doctor-profile-container">
+        <Sidebar />
+        <div className="doctor-main">
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            height: '50vh',
+            fontSize: '1.2rem',
+            color: '#dc3545'
+          }}>
+            <p>Unable to load doctor profile</p>
+            <button 
+              onClick={() => dispatch(GetDoctorDetails())}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#0b6b61',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                marginTop: '1rem'
+              }}
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -222,17 +282,17 @@ const Doctor_Profile = () => {
 
               <div className="info-line">
                 <GiMeditation className="info-icon" />
-                <p>{doctor?.name}</p>
+                <p>{doctor?.name || "Not available"}</p>
               </div>
 
               <div className="info-line">
                 <BsFillTelephoneFill className="info-icon" />
-                <p>{doctor?.phonenum}</p>
+                <p>{doctor?.phonenum || doctor?.phoneNum || "Not available"}</p>
               </div>
 
               <div className="info-line">
                 <MdEmail className="info-icon" />
-                <p>{doctor?.email}</p>
+                <p>{doctor?.email || "Not available"}</p>
               </div>
 
               <div className="info-line">
@@ -253,22 +313,24 @@ const Doctor_Profile = () => {
 
                 <div className="info-line">
                   <BiMoney className="info-icon" />
-                  <p>{doctor?.fees} Rs</p>
+                  <p>{doctor?.fees ? `${doctor.fees} Rs` : "Not set"}</p>
                 </div>
 
                 <div className="info-line">
                   <AiFillClockCircle className="info-icon" />
-                  <p>{doctor?.availability?.join("  |  ")}</p>
+                  <p>{doctor?.availability && Array.isArray(doctor.availability) && doctor.availability.length > 0 
+                      ? doctor.availability.join("  |  ") 
+                      : "Not set"}</p>
                 </div>
 
                 <div className="info-line">
                   <MdCastForEducation className="info-icon" />
-                  <p>{doctor?.department}</p>
+                  <p>{doctor?.department || "Not specified"}</p>
                 </div>
 
                 <div className="info-line">
                   <BsHouseFill className="info-icon" />
-                  <p>{doctor?.address}</p>
+                  <p>{doctor?.address || "Not provided"}</p>
                 </div>
               </div>
 

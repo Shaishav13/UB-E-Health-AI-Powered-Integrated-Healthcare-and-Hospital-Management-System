@@ -13,32 +13,71 @@ const initialState = {
 
 export default function dataReducer(state = initialState, { type, payload }) {
   switch (type) {
+    case types.GET_DOCTOR_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: false,
+      };
+    case types.GET_DOCTOR_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        error: false,
+        doctors: payload,
+      };
+    case types.GET_DOCTOR_ERROR:
+      return {
+        ...state,
+        loading: false,
+        error: true,
+      };
     case types.GET_PATIENT_SUCCESS:
       return {
         ...state,
         loading: false,
         patients: payload,
       };
-    case types.GET_DOCTOR_SUCCESS:
-      return {
-        ...state,
-        loading: false,
-        doctors: payload,
-      };
 
+    case types.GET_ADMIN_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: false,
+      };
     case types.GET_ADMIN_SUCCESS:
-      console.log(payload);
+      console.log("Admin data received:", payload);
       return {
         ...state,
         loading: false,
+        error: false,
         admins: payload,
       };
+    case types.GET_ADMIN_ERROR:
+      return {
+        ...state,
+        loading: false,
+        error: true,
+      };
 
+    case types.GET_MEDICINE_REQUEST:
+      return {
+        ...state,
+        loading: true,
+        error: false,
+      };
     case types.GET_MEDICINE_SUCCESS:
       return {
         ...state,
         loading: false,
+        error: false,
         medicines: payload,
+      };
+    case types.GET_MEDICINE_ERROR:
+      return {
+        ...state,
+        loading: false,
+        error: true,
       };
 
     case types.GET_ALLDATA_SUCCESS:

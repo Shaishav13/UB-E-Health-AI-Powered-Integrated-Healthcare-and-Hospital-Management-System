@@ -19,7 +19,27 @@ router.get("/", async (req, res) => {
   try {
     await createTables();
     const admins = await getAllAdmins();
-    console.log(admins);
+    
+    // Add the hardcoded system admin to the list
+    const systemAdmin = {
+      _id: "admin",
+      name: "System Administrator",
+      phonenum: "1234567890",
+      email: "admin@hospital.com",
+      age: 35,
+      gender: "Not specified",
+      dob: new Date("1988-01-01"),
+      address: "Hospital Administration Office",
+      password: "admin@123" // For password change functionality
+    };
+    
+    // Add system admin to the list if not already present
+    const hasSystemAdmin = admins.some(admin => admin.email === "admin@hospital.com");
+    if (!hasSystemAdmin) {
+      admins.push(systemAdmin);
+    }
+    
+    console.log("Admins returned:", admins);
     res.status(200).send(admins);
   } catch (error) {
     console.log(error);
@@ -62,7 +82,13 @@ router.post("/login", async (req, res) => {
           id: "admin", 
           username: "admin", 
           userType: "admin",
-          name: "System Administrator"
+          name: "System Administrator",
+          email: "admin@hospital.com", // Add email for profile matching
+          phonenum: "1234567890",
+          age: 35,
+          gender: "Not specified",
+          dob: new Date("1988-01-01"),
+          address: "Hospital Administration Office"
         },
         token: token,
       });

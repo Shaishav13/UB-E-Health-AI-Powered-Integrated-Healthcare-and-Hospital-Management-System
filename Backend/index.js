@@ -1,3 +1,9 @@
+/*
+ * E-Health Management Hub - Backend Server
+ * Copyright (c) 2025 Shaishav
+ * Licensed under MIT License - see LICENSE file for details
+ */
+
 const express = require("express");
 require("dotenv").config();
 const cors = require("cors");

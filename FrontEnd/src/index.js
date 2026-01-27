@@ -1,3 +1,9 @@
+/*
+ * E-Health Management Hub - Frontend Entry Point
+ * Copyright (c) 2025 Shaishav
+ * Licensed under MIT License - see LICENSE file for details
+ */
+
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";

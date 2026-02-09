@@ -74,11 +74,59 @@ const Check_Appointment = () => {
   };
 
   // Add safety checks for data loading
-  if (!data?.user || !patients || !doctors) {
+  const isLoading = !appointments || appointments === undefined;
+  
+  if (!data?.user) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center' }}>
-        <p>Loading appointments...</p>
+        <p>Loading user data...</p>
       </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <>
+        <style>{`
+          .loading-container {
+            display: flex;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+          }
+          .loading-content {
+            flex: 1;
+            padding: 2.5rem 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+          }
+          .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e2e8f0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+          }
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+          .loading-text {
+            margin-top: 1.5rem;
+            font-size: 1.1rem;
+            color: #6b7280;
+          }
+        `}</style>
+        <div className="loading-container">
+          <Sidebar />
+          <div className="loading-content">
+            <div className="spinner"></div>
+            <p className="loading-text">Loading appointments...</p>
+          </div>
+        </div>
+      </>
     );
   }
 
@@ -107,44 +155,74 @@ const Check_Appointment = () => {
             justify-content: center;
             text-align: center;
           }
+          .no-appointments-card {
+            background: white;
+            padding: 3rem 2.5rem;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+          }
+          .no-appointments-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            animation: float 3s ease-in-out infinite;
+          }
+          @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+          }
           .no-appointments-title {
-            font-size: 2rem;
-            color: #667eea;
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             margin-bottom: 1rem;
           }
           .no-appointments-message {
-            font-size: 1.1rem;
+            font-size: 1rem;
             color: #6b7280;
             margin-bottom: 2rem;
+            line-height: 1.6;
           }
           .refresh-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%);
             color: white;
             border: none;
-            padding: 0.75rem 1.5rem;
+            padding: 0.875rem 1.75rem;
             border-radius: 12px;
             font-weight: 600;
+            font-size: 0.95rem;
             cursor: pointer;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
           }
           .refresh-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 8px 20px rgba(14, 165, 233, 0.4);
+          }
+          .refresh-btn:active {
+            transform: translateY(0);
           }
         `}</style>
         <div className="no-appointments">
           <Sidebar />
           <div className="no-appointments-content">
-            <h2 className="no-appointments-title">No Pending Appointments</h2>
-            <p className="no-appointments-message">
-              {data.user.userType === "doctor" 
-                ? "All appointments have been completed or there are no new appointments."
-                : "You have no upcoming appointments."
-              }
-            </p>
-            <button className="refresh-btn" onClick={refreshAppointments}>
-              🔄 Refresh Appointments
-            </button>
+            <div className="no-appointments-card">
+              <div className="no-appointments-icon">📅</div>
+              <h2 className="no-appointments-title">No Current Appointments</h2>
+              <p className="no-appointments-message">
+                {data.user.userType === "doctor" 
+                  ? "You don't have any pending appointments at the moment. All appointments have been completed or there are no new bookings."
+                  : "You don't have any upcoming appointments. Book an appointment with a doctor to get started."
+                }
+              </p>
+              <button className="refresh-btn" onClick={refreshAppointments}>
+                🔄 Refresh
+              </button>
+            </div>
           </div>
         </div>
       </>

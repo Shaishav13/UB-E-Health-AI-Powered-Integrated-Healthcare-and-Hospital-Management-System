@@ -1,62 +1,16 @@
-import React, { useState } from "react";
-import one from "../../../../../img/motor.png";
-import two from "../../../../../img/bolan.png";
-import three from "../../../../../img/deluxambulance.png";
-import { useDispatch, useSelector } from "react-redux";
-import { AmbulanceRegister } from "../../../../../Redux/auth/action";
+import React from "react";
 import Sidebar from "../../GlobalFiles/Sidebar";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import { Navigate } from "react-router-dom";
-
-const notify = (text) => toast(text);
+import { useSelector } from "react-redux";
 
 const Add_Ambulance = () => {
   const { data } = useSelector((store) => store.auth);
-  const dispatch = useDispatch();
-
-  const [ambuType, setAmbuType] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const [AmbuData, setAmbuData] = useState({
-    numPlate: "",
-    ambuType: "",
-    pph: "",
-    driverName: "",
-    driverNum: "",
-  });
-
-  const HandleAmbuChange = (e) => {
-    setAmbuData({ ...AmbuData, [e.target.name]: e.target.value });
-  };
-
-  const HandleAmbuSubmit = (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    const payload = { ...AmbuData, ambuType };
-
-    dispatch(AmbulanceRegister(payload)).then((res) => {
-      if (res.message === "Ambulance already exists") {
-        setLoading(false);
-        return notify("Ambulance Already Exists");
-      }
-      if (res.message === "error") {
-        setLoading(false);
-        return notify("Something went wrong. Please try again.");
-      }
-      setLoading(false);
-      notify("Ambulance Added Successfully ✔");
-    });
-  };
 
   if (!data?.isAuthenticated) return <Navigate to="/" />;
   if (data?.user.userType !== "admin") return <Navigate to="/dashboard" />;
 
   return (
     <>
-      <ToastContainer />
-
       {/* ---------- INLINE MODERN CSS ---------- */}
       <style>
         {`
@@ -69,106 +23,84 @@ const Add_Ambulance = () => {
           .ambu-content {
             flex: 1;
             padding: 2.5rem 3rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
           }
 
-          h1.ambu-title {
-            font-size: 2rem;
+          .coming-soon-card {
+            background: white;
+            padding: 3rem 2.5rem;
+            border-radius: 22px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            text-align: center;
+          }
+
+          .coming-soon-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            animation: pulse 2s ease-in-out infinite;
+          }
+
+          @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+          }
+
+          .coming-soon-title {
+            font-size: 2.2rem;
             font-weight: 700;
             color: #0b6b61;
+            margin-bottom: 1rem;
+          }
+
+          .coming-soon-subtitle {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #555;
             margin-bottom: 1.5rem;
           }
 
-          .ambu-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 22px;
-            max-width: 780px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.12);
-            transition: .25s ease;
-          }
-
-          .ambu-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 26px rgba(0,0,0,0.15);
-          }
-
-          .ambu-image-row {
-            display: flex;
-            gap: 1.5rem;
-            justify-content: center;
+          .coming-soon-message {
+            font-size: 1.1rem;
+            color: #666;
+            line-height: 1.8;
             margin-bottom: 2rem;
           }
 
-          .ambu-image-row img {
-            width: 150px;
-            height: 100px;
-            object-fit: contain;
-            cursor: pointer;
-            border-radius: 14px;
-            padding: 10px;
-            background: #ffffff;
-            border: 2px solid transparent;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-            transition: .25s ease;
-          }
-
-          .ambu-image-row img:hover {
-            transform: scale(1.05);
-            border-color: #0b6b61;
-            background: #e7f6f4;
-          }
-
-          .ambu-image-row img.active {
-            border-color: #0b6b61;
-            background: #e7f6f4;
-            transform: scale(1.05);
-          }
-
-          .form-group {
-            margin-bottom: 1.3rem;
-          }
-
-          .form-group label {
-            font-weight: 600;
-            color: #0b6b61;
-            margin-bottom: .4rem;
-            display: block;
-          }
-
-          .form-group input {
-            width: 100%;
-            padding: .75rem 1rem;
-            font-size: 1rem;
-            border-radius: 12px;
-            border: 2px solid #d0dada;
-            transition: .25s ease;
-            background: white;
-          }
-
-          .form-group input:focus {
-            outline: none;
-            border-color: #0b6b61;
-            box-shadow: 0 0 0 3px rgba(11,107,97,0.15);
-          }
-
-          .ambu-submit {
-            width: 100%;
-            padding: .9rem;
+          .feature-badge {
+            display: inline-block;
             background: linear-gradient(135deg, #0b6b61, #139b86);
             color: white;
-            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 25px;
             font-weight: 600;
-            font-size: 1.1rem;
-            border-radius: 14px;
-            cursor: pointer;
-            transition: .25s ease;
-            margin-top: .8rem;
+            font-size: 0.95rem;
+            margin-top: 1rem;
           }
 
-          .ambu-submit:hover {
-            background: linear-gradient(135deg, #09584f, #0e8573);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 18px rgba(0,0,0,0.14);
+          .info-box {
+            background: #e7f6f4;
+            border-left: 4px solid #0b6b61;
+            padding: 1.2rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+            text-align: left;
+          }
+
+          .info-box h4 {
+            color: #0b6b61;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+          }
+
+          .info-box p {
+            color: #555;
+            margin: 0;
+            font-size: 0.95rem;
           }
         `}
       </style>
@@ -178,96 +110,32 @@ const Add_Ambulance = () => {
         <Sidebar />
 
         <div className="ambu-content">
-          <h1 className="ambu-title">Add Ambulance</h1>
+          <div className="coming-soon-card">
+            <div className="coming-soon-icon">🚑</div>
+            
+            <h1 className="coming-soon-title">Add Ambulance</h1>
+            
+            <h2 className="coming-soon-subtitle">Feature Coming Soon!</h2>
+            
+            <p className="coming-soon-message">
+              The ambulance management feature is currently under development 
+              and will be available in the next update. We're working hard to 
+              bring you an enhanced ambulance booking and tracking system.
+            </p>
 
-          <div className="ambu-card">
-            {/* Image Selection */}
-            <div className="ambu-image-row">
-              <img
-                src={one}
-                className={ambuType === "Ambulance Bike" ? "active" : ""}
-                onClick={() => setAmbuType("Ambulance Bike")}
-              />
-
-              <img
-                src={two}
-                className={ambuType === "Bolan van ambulance" ? "active" : ""}
-                onClick={() => setAmbuType("Bolan van ambulance")}
-              />
-
-              <img
-                src={three}
-                className={ambuType === "Hiace Deluxe Ambulance" ? "active" : ""}
-                onClick={() => setAmbuType("Hiace Deluxe Ambulance")}
-              />
+            <div className="feature-badge">
+              ⏳ Temporarily Disabled
             </div>
 
-            {/* Form */}
-            <form onSubmit={HandleAmbuSubmit}>
-              <div className="form-group">
-                <label>Ambulance Type</label>
-                <input
-                  type="text"
-                  name="ambuType"
-                  placeholder="Click image above"
-                  value={ambuType}
-                  onChange={HandleAmbuChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Price per Hour</label>
-                <input
-                  type="number"
-                  name="pph"
-                  placeholder="e.g. 500"
-                  value={AmbuData.pph}
-                  onChange={HandleAmbuChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Ambulance Plate Number</label>
-                <input
-                  type="text"
-                  name="numPlate"
-                  placeholder="ABC-123"
-                  value={AmbuData.numPlate}
-                  onChange={HandleAmbuChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Driver Name</label>
-                <input
-                  type="text"
-                  name="driverName"
-                  placeholder="Driver Name"
-                  value={AmbuData.driverName}
-                  onChange={HandleAmbuChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Driver Contact Number</label>
-                <input
-                  type="number"
-                  name="driverNum"
-                  placeholder="Contact Number"
-                  value={AmbuData.driverNum}
-                  onChange={HandleAmbuChange}
-                  required
-                />
-              </div>
-
-              <button type="submit" className="ambu-submit">
-                {loading ? "Loading..." : "Submit"}
-              </button>
-            </form>
+            <div className="info-box">
+              <h4>📋 What to Expect:</h4>
+              <p>
+                • Real-time ambulance tracking<br/>
+                • Driver management system<br/>
+                • Emergency response optimization<br/>
+                • Automated dispatch system
+              </p>
+            </div>
           </div>
         </div>
       </div>

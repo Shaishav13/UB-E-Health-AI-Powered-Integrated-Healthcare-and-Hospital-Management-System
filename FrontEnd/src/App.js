@@ -5,6 +5,8 @@
  */
 
 import "./App.css";
+import "./responsive.css";
+import "./modern-theme.css";
 import AllRoutes from "./Routes/AllRoutes";
 
 function App() {

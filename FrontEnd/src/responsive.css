@@ -1,0 +1,362 @@
+/*
+ * E-Health Management Hub - Responsive Utilities
+ * Copyright (c) 2025 Shaishav
+ * Licensed under MIT License
+ */
+
+/* ========================================
+   RESPONSIVE GRID SYSTEM
+   ======================================== */
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: -0.5rem;
+}
+
+.col {
+  flex: 1;
+  padding: 0.5rem;
+  min-width: 0;
+}
+
+/* Column sizes */
+.col-1 { flex: 0 0 8.333333%; max-width: 8.333333%; }
+.col-2 { flex: 0 0 16.666667%; max-width: 16.666667%; }
+.col-3 { flex: 0 0 25%; max-width: 25%; }
+.col-4 { flex: 0 0 33.333333%; max-width: 33.333333%; }
+.col-5 { flex: 0 0 41.666667%; max-width: 41.666667%; }
+.col-6 { flex: 0 0 50%; max-width: 50%; }
+.col-7 { flex: 0 0 58.333333%; max-width: 58.333333%; }
+.col-8 { flex: 0 0 66.666667%; max-width: 66.666667%; }
+.col-9 { flex: 0 0 75%; max-width: 75%; }
+.col-10 { flex: 0 0 83.333333%; max-width: 83.333333%; }
+.col-11 { flex: 0 0 91.666667%; max-width: 91.666667%; }
+.col-12 { flex: 0 0 100%; max-width: 100%; }
+
+/* Mobile columns */
+@media (max-width: 767.98px) {
+  .col-mobile-12 { flex: 0 0 100%; max-width: 100%; }
+  .col-mobile-6 { flex: 0 0 50%; max-width: 50%; }
+  .col-mobile-4 { flex: 0 0 33.333333%; max-width: 33.333333%; }
+  .col-mobile-3 { flex: 0 0 25%; max-width: 25%; }
+}
+
+/* ========================================
+   RESPONSIVE SPACING
+   ======================================== */
+
+/* Padding */
+.p-0 { padding: 0; }
+.p-1 { padding: 0.25rem; }
+.p-2 { padding: 0.5rem; }
+.p-3 { padding: 1rem; }
+.p-4 { padding: 1.5rem; }
+.p-5 { padding: 2rem; }
+
+/* Margin */
+.m-0 { margin: 0; }
+.m-1 { margin: 0.25rem; }
+.m-2 { margin: 0.5rem; }
+.m-3 { margin: 1rem; }
+.m-4 { margin: 1.5rem; }
+.m-5 { margin: 2rem; }
+
+/* Margin auto */
+.mx-auto { margin-left: auto; margin-right: auto; }
+.my-auto { margin-top: auto; margin-bottom: auto; }
+
+/* Responsive spacing */
+@media (max-width: 767.98px) {
+  .p-mobile-1 { padding: 0.25rem; }
+  .p-mobile-2 { padding: 0.5rem; }
+  .p-mobile-3 { padding: 1rem; }
+  
+  .m-mobile-1 { margin: 0.25rem; }
+  .m-mobile-2 { margin: 0.5rem; }
+  .m-mobile-3 { margin: 1rem; }
+}
+
+/* ========================================
+   RESPONSIVE DISPLAY
+   ======================================== */
+
+.d-none { display: none; }
+.d-block { display: block; }
+.d-inline { display: inline; }
+.d-inline-block { display: inline-block; }
+.d-flex { display: flex; }
+.d-grid { display: grid; }
+
+/* Mobile display */
+@media (max-width: 767.98px) {
+  .d-mobile-none { display: none; }
+  .d-mobile-block { display: block; }
+  .d-mobile-flex { display: flex; }
+}
+
+/* Desktop display */
+@media (min-width: 768px) {
+  .d-desktop-none { display: none; }
+  .d-desktop-block { display: block; }
+  .d-desktop-flex { display: flex; }
+}
+
+/* ========================================
+   RESPONSIVE FLEXBOX
+   ======================================== */
+
+.flex-row { flex-direction: row; }
+.flex-column { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-nowrap { flex-wrap: nowrap; }
+
+.justify-start { justify-content: flex-start; }
+.justify-center { justify-content: center; }
+.justify-end { justify-content: flex-end; }
+.justify-between { justify-content: space-between; }
+.justify-around { justify-content: space-around; }
+
+.align-start { align-items: flex-start; }
+.align-center { align-items: center; }
+.align-end { align-items: flex-end; }
+.align-stretch { align-items: stretch; }
+
+/* Mobile flexbox */
+@media (max-width: 767.98px) {
+  .flex-mobile-column { flex-direction: column; }
+  .flex-mobile-row { flex-direction: row; }
+  .justify-mobile-center { justify-content: center; }
+  .align-mobile-center { align-items: center; }
+}
+
+/* ========================================
+   RESPONSIVE TEXT
+   ======================================== */
+
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+
+.text-mobile-center {
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .text-mobile-center {
+    text-align: left;
+  }
+}
+
+/* Font sizes */
+.text-xs { font-size: 0.75rem; }
+.text-sm { font-size: 0.875rem; }
+.text-base { font-size: 1rem; }
+.text-lg { font-size: 1.125rem; }
+.text-xl { font-size: 1.25rem; }
+.text-2xl { font-size: 1.5rem; }
+.text-3xl { font-size: 1.875rem; }
+.text-4xl { font-size: 2.25rem; }
+
+/* Responsive font sizes */
+@media (max-width: 767.98px) {
+  .text-responsive-sm { font-size: 0.875rem; }
+  .text-responsive-base { font-size: 1rem; }
+  .text-responsive-lg { font-size: 1.125rem; }
+  .text-responsive-xl { font-size: 1.25rem; }
+}
+
+/* ========================================
+   RESPONSIVE WIDTH
+   ======================================== */
+
+.w-25 { width: 25%; }
+.w-50 { width: 50%; }
+.w-75 { width: 75%; }
+.w-100 { width: 100%; }
+.w-auto { width: auto; }
+
+.max-w-sm { max-width: 24rem; }
+.max-w-md { max-width: 28rem; }
+.max-w-lg { max-width: 32rem; }
+.max-w-xl { max-width: 36rem; }
+.max-w-2xl { max-width: 42rem; }
+.max-w-full { max-width: 100%; }
+
+/* Mobile width */
+@media (max-width: 767.98px) {
+  .w-mobile-100 { width: 100%; }
+  .w-mobile-auto { width: auto; }
+}
+
+/* ========================================
+   RESPONSIVE HEIGHT
+   ======================================== */
+
+.h-100 { height: 100%; }
+.h-auto { height: auto; }
+.min-h-screen { min-height: 100vh; }
+
+/* ========================================
+   RESPONSIVE OVERFLOW
+   ======================================== */
+
+.overflow-auto { overflow: auto; }
+.overflow-hidden { overflow: hidden; }
+.overflow-scroll { overflow: scroll; }
+.overflow-x-auto { overflow-x: auto; }
+.overflow-y-auto { overflow-y: auto; }
+
+/* ========================================
+   RESPONSIVE POSITION
+   ======================================== */
+
+.position-relative { position: relative; }
+.position-absolute { position: absolute; }
+.position-fixed { position: fixed; }
+.position-sticky { position: sticky; }
+
+/* ========================================
+   RESPONSIVE VISIBILITY
+   ======================================== */
+
+/* Hide on mobile */
+@media (max-width: 767.98px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+/* Hide on tablet */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .hide-tablet {
+    display: none !important;
+  }
+}
+
+/* Hide on desktop */
+@media (min-width: 992px) {
+  .hide-desktop {
+    display: none !important;
+  }
+}
+
+/* Show only on mobile */
+.show-mobile {
+  display: none !important;
+}
+
+@media (max-width: 767.98px) {
+  .show-mobile {
+    display: block !important;
+  }
+}
+
+/* ========================================
+   RESPONSIVE CARDS
+   ======================================== */
+
+.card-responsive {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+@media (min-width: 768px) {
+  .card-responsive {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .card-responsive {
+    padding: 2rem;
+  }
+}
+
+.card-responsive:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ========================================
+   RESPONSIVE BUTTONS
+   ======================================== */
+
+.btn-responsive {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 767.98px) {
+  .btn-responsive {
+    width: 100%;
+    padding: 0.875rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* ========================================
+   RESPONSIVE CONTAINERS
+   ======================================== */
+
+.container-fluid {
+  width: 100%;
+  padding-right: 1rem;
+  padding-left: 1rem;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.container-responsive {
+  width: 100%;
+  padding-right: 1rem;
+  padding-left: 1rem;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+@media (min-width: 576px) {
+  .container-responsive {
+    max-width: 540px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container-responsive {
+    max-width: 720px;
+  }
+}
+
+@media (min-width: 992px) {
+  .container-responsive {
+    max-width: 960px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .container-responsive {
+    max-width: 1140px;
+  }
+}
+
+/* ========================================
+   RESPONSIVE GAP
+   ======================================== */
+
+.gap-1 { gap: 0.25rem; }
+.gap-2 { gap: 0.5rem; }
+.gap-3 { gap: 1rem; }
+.gap-4 { gap: 1.5rem; }
+.gap-5 { gap: 2rem; }
+
+@media (max-width: 767.98px) {
+  .gap-mobile-1 { gap: 0.25rem; }
+  .gap-mobile-2 { gap: 0.5rem; }
+  .gap-mobile-3 { gap: 1rem; }
+}

@@ -64,7 +64,7 @@ const AddDoctor = () => {
         return notify("Something went wrong. Please try again");
       }
 
-      notify("Doctor Added ✔ Sending Login Details...");
+      notify("Doctor Added Successfully ✔");
 
       const payload = {
         email: res.email,
@@ -72,13 +72,17 @@ const AddDoctor = () => {
       };
 
       dispatch(mailCreds(payload)).then((info) => {
+        setLoading(false);
         if (info.message === "successful") {
-          setLoading(false);
-          return notify("Login Details Sent ✔");
+          return notify("Login credentials sent via email ✔");
+        } else if (info.message === "email_not_configured") {
+          return notify("Doctor added! Email not configured - provide login details manually (ID: Doctor ID, Password: Doctor2123)");
         } else {
-          setLoading(false);
-          return notify("Error sending login details");
+          return notify("Doctor added! Email notification failed - provide login details manually");
         }
+      }).catch(() => {
+        setLoading(false);
+        notify("Doctor added! Email notification failed - provide login details manually");
       });
 
       setDoctorValue(initData);

@@ -22,11 +22,14 @@ const ManageDoctors = () => {
       });
 
       const mappedDoctors = Array.isArray(response.data)
-        ? response.data.map((doctor) => ({
+        ? response.data.map((doctor, index) => ({
             ...doctor,
-            phonenum: doctor.phonenum || doctor.phoneNum || doctor.phonenumber,
-            bloodgroup: doctor.bloodgroup || doctor.bloodGroup,
-            dob: doctor.dob || doctor.DOB,
+            key: doctor._id || doctor.doctorId || `doctor-${index}`, // Unique key for React
+            displayId: index + 1, // Clean sequential ID for display
+            actualId: doctor.doctorId, // Use doctorId for operations (not _id)
+            phonenum: doctor.phoneNum || doctor.phonenum || doctor.phonenumber,
+            bloodgroup: doctor.bloodGroup || doctor.bloodgroup,
+            dob: doctor.DOB || doctor.dob,
           }))
         : [];
 
@@ -44,20 +47,32 @@ const ManageDoctors = () => {
 
   const handleEdit = (doctor) => {
     setEditingDoctor(doctor);
-    form.setFieldsValue(doctor);
+    
+    // Format the date properly for the date input
+    const formattedDoctor = {
+      ...doctor,
+      dob: doctor.dob ? new Date(doctor.dob).toISOString().split('T')[0] : ''
+    };
+    
+    form.setFieldsValue(formattedDoctor);
     setIsModalVisible(true);
   };
 
   const handleDelete = async (id) => {
     try {
       const token = localStorage.getItem("token");
+      console.log("Deleting doctor with ID:", id);
+      
       await axios.delete(`http://127.0.0.1:3001/admin/doctors/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       message.success("Doctor deleted");
       fetchDoctors();
     } catch (error) {
-      message.error("Failed to delete doctor");
+      console.error("Delete error:", error);
+      console.error("Error response:", error.response?.data);
+      console.error("Error status:", error.response?.status);
+      message.error(`Failed to delete doctor: ${error.response?.data?.error || error.message}`);
     }
   };
 
@@ -67,12 +82,12 @@ const ManageDoctors = () => {
 
       const updateData = {
         name: values.name,
-        phonenum: values.phonenum,
+        phonenum: values.phonenum || values.phoneNum,
         email: values.email,
         age: parseInt(values.age),
         gender: values.gender,
-        bloodgroup: values.bloodgroup,
-        dob: values.dob,
+        bloodgroup: values.bloodgroup || values.bloodGroup,
+        dob: values.dob || values.DOB,
         address: values.address,
         education: values.education,
         department: values.department,
@@ -80,9 +95,13 @@ const ManageDoctors = () => {
       };
 
       const token = localStorage.getItem("token");
+      const doctorId = editingDoctor.actualId || editingDoctor.doctorId;
+
+      console.log("Updating doctor with doctorId:", doctorId);
+      console.log("Update data:", updateData);
 
       await axios.put(
-        `http://127.0.0.1:3001/admin/doctors/${editingDoctor.id}`,
+        `http://127.0.0.1:3001/admin/doctors/${doctorId}`,
         updateData,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -94,7 +113,10 @@ const ManageDoctors = () => {
       form.resetFields();
       fetchDoctors();
     } catch (error) {
-      message.error("Failed to update doctor");
+      console.error("Update error:", error);
+      console.error("Error response:", error.response?.data);
+      console.error("Error status:", error.response?.status);
+      message.error(`Failed to update doctor: ${error.response?.data?.error || error.message}`);
     }
   };
 
@@ -106,8 +128,8 @@ const ManageDoctors = () => {
   const columns = [
     { 
       title: "ID", 
-      dataIndex: "id", 
-      key: "id",
+      dataIndex: "displayId", 
+      key: "displayId",
       width: 80,
     },
     { 
@@ -145,7 +167,7 @@ const ManageDoctors = () => {
             Edit
           </Button>
 
-          <Button danger onClick={() => handleDelete(record.id)}>
+          <Button danger onClick={() => handleDelete(record.actualId || record.doctorId)}>
             Delete
           </Button>
         </div>
@@ -157,7 +179,7 @@ const ManageDoctors = () => {
     <>
       {/* ===== ENHANCED INLINE CSS ===== */}
       <style>{`
-        .container {
+        .admin-page {
           display: flex;
           align-items: flex-start !important;
           background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
@@ -165,7 +187,7 @@ const ManageDoctors = () => {
           position: relative;
         }
 
-        .container::before {
+        .admin-page::before {
           content: '';
           position: absolute;
           top: 0;
@@ -176,7 +198,7 @@ const ManageDoctors = () => {
           pointer-events: none;
         }
 
-        .AfterSideBar {
+        .admin-content {
           margin: 0 !important;
           padding: 0 !important;
           flex: 1;
@@ -498,10 +520,10 @@ const ManageDoctors = () => {
       `}</style>
 
       {/* PAGE STRUCTURE */}
-      <div className="container">
+      <div className="admin-page">
         <Sidebar />
 
-        <div className="AfterSideBar">
+        <div className="admin-content">
           <div className="manage-container">
 
             <h2>👨‍⚕️ Manage Doctors</h2>
@@ -511,7 +533,7 @@ const ManageDoctors = () => {
                 columns={columns}
                 dataSource={doctors}
                 loading={loading}
-                rowKey="id"
+                rowKey={(record) => record.key || record.id || record._id}
               />
             </div>
 

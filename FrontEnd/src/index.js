@@ -1,5 +1,5 @@
 /*
- * E-Health Management Hub - Frontend Entry Point
+ * UB E-Health - Frontend Entry Point
  * Copyright (c) 2025 Shaishav
  * Licensed under MIT License - see LICENSE file for details
  */

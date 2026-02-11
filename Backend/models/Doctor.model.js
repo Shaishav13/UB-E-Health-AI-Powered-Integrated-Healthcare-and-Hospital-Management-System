@@ -83,9 +83,33 @@ const deleteDoctor = async (doctorId) => {
   if (!doctorId) {
     throw new Error("Doctor ID is required");
   }
-  // Remove doctor reference from patients
-  await mongoose.model("Patient").updateMany({ docID: parseInt(doctorId) }, { docID: null });
-  return await Doctor.findOneAndDelete({ doctorId: parseInt(doctorId) });
+  
+  try {
+    // First find the doctor to get their _id
+    const doctor = await Doctor.findOne({ doctorId: parseInt(doctorId) });
+    if (!doctor) {
+      throw new Error("Doctor not found");
+    }
+    
+    console.log(`Deleting doctor with doctorId: ${doctorId}, _id: ${doctor._id}`);
+    
+    // Remove doctor reference from patients using the doctor's _id (ObjectId)
+    const updateResult = await mongoose.model("Patient").updateMany(
+      { docID: doctor._id }, 
+      { $set: { docID: null } }
+    );
+    
+    console.log(`Updated ${updateResult.modifiedCount} patients, unassigning doctor`);
+    
+    // Delete the doctor
+    const deleteResult = await Doctor.findOneAndDelete({ doctorId: parseInt(doctorId) });
+    console.log(`Doctor deleted successfully`);
+    
+    return deleteResult;
+  } catch (error) {
+    console.error("Error in deleteDoctor:", error);
+    throw error;
+  }
 };
 
 const updateDoctorPassword = async (id, hashedPassword) => {

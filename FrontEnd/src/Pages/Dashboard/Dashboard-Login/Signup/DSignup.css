@@ -1,46 +1,154 @@
-.mainSignupPage{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10rem;
-    height: 100vh;
-    background-color: rgba(255, 243, 243, 0.874);}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.mainSignupPage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.mainSignupPage::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="medical" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M25 10 L25 40 M10 25 L40 25" stroke="rgba(255,255,255,0.05)" stroke-width="2" fill="none"/></pattern></defs><rect width="100" height="100" fill="url(%23medical)"/></svg>');
+  pointer-events: none;
+}
 
 .outerBox {
-    padding: 2rem;
-    align-items: center;
-    text-align: center;
-    width: 35%;
-    border-radius: 10px;
-    background-color: white;
-  }
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 3rem;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.1),
+    0 1px 0 rgba(255, 255, 255, 0.2) inset;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.outerBox:hover {
+  transform: translateY(-8px);
+  box-shadow: 
+    0 32px 64px rgba(0, 0, 0, 0.15),
+    0 1px 0 rgba(255, 255, 255, 0.3) inset;
+}
+
+.outerBox::after {
+  content: '👤';
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  font-size: 2rem;
+  opacity: 0.1;
+}
+
+.outerBox > h1 {
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+  margin-bottom: 2rem;
+  text-align: center;
+  letter-spacing: -0.02em;
+}
 
 .outerBox input {
-display: block;
-width: 100%;
-background-color: rgba(250, 225, 225, 0.874);
-height: 3rem;
-font-size: 1.2rem;
-margin: 10px 0px;
-border-radius: 5px;
-border: none;
-padding: 10px;
+  display: block;
+  width: 100%;
+  padding: 1.2rem 1.5rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  font-size: 1rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #fafbfc;
+  color: #1e293b;
+  margin-bottom: 1.8rem;
+}
+
+.outerBox input:focus {
+  outline: none;
+  border-color: #667eea;
+  background: white;
+  box-shadow: 
+    0 0 0 4px rgba(102, 126, 234, 0.1),
+    0 4px 12px rgba(102, 126, 234, 0.15);
+  transform: translateY(-2px);
+}
+
+.outerBox input::placeholder {
+  color: #94a3b8;
 }
 
 .outerBox button {
-    width: 100%;
-    height: 2.5rem;
-    border-radius: 2rem;
-    cursor: pointer;
-    font-size: 1.3rem;
-    font-weight: bolder;
-    background-color: rgba(244, 133, 133, 0.874);
-    border: none;
-    margin-top: 1.5rem;
+  width: 100%;
+  padding: 1.2rem 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.02em;
+  margin-top: 1rem;
+}
+
+.outerBox button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.outerBox button:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 
+    0 12px 24px rgba(102, 126, 234, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+}
+
+.outerBox button:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.outerBox button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
 }
 
 form h3 {
-text-align: left;
+  text-align: left;
+  color: #1e293b;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.01em;
 }
 
 .resend-section {
@@ -49,50 +157,122 @@ text-align: left;
   justify-content: center;
   gap: 10px;
   margin: 10px 0 15px 0;
-  padding: 10px;
-  background-color: rgba(250, 225, 225, 0.3);
-  border-radius: 5px;
+  padding: 12px;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(102, 126, 234, 0.1);
+}
+
+.resend-section span {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
 }
 
 .resend-button {
   background: none !important;
   border: none !important;
-  color: #0b6b61 !important;
-  text-decoration: underline !important;
+  color: #667eea !important;
+  text-decoration: none !important;
   cursor: pointer !important;
   font-size: 14px !important;
-  font-weight: 500 !important;
-  padding: 2px 4px !important;
+  font-weight: 600 !important;
+  padding: 4px 8px !important;
   margin: 0 !important;
   height: auto !important;
   width: auto !important;
-  border-radius: 0 !important;
-  transition: opacity 0.3s ease;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+  position: relative !important;
 }
 
-.resend-button:hover {
-  opacity: 0.8;
+.resend-button:hover:not(:disabled) {
+  background: rgba(102, 126, 234, 0.1) !important;
+  color: #764ba2 !important;
+  transform: translateY(-1px) !important;
 }
 
 .resend-button:disabled {
   cursor: not-allowed !important;
-  opacity: 0.6 !important;
+  opacity: 0.5 !important;
+  color: #94a3b8 !important;
 }
 
 .verification-info {
   font-size: 14px;
-  color: #666;
-  margin-bottom: 10px;
-  line-height: 1.4;
-  padding: 10px;
-  background-color: rgba(11, 107, 97, 0.1);
-  border-radius: 5px;
-  border-left: 4px solid #0b6b61;
+  color: #475569;
+  margin-bottom: 12px;
+  line-height: 1.6;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+  border-radius: 12px;
+  border-left: 4px solid #667eea;
+  text-align: left;
+}
+
+.verification-info strong {
+  color: #667eea;
+  font-weight: 600;
+}
+
+.verification-info a {
+  color: #667eea;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.verification-info a:hover {
+  color: #764ba2;
+  border-bottom-color: #764ba2;
 }
 
 .verification-input {
   text-align: center !important;
-  font-size: 18px !important;
-  letter-spacing: 2px !important;
-  font-weight: bold !important;
+  font-size: 20px !important;
+  letter-spacing: 8px !important;
+  font-weight: 700 !important;
+  font-family: 'Courier New', monospace !important;
+  background: white !important;
+}
+
+/* Responsive Design */
+@media only screen and (max-width: 768px) {
+  .mainSignupPage {
+    padding: 1.5rem;
+  }
+
+  .outerBox {
+    max-width: 100%;
+    padding: 2rem;
+  }
+
+  .outerBox > h1 {
+    font-size: 2rem;
+  }
+}
+
+@media only screen and (max-width: 480px) {
+  .mainSignupPage {
+    padding: 1rem;
+  }
+
+  .outerBox {
+    padding: 1.5rem;
+  }
+
+  .outerBox > h1 {
+    font-size: 1.8rem;
+  }
+
+  .outerBox input {
+    padding: 1rem;
+    font-size: 0.95rem;
+  }
+
+  .outerBox button {
+    padding: 1rem;
+    font-size: 1rem;
+  }
 }

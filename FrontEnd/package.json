@@ -1,7 +1,7 @@
 {
   "name": "e-health-care-management-hub",
   "version": "0.1.0",
-  "description": "E-Health Management Hub - Frontend React Application",
+  "description": "UB E-Health - Frontend React Application",
   "author": "Shaishav",
   "license": "MIT",
   "private": true,
@@ -19,6 +19,8 @@
     "@testing-library/user-event": "^13.5.0",
     "antd": "^5.0.3",
     "axios": "^1.2.0",
+    "jspdf": "^4.1.0",
+    "jspdf-autotable": "^5.0.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.7.1",

@@ -14,6 +14,7 @@ import Book_Appointment from "../Pages/Dashboard/Main-Dashboard/AllPages/Patient
 import Patient_Profile from "../Pages/Dashboard/Main-Dashboard/AllPages/Patient/Patient_Profile";
 import Payment_Gateway from "../Pages/Dashboard/Main-Dashboard/AllPages/Patient/Payment_Gateway";
 import My_Medications from "../Pages/Dashboard/Main-Dashboard/AllPages/Patient/My_Medications";
+import My_Appointments from "../Pages/Dashboard/Main-Dashboard/AllPages/Patient/My_Appointments";
 import FrontPage from "../Pages/Dashboard/Main-Dashboard/GlobalFiles/FrontPage";
 import Admin_Profile from "../Pages/Dashboard/Main-Dashboard/AllPages/Admin/Admin_Profile";
 import ManageDoctors from "../Pages/Dashboard/Main-Dashboard/AllPages/Admin/Manage_Doctors";
@@ -44,6 +45,7 @@ const AllRoutes = () => {
         <Route path="/payment" element={<Payment_Gateway />} />
         <Route path="/patientprofile" element={<Patient_Profile />} />
         <Route path="/mymedications" element={<My_Medications />} />
+        <Route path="/myappointments" element={<My_Appointments />} />
       </Routes>
     </>
   );

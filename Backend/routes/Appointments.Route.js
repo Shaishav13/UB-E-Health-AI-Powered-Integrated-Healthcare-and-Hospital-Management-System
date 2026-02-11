@@ -114,6 +114,18 @@ router.get("/:userType/:id", async (req, res) => {
   }
 });
 
+// New route to get ALL appointments for a patient (including completed)
+router.get("/patient/:id/all", async (req, res) => {
+  const id = req.params.id;
+  try {
+    const appointments = await getAppointmentsByPatient(id);
+    res.status(200).send(appointments);
+  } catch (error) {
+    console.log(error);
+    res.status(400).send({ message: "error" });
+  }
+});
+
 router.post("/create", async (req, res) => {
   const payload = req.body;
   console.log("Received appointment payload:", JSON.stringify(payload, null, 2));
@@ -131,7 +143,10 @@ router.post("/create", async (req, res) => {
         reason: payload.problem || payload.reason || "General Consultation",
         payment_id: payload.payment_id || null,
         amount: payload.amount || null,
-        status: payload.status || 'pending'
+        status: payload.status || 'pending',
+        tokenId: payload.tokenId || null,
+        queueNumber: payload.queueNumber || null,
+        receiptGenerated: payload.receiptGenerated || null
       };
       
       console.log("Creating appointment with data:", JSON.stringify(appointment, null, 2));

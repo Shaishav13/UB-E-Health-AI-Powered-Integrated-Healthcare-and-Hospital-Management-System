@@ -1,5 +1,5 @@
 /*
- * E-Health Management Hub - Backend Server
+ * UB E-Health - Backend Server
  * Copyright (c) 2025 Shaishav
  * Licensed under MIT License - see LICENSE file for details
  */

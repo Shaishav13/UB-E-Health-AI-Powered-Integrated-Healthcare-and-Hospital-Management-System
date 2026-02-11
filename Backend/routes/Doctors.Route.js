@@ -179,4 +179,42 @@ router.get("/patients", authenticate, async (req, res) => {
   }
 });
 
+// Change password endpoint with bcrypt verification
+router.post("/change-password", async (req, res) => {
+  try {
+    const { doctorId, oldPassword, newPassword } = req.body;
+    
+    console.log("Password change request for doctor:", doctorId);
+    
+    if (!doctorId || !oldPassword || !newPassword) {
+      return res.status(400).send({ error: "All fields are required" });
+    }
+    
+    // Find doctor using the model function
+    const doctor = await findById(parseInt(doctorId));
+    
+    if (!doctor) {
+      return res.status(404).send({ error: "Doctor not found" });
+    }
+    
+    // Verify old password using bcrypt
+    const bcrypt = require("bcrypt");
+    const isMatch = await bcrypt.compare(oldPassword, doctor.password);
+    
+    if (!isMatch) {
+      return res.status(400).send({ error: "Incorrect old password" });
+    }
+    
+    // Update password using the model function (it will hash automatically)
+    await updatePass(newPassword, parseInt(doctorId));
+    
+    console.log("Password updated successfully for doctor:", doctorId);
+    res.status(200).send({ message: "Password updated successfully" });
+    
+  } catch (error) {
+    console.error("Password change error:", error);
+    res.status(500).send({ error: "Failed to update password" });
+  }
+});
+
 module.exports = router;

@@ -16,7 +16,7 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import { Button } from "antd";
 
 function Row(props) {
-  const { row, onDelete, rowIndex } = props;
+  const { row, onDelete, onDownloadReceipt, rowIndex } = props;
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -37,15 +37,31 @@ function Row(props) {
         <TableCell align="right">{row.date}</TableCell>
         <TableCell align="right">{row.time}</TableCell>
         <TableCell align="right">
-          <Button
-            type="primary"
-            size="large"
-            key="Awd"
-            danger
-            onClick={() => onDelete(rowIndex)}
-          >
-            {row.buttonText}
-          </Button>
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+            {row.hasReceipt && onDownloadReceipt && (
+              <Button
+                type="default"
+                size="large"
+                onClick={() => onDownloadReceipt(rowIndex)}
+                style={{
+                  background: '#0b6b61',
+                  color: 'white',
+                  border: 'none',
+                }}
+              >
+                Download Receipt
+              </Button>
+            )}
+            <Button
+              type="primary"
+              size="large"
+              key="Awd"
+              danger
+              onClick={() => onDelete(rowIndex)}
+            >
+              {row.buttonText}
+            </Button>
+          </div>
         </TableCell>
       </TableRow>
       <TableRow>
@@ -92,6 +108,7 @@ Row.propTypes = {
     date: PropTypes.string.isRequired,
     time: PropTypes.string.isRequired,
     buttonText: PropTypes.string.isRequired,
+    hasReceipt: PropTypes.bool,
     details: PropTypes.arrayOf(
       PropTypes.shape({
         phonenum: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
@@ -102,11 +119,12 @@ Row.propTypes = {
     ).isRequired,
   }).isRequired,
   onDelete: PropTypes.func.isRequired,
+  onDownloadReceipt: PropTypes.func,
   rowIndex: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
 };
 
 const CollapsibleTable = (props) => {
-  const { data, columns, onDelete } = props;
+  const { data, columns, onDelete, onDownloadReceipt } = props;
 
   return (
     <TableContainer component={Paper}>
@@ -130,7 +148,8 @@ const CollapsibleTable = (props) => {
             <Row 
               key={row.id || index} 
               row={row} 
-              onDelete={onDelete} 
+              onDelete={onDelete}
+              onDownloadReceipt={onDownloadReceipt}
               rowIndex={row.id} 
             />
           ))}
@@ -148,6 +167,7 @@ CollapsibleTable.propTypes = {
       date: PropTypes.string.isRequired,
       time: PropTypes.string.isRequired,
       buttonText: PropTypes.string.isRequired,
+      hasReceipt: PropTypes.bool,
       details: PropTypes.arrayOf(
         PropTypes.shape({
           phonenum: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
@@ -166,6 +186,7 @@ CollapsibleTable.propTypes = {
     })
   ).isRequired,
   onDelete: PropTypes.func.isRequired,
+  onDownloadReceipt: PropTypes.func,
 };
 
 export default CollapsibleTable;

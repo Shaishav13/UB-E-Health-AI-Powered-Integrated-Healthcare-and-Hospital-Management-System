@@ -12,6 +12,7 @@ import { UpdateDoctor, availabilityRegister } from "../../../../../Redux/auth/ac
 import { GetDoctorDetails } from "../../../../../Redux/Datas/action";
 import { Navigate } from "react-router-dom";
 import doctorImage from "../../../../../img/doctoravatar.png";
+import { convertTo12Hour } from "../../../../../utils/timeFormat";
 
 const Doctor_Profile = () => {
   const { data } = useSelector((store) => store.auth);
@@ -61,18 +62,50 @@ const Doctor_Profile = () => {
   const [formData, setFormData] = useState({});
   const handleFormChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  const submitPasswordChange = () => {
-    if (data.user.password !== formData.oldPass) return error("Incorrect old password");
-    if (formData.oldPass === formData.newPass) return error("New password can't be same as old");
-    if (formData.newPass !== formData.confirmNewPass) return error("Passwords do not match");
+  const submitPasswordChange = async () => {
+    if (!formData.oldPass || !formData.newPass || !formData.confirmNewPass) {
+      return error("All fields are required");
+    }
+    
+    if (formData.newPass !== formData.confirmNewPass) {
+      return error("New passwords do not match");
+    }
+    
+    if (formData.oldPass === formData.newPass) {
+      return error("New password must be different from old password");
+    }
 
-    dispatch(UpdateDoctor(data.user._id, { password: formData.newPass }, data.token))
-      .then((res) => {
-        if (res.message === "password updated") {
-          success("Password updated");
-          setDetailsOpen(false);
-        } else error("Something went wrong");
+    setConfirmLoading(true);
+    
+    try {
+      // Send to backend to verify old password and update
+      const response = await fetch(`http://127.0.0.1:3001/doctors/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          doctorId: data.user.doctorId || data.user._id,
+          oldPassword: formData.oldPass,
+          newPassword: formData.newPass,
+        }),
       });
+      
+      const result = await response.json();
+      
+      if (response.ok && result.message === "Password updated successfully") {
+        success("Password updated successfully");
+        setDetailsOpen(false);
+        setFormData({ oldPass: "", newPass: "", confirmNewPass: "" });
+      } else {
+        error(result.error || "Failed to update password");
+      }
+    } catch (err) {
+      console.error("Password change error:", err);
+      error("Failed to update password. Please try again.");
+    } finally {
+      setConfirmLoading(false);
+    }
   };
 
   // -------------------- AVAILABILITY CHANGE --------------------
@@ -319,7 +352,7 @@ const Doctor_Profile = () => {
                 <div className="info-line">
                   <AiFillClockCircle className="info-icon" />
                   <p>{doctor?.availability && Array.isArray(doctor.availability) && doctor.availability.length > 0 
-                      ? doctor.availability.join("  |  ") 
+                      ? doctor.availability.map(time => convertTo12Hour(time)).join("  |  ") 
                       : "Not set"}</p>
                 </div>
 

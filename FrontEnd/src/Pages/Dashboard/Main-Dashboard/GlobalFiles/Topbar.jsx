@@ -89,7 +89,7 @@ const Topbar = ({ onclick }) => {
         {/* LEFT SIDE */}
         <div className="topbar-left">
           <ImMenu className="menu-icon" onClick={onclick} />
-          <h2 className="topbar-title">E-Health Management Hub</h2>
+          <h2 className="topbar-title">UB E-Health</h2>
         </div>
 
         {/* SEARCH BAR */}

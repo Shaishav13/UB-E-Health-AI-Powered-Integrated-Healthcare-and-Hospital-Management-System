@@ -9,13 +9,15 @@ import {
   GetAppointments,
 } from "../../../../../Redux/Datas/action";
 import Sidebar from "../../GlobalFiles/Sidebar";
+import { generateReceipt } from "../../../../../Components/ReceiptGenerator";
+import { convertTo12Hour } from "../../../../../utils/timeFormat";
 
 const notify = (text) => toast(text);
 
 const Check_Appointment = () => {
   const { data } = useSelector((store) => store.auth);
-  const { patients } = useSelector((store) => store.data.patients);
-  const { doctors } = useSelector((store) => store.data.doctors);
+  const { patients = [] } = useSelector((store) => store.data.patients || {});
+  const { doctors = [] } = useSelector((store) => store.data.doctors || {});
   const { appointments } = useSelector((store) => store.data.appointments);
 
   const dispatch = useDispatch();
@@ -73,7 +75,7 @@ const Check_Appointment = () => {
     }
   };
 
-  // Add safety checks for data loading
+  // Add safety checks for data loading - only check for appointments
   const isLoading = !appointments || appointments === undefined;
   
   if (!data?.user) {
@@ -231,10 +233,10 @@ const Check_Appointment = () => {
 
   const patient =
     data.user.userType === "patient"
-      ? patients.find((patient) => patient._id === data.user._id)
+      ? patients?.find((patient) => patient._id === data.user._id)
       : appointmentsArray.map((appointment) => {
           // For doctor view, get patient from populated patientId
-          return appointment.patientId || patients.find(
+          return appointment.patientId || patients?.find(
             (patient) => patient._id === appointment.patientId
           );
         });
@@ -243,11 +245,11 @@ const Check_Appointment = () => {
     data.user.userType === "patient"
       ? appointmentsArray.map((appointment) => {
           // For patient view, get doctor from populated doctorId
-          return appointment.doctorId || doctors.find(
+          return appointment.doctorId || doctors?.find(
             (doctor) => doctor._id === appointment.doctorId
           );
         })
-      : doctors.find((doctor) => doctor._id === data.user._id);
+      : doctors?.find((doctor) => doctor._id === data.user._id);
 
   const createData = (
     id,
@@ -258,13 +260,15 @@ const Check_Appointment = () => {
     department,
     fees,
     problem,
-    buttonText
+    buttonText,
+    hasReceipt = false
   ) => ({
     id,
     name,
     date,
     time,
     buttonText,
+    hasReceipt,
     details: [{ 
       phonenum: String(phonenum || "N/A"), 
       department: String(department || "N/A"), 
@@ -289,8 +293,19 @@ const Check_Appointment = () => {
   const datas = appointmentsArray.map((appointment, index) => {
     const appointmentId = appointment._id || appointment.id;
     const appointmentDate = appointment.date ? new Date(appointment.date).toISOString().split('T')[0] : "N/A"; // Format as YYYY-MM-DD
-    const appointmentTime = appointment.time || "N/A";
+    const appointmentTime = appointment.time ? convertTo12Hour(appointment.time) : "N/A";
     const appointmentProblem = appointment.reason || appointment.problem || "N/A";
+    const hasReceipt = !!(appointment.tokenId && appointment.payment_id); // Check if receipt exists
+    
+    // Debug logging
+    console.log("=== APPOINTMENT RECEIPT CHECK ===");
+    console.log("Appointment ID:", appointmentId);
+    console.log("tokenId:", appointment.tokenId);
+    console.log("payment_id:", appointment.payment_id);
+    console.log("hasReceipt:", hasReceipt);
+    console.log("User type:", data.user.userType);
+    console.log("Full appointment object:", appointment);
+    console.log("================================");
     
     if (data.user.userType === "patient") {
       // For patient view, show doctor details
@@ -304,7 +319,8 @@ const Check_Appointment = () => {
         doctorInfo?.department || "N/A",
         doctorInfo?.fees || "N/A",
         appointmentProblem,
-        "Cancel"
+        "Cancel",
+        hasReceipt
       );
     } else {
       // For doctor view, show patient details
@@ -318,10 +334,36 @@ const Check_Appointment = () => {
         doctor?.department || "N/A",
         doctor?.fees || "N/A",
         appointmentProblem,
-        "Generate Report"
+        "Generate Report",
+        false // Doctors don't need receipt download
       );
     }
   });
+
+  // Handler for downloading receipt
+  const handleDownloadReceipt = (appointmentId) => {
+    console.log("Download receipt for appointment:", appointmentId);
+    const appointment = appointmentsArray.find((a) => (a.id || a._id) === appointmentId);
+    
+    if (!appointment) {
+      notify("Appointment not found");
+      return;
+    }
+    
+    if (!appointment.tokenId || !appointment.payment_id) {
+      notify("Receipt not available for this appointment");
+      return;
+    }
+    
+    try {
+      // Generate and download the receipt
+      generateReceipt(appointment, data.user);
+      notify("Receipt downloaded successfully");
+    } catch (error) {
+      console.error("Error generating receipt:", error);
+      notify("Failed to generate receipt");
+    }
+  };
 
   const clicked = (index) => {
     console.log("Generate Report clicked for appointment:", index);
@@ -668,7 +710,12 @@ const Check_Appointment = () => {
 
           <div className="appointments-card">
             <div className="table-wrapper">
-              <CollapsibleTable data={datas} columns={columns} onDelete={clicked} />
+              <CollapsibleTable 
+                data={datas} 
+                columns={columns} 
+                onDelete={clicked}
+                onDownloadReceipt={data.user.userType === "patient" ? handleDownloadReceipt : null}
+              />
             </div>
           </div>
         </div>

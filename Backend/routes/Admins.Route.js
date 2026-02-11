@@ -155,6 +155,16 @@ router.post("/mailCreds", async (req, res) => {
   try {
     console.log(req.body);
     const user = req.body;
+    
+    // Check if email is configured
+    if (!process.env.SMTP_HOST || !process.env.SMTP_MAIL || !process.env.SMTP_PASSWORD) {
+      console.log("Email not configured - skipping email notification");
+      return res.status(200).send({ 
+        message: "email_not_configured",
+        info: "Email service not configured. User created successfully but email notification skipped."
+      });
+    }
+    
     const creds =
       user.userType === "admin"
         ? await getAdminCredFromEmail(req.body.email)
@@ -194,13 +204,13 @@ router.post("/mailCreds", async (req, res) => {
     const mailOptions = {
       from: process.env.SMTP_MAIL,
       to: user.email,
-      subject: "🏥 E-Health Management Hub - Login Credentials",
+      subject: "🏥 UB E-Health - Login Credentials",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #0b6b61;">🏥 E-Health Management Hub</h2>
+          <h2 style="color: #0b6b61;">🏥 UB E-Health</h2>
           <h3 style="color: #d32f2f;">🔐 Your Login Credentials</h3>
           <p>Hello,</p>
-          <p>Welcome to E-Health Management Hub! Your account has been successfully created.</p>
+          <p>Welcome to UB E-Health! Your account has been successfully created.</p>
           
           <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
             <h3 style="margin-top: 0; color: #0b6b61;">Login Information:</h3>
@@ -242,12 +252,12 @@ router.post("/mailCreds", async (req, res) => {
           <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
           <p style="color: #666; font-size: 12px;">
             Best regards,<br>
-            E-Health Management Hub Team<br>
+            UB E-Health Team<br>
             <em>This is an automated message, please do not reply.</em>
           </p>
         </div>
       `,
-      text: `E-Health Management Hub - Login Credentials\n\nHello,\n\nWelcome to E-Health Management Hub! Your account has been successfully created.\n\nLogin Information:\nUser Type: ${user.userType.charAt(0).toUpperCase() + user.userType.slice(1)}\n${loginMethod}: ${loginId}\nPassword: ${loginPassword}\n\nLogin at: http://localhost:3000/\n\nBest regards,\nE-Health Management Hub Team`
+      text: `UB E-Health - Login Credentials\n\nHello,\n\nWelcome to UB E-Health! Your account has been successfully created.\n\nLogin Information:\nUser Type: ${user.userType.charAt(0).toUpperCase() + user.userType.slice(1)}\n${loginMethod}: ${loginId}\nPassword: ${loginPassword}\n\nLogin at: http://localhost:3000/\n\nBest regards,\nUB E-Health Team`
     };
 
     transporter.sendMail(mailOptions, async (error, info) => {
@@ -338,10 +348,10 @@ router.post("/forgot", async (req, res) => {
     const mailOptions = {
       from: process.env.SMTP_MAIL,
       to: email,
-      subject: "Password Reset - E-Health Management Hub",
+      subject: "Password Reset - UB E-Health",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #0b6b61;">🏥 E-Health Management Hub</h2>
+          <h2 style="color: #0b6b61;">🏥 UB E-Health</h2>
           <h3 style="color: #d32f2f;">🔐 Password Reset</h3>
           <p>Hello,</p>
           <p>You requested a password reset for your account. We've generated a temporary password for you.</p>
@@ -390,12 +400,12 @@ router.post("/forgot", async (req, res) => {
           <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
           <p style="color: #666; font-size: 12px;">
             Best regards,<br>
-            E-Health Management Hub Team<br>
+            UB E-Health Team<br>
             <em>This is an automated message, please do not reply.</em>
           </p>
         </div>
       `,
-      text: `Password Reset - E-Health Management Hub\n\nHello,\n\nYou requested a password reset. Here are your temporary login credentials:\n\n${userType === "patient" ? `Email: ${email}\nTemporary Password: ${tempPassword}` : userType === "doctor" ? `Doctor ID: ${userId}\nTemporary Password: ${tempPassword}` : `Username: ${userId}\nPassword: ${tempPassword}`}\n\nIMPORTANT: This is a temporary password. Please change it immediately after logging in.\n\nLogin at: http://localhost:3000/\n\nIf you didn't request this reset, please contact support.\n\nBest regards,\nE-Health Management Hub Team`
+      text: `Password Reset - UB E-Health\n\nHello,\n\nYou requested a password reset. Here are your temporary login credentials:\n\n${userType === "patient" ? `Email: ${email}\nTemporary Password: ${tempPassword}` : userType === "doctor" ? `Doctor ID: ${userId}\nTemporary Password: ${tempPassword}` : `Username: ${userId}\nPassword: ${tempPassword}`}\n\nIMPORTANT: This is a temporary password. Please change it immediately after logging in.\n\nLogin at: http://localhost:3000/\n\nIf you didn't request this reset, please contact support.\n\nBest regards,\nUB E-Health Team`
     };
     
     transporter.sendMail(mailOptions, (error, info) => {
@@ -429,7 +439,7 @@ router.put("/doctors/:id", async (req, res) => {
     const id = req.params.id;
     console.log("Update doctor request - ID:", id);
     console.log("Update doctor request - Body:", JSON.stringify(req.body, null, 2));
-    const doctorData = { ...req.body, id };
+    const doctorData = { ...req.body, doctorId: id }; // Use doctorId instead of id
     console.log("Doctor data to update:", JSON.stringify(doctorData, null, 2));
     await updateDoctor(doctorData);
     res.status(200).send({ message: "Doctor updated successfully" });

@@ -24,12 +24,14 @@ const ManagePatients = () => {
         }
       );
 
-      // Ensure array format and add proper keys
+      // Ensure array format and add proper keys with clean display IDs
       const patientsWithKeys = Array.isArray(response.data) 
         ? response.data.map((patient, index) => ({
             ...patient,
-            key: patient._id || patient.id || index, // Ensure unique key
-            id: patient._id || patient.id || index
+            key: patient._id || patient.id || `patient-${index}`, // Unique key for React
+            displayId: index + 1, // Clean sequential ID for display
+            actualId: patient._id || patient.id, // Store actual database ID
+            id: patient._id || patient.id || index // Keep original ID for operations
           }))
         : [];
       
@@ -48,7 +50,14 @@ const ManagePatients = () => {
 
   const handleEdit = (patient) => {
     setEditingPatient(patient);
-    form.setFieldsValue(patient);
+    
+    // Format the date properly for the date input
+    const formattedPatient = {
+      ...patient,
+      dob: patient.dob ? new Date(patient.dob).toISOString().split('T')[0] : ''
+    };
+    
+    form.setFieldsValue(formattedPatient);
     setIsModalVisible(true);
   };
 
@@ -72,8 +81,10 @@ const ManagePatients = () => {
       const values = await form.validateFields();
 
       const token = localStorage.getItem("token");
+      const patientId = editingPatient.actualId || editingPatient._id || editingPatient.id;
+      
       await axios.put(
-        `http://127.0.0.1:3001/admin/patients/${editingPatient.id}`,
+        `http://127.0.0.1:3001/admin/patients/${patientId}`,
         values,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -99,8 +110,8 @@ const ManagePatients = () => {
   const columns = [
     { 
       title: "ID", 
-      dataIndex: "id", 
-      key: "id",
+      dataIndex: "displayId", 
+      key: "displayId",
       width: 80,
     },
     { 
@@ -142,7 +153,7 @@ const ManagePatients = () => {
           <Button type="primary" onClick={() => handleEdit(record)}>
             Edit
           </Button>
-          <Button danger onClick={() => handleDelete(record.id)}>
+          <Button danger onClick={() => handleDelete(record.actualId || record._id || record.id)}>
             Delete
           </Button>
         </div>
@@ -154,7 +165,7 @@ const ManagePatients = () => {
     <>
       {/* ========== ENHANCED INLINE STYLING ========== */}
       <style>{`
-        .container {
+        .admin-page {
           display: flex;
           align-items: flex-start !important;
           background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
@@ -162,7 +173,7 @@ const ManagePatients = () => {
           position: relative;
         }
 
-        .container::before {
+        .admin-page::before {
           content: '';
           position: absolute;
           top: 0;
@@ -173,7 +184,7 @@ const ManagePatients = () => {
           pointer-events: none;
         }
 
-        .AfterSideBar {
+        .admin-content {
           margin: 0 !important;
           padding: 0 !important;
           flex: 1;
@@ -495,10 +506,10 @@ const ManagePatients = () => {
       `}</style>
 
       {/* STRUCTURE */}
-      <div className="container">
+      <div className="admin-page">
         <Sidebar />
 
-        <div className="AfterSideBar">
+        <div className="admin-content">
           <div className="manage-container">
             <h2>👥 Manage Patients</h2>
 
@@ -507,7 +518,7 @@ const ManagePatients = () => {
                 columns={columns}
                 dataSource={patients}
                 loading={loading}
-                rowKey={(record) => record._id || record.id || `patient-${record.key}`}
+                rowKey={(record) => record.key || record._id || record.id}
                 pagination={{
                   pageSize: 10,
                   showSizeChanger: true,

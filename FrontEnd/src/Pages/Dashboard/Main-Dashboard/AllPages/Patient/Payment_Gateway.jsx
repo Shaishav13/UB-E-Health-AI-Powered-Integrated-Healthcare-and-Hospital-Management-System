@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { CreateBooking } from "../../../../../Redux/Datas/action";
 import Sidebar from "../../GlobalFiles/Sidebar";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FaCreditCard, FaLock, FaCheckCircle } from "react-icons/fa";
+import ReceiptGenerator from "../../../../../Components/ReceiptGenerator";
+import { convertTo12Hour } from "../../../../../utils/timeFormat";
 
 const notify = (text) => toast(text);
 
@@ -19,6 +21,10 @@ const Payment_Gateway = () => {
 
   const [loading, setLoading] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [completedAppointment, setCompletedAppointment] = useState(null);
+  
+  // Get patient data from redux
+  const { data: { user } } = useSelector((state) => state.auth);
 
   const [paymentDetails, setPaymentDetails] = useState({
     cardNumber: "",
@@ -71,6 +77,11 @@ const Payment_Gateway = () => {
       try {
         // Generate payment ID
         const paymentId = `PAY${Date.now()}${Math.floor(Math.random() * 1000)}`;
+        
+        // Generate token details
+        const dateStr = new Date(appointmentData.date).toISOString().split('T')[0].replace(/-/g, '');
+        const randomQueue = Math.floor(Math.random() * 50) + 1; // Random queue for demo
+        const tokenId = `TKN${dateStr}${String(randomQueue).padStart(3, '0')}`;
 
         // Create appointment with payment details
         const payload = {
@@ -78,6 +89,9 @@ const Payment_Gateway = () => {
           payment_id: paymentId,
           amount: doctorFees,
           status: "confirmed",
+          tokenId: tokenId,
+          queueNumber: randomQueue,
+          receiptGenerated: new Date(),
         };
 
         console.log("Payment Gateway - Sending appointment data:", JSON.stringify(payload, null, 2));
@@ -86,11 +100,14 @@ const Payment_Gateway = () => {
 
         if (res && res.message === "Successful") {
           setPaymentSuccess(true);
+          setCompletedAppointment({
+            ...payload,
+            docname: appointmentData.docname,
+            department: appointmentData.department,
+          });
           notify("Payment Successful! Appointment Confirmed.");
           
-          setTimeout(() => {
-            navigate("/checkappointment");
-          }, 3000);
+          // Don't auto-redirect, let user download receipt first
         } else {
           console.error("Payment failed - Response:", res);
           notify(`Payment failed: ${res?.message || "Unknown error"}. Please try again.`);
@@ -604,7 +621,36 @@ const Payment_Gateway = () => {
                   <FaCheckCircle className="success-icon" />
                   <h2>Payment Successful!</h2>
                   <p>Your appointment has been confirmed.</p>
-                  <p>Redirecting to your appointments...</p>
+                  <p style={{ fontSize: '1.3rem', fontWeight: 'bold', color: '#0b6b61', margin: '1.5rem 0' }}>
+                    Token: {completedAppointment?.tokenId}
+                  </p>
+                  <p style={{ color: '#666' }}>Queue Number: {completedAppointment?.queueNumber}</p>
+                  
+                  <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    {completedAppointment && user && (
+                      <ReceiptGenerator 
+                        appointmentData={completedAppointment}
+                        patientData={user}
+                        buttonText="Download Receipt"
+                      />
+                    )}
+                    
+                    <button
+                      onClick={() => navigate("/patientprofile")}
+                      style={{
+                        padding: '10px 20px',
+                        background: '#667eea',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                      }}
+                    >
+                      View My Appointments
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -630,7 +676,7 @@ const Payment_Gateway = () => {
 
               <div className="summary-item">
                 <label>Time:</label>
-                <span>{appointmentData?.time || "N/A"}</span>
+                <span>{convertTo12Hour(appointmentData?.time) || "N/A"}</span>
               </div>
 
               <div className="summary-item">

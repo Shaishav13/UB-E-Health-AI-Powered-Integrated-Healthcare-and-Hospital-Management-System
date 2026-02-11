@@ -1,4 +1,4 @@
-# E-Health Management Hub
+# UB E-Health
 
 A comprehensive healthcare management system built with Node.js, MongoDB, and React.
 

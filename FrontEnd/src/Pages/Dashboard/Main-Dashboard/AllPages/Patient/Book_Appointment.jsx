@@ -8,6 +8,7 @@ import {
 import Sidebar from "../../GlobalFiles/Sidebar";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { convertTo12Hour } from "../../../../../utils/timeFormat";
 
 const notify = (text) => toast(text);
 
@@ -20,7 +21,7 @@ const Book_Appointment = () => {
     data: { user },
   } = useSelector((state) => state.auth);
 
-  const { doctors } = useSelector((store) => store.data.doctors);
+  const { doctors } = useSelector((store) => store.data);
 
   const [chosenDoctor, setChosenDoctor] = useState(null);
 
@@ -341,7 +342,7 @@ const Book_Appointment = () => {
                         
                         return availableTimes.map((time) => (
                           <option key={time} value={time}>
-                            {time}
+                            {convertTo12Hour(time)}
                           </option>
                         ));
                       } catch (error) {
@@ -353,7 +354,7 @@ const Book_Appointment = () => {
                         ];
                         return defaultTimes.map((time) => (
                           <option key={time} value={time}>
-                            {time}
+                            {convertTo12Hour(time)}
                           </option>
                         ));
                       }

@@ -1,7 +1,7 @@
 {
   "name": "hms-backend",
   "version": "1.0.0",
-  "description": "E-Health Management Hub - Backend API Server",
+  "description": "UB E-Health - Backend API Server",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

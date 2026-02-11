@@ -1,5 +1,5 @@
 /*
- * E-Health Management Hub - Frontend Application
+ * UB E-Health - Frontend Application
  * Copyright (c) 2025 Shaishav
  * Licensed under MIT License - see LICENSE file for details
  */

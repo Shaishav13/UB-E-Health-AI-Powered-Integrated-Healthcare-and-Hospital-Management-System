@@ -11,6 +11,11 @@ const appointmentSchema = new mongoose.Schema({
   reason: { type: String, required: true },
   payment_id: { type: String },
   amount: { type: Number },
+  // Token system for queue management
+  tokenId: { type: String },
+  queueNumber: { type: Number },
+  // Receipt generation timestamp
+  receiptGenerated: { type: Date },
 }, { timestamps: true });
 
 const Appointment = mongoose.model("Appointment", appointmentSchema);
@@ -77,6 +82,18 @@ const markAppointmentCompleted = async (appointmentId) => {
   );
 };
 
+// Generate unique token ID for appointment
+const generateTokenId = async (doctorId, date) => {
+  const dateStr = new Date(date).toISOString().split('T')[0].replace(/-/g, '');
+  const count = await Appointment.countDocuments({ 
+    doctorId, 
+    date: { $gte: new Date(date).setHours(0,0,0,0), $lt: new Date(date).setHours(23,59,59,999) }
+  });
+  const queueNum = count + 1;
+  const tokenId = `TKN${dateStr}${String(queueNum).padStart(3, '0')}`;
+  return { tokenId, queueNumber: queueNum };
+};
+
 module.exports = {
   getAllAppointments,
   createTable,
@@ -90,4 +107,5 @@ module.exports = {
   createAppointment,
   countAppointment,
   markAppointmentCompleted,
+  generateTokenId,
 };

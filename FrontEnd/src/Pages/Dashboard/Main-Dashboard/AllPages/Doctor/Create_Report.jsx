@@ -68,6 +68,8 @@ const Create_Report = () => {
     bp: "", // Changed from BP to bp to match backend
     glucose: "",
     info: "",
+    medications: "", // Prescribed medications
+    labTests: "", // Suggested lab tests
     medicines: [],
   };
 
@@ -679,6 +681,48 @@ const Create_Report = () => {
                       </div>
                     ))
                   )}
+                </div>
+              </div>
+
+              {/* SECTION 5: MEDICATIONS SUMMARY */}
+              <div className="section-divider">
+                💊 Prescribed Medications Summary
+              </div>
+
+              <div className="form-grid">
+                <div className="input-group form-grid-full">
+                  <label>
+                    <span className="icon">💊</span>
+                    Medications & Instructions
+                  </label>
+                  <textarea
+                    placeholder="Enter prescribed medications with dosage and instructions (e.g., Paracetamol 500mg - Take 1 tablet twice daily after meals for 5 days)"
+                    name="medications"
+                    value={reportValue.medications}
+                    onChange={HandleReportChange}
+                    style={{ minHeight: '100px' }}
+                  />
+                </div>
+              </div>
+
+              {/* SECTION 6: LAB TESTS */}
+              <div className="section-divider">
+                🔬 Suggested Lab Tests
+              </div>
+
+              <div className="form-grid">
+                <div className="input-group form-grid-full">
+                  <label>
+                    <span className="icon">🔬</span>
+                    Recommended Laboratory Tests
+                  </label>
+                  <textarea
+                    placeholder="Enter suggested lab tests (e.g., Complete Blood Count (CBC), Blood Sugar Test, Lipid Profile, etc.)"
+                    name="labTests"
+                    value={reportValue.labTests}
+                    onChange={HandleReportChange}
+                    style={{ minHeight: '100px' }}
+                  />
                 </div>
               </div>
 

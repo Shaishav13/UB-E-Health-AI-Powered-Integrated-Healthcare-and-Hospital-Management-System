@@ -9,9 +9,10 @@ import {
   GetAllReports,
   UpdateReport,
 } from "../../../../../Redux/Datas/action";
-import { FaChevronDown, FaChevronUp, FaEdit, FaSave, FaTimes } from "react-icons/fa";
+import { FaChevronDown, FaChevronUp, FaEdit, FaSave, FaTimes, FaDownload } from "react-icons/fa";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { generateReport } from "../../../../../Components/ReportGenerator";
 
 const notify = (text) => toast(text);
 
@@ -64,6 +65,8 @@ const AllReport = () => {
       bp: report.bp,
       glucose: report.glucose,
       info: report.info,
+      medications: report.medications || '',
+      labTests: report.labTests || '',
     });
   };
 
@@ -109,6 +112,16 @@ const AllReport = () => {
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleDownloadReport = (report) => {
+    try {
+      generateReport(report, user);
+      notify("Report downloaded successfully!");
+    } catch (error) {
+      console.error("Error generating report:", error);
+      notify("Failed to generate report");
+    }
   };
 
   let Name = user?.userType === "patient" ? "Doctor Name" : "Patient Name";
@@ -452,7 +465,7 @@ const AllReport = () => {
     border-top: 2px solid rgba(102, 126, 234, 0.1);
   }
 
-  .edit-btn, .save-btn, .cancel-btn {
+  .edit-btn, .save-btn, .cancel-btn, .download-btn {
     padding: 0.75rem 1.5rem;
     border: none;
     border-radius: 12px;
@@ -493,6 +506,16 @@ const AllReport = () => {
   .cancel-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+  }
+
+  .download-btn {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+  }
+
+  .download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
   }
 
   .edit-input {
@@ -690,34 +713,79 @@ const AllReport = () => {
                                     </div>
                                   )}
                                   
-                                  {/* Edit Actions - Only show for doctors */}
-                                  {user?.userType === "doctor" && (
-                                    <div className="edit-actions">
+                                  {/* Prescribed Medications Section */}
+                                  {(report.medications || editingReport === reportId) && (
+                                    <div className="info-section" style={{ borderLeft: '4px solid #f59e0b' }}>
+                                      <h4>💊 Prescribed Medications</h4>
                                       {editingReport === reportId ? (
-                                        <>
-                                          <button
-                                            className="save-btn"
-                                            onClick={() => handleSaveEdit(report)}
-                                          >
-                                            <FaSave /> Save Changes
-                                          </button>
-                                          <button
-                                            className="cancel-btn"
-                                            onClick={handleCancelEdit}
-                                          >
-                                            <FaTimes /> Cancel
-                                          </button>
-                                        </>
+                                        <textarea
+                                          className="edit-textarea"
+                                          value={editFormData.medications || ''}
+                                          onChange={(e) => handleInputChange('medications', e.target.value)}
+                                          placeholder="Prescribed medications with dosage and instructions..."
+                                        />
                                       ) : (
-                                        <button
-                                          className="edit-btn"
-                                          onClick={() => handleEditReport(report)}
-                                        >
-                                          <FaEdit /> Edit Report
-                                        </button>
+                                        <p style={{ whiteSpace: 'pre-line' }}>{report.medications}</p>
                                       )}
                                     </div>
                                   )}
+                                  
+                                  {/* Suggested Lab Tests Section */}
+                                  {(report.labTests || editingReport === reportId) && (
+                                    <div className="info-section" style={{ borderLeft: '4px solid #3b82f6' }}>
+                                      <h4>🔬 Suggested Laboratory Tests</h4>
+                                      {editingReport === reportId ? (
+                                        <textarea
+                                          className="edit-textarea"
+                                          value={editFormData.labTests || ''}
+                                          onChange={(e) => handleInputChange('labTests', e.target.value)}
+                                          placeholder="Recommended laboratory tests..."
+                                        />
+                                      ) : (
+                                        <p style={{ whiteSpace: 'pre-line' }}>{report.labTests}</p>
+                                      )}
+                                    </div>
+                                  )}
+                                  
+                                  {/* Edit Actions - Show for both doctors and patients */}
+                                  <div className="edit-actions">
+                                    {/* Download button for everyone */}
+                                    <button
+                                      className="download-btn"
+                                      onClick={() => handleDownloadReport(report)}
+                                    >
+                                      <FaDownload /> Download Report
+                                    </button>
+                                    
+                                    {/* Edit buttons only for doctors */}
+                                    {user?.userType === "doctor" && (
+                                      <>
+                                        {editingReport === reportId ? (
+                                          <>
+                                            <button
+                                              className="save-btn"
+                                              onClick={() => handleSaveEdit(report)}
+                                            >
+                                              <FaSave /> Save Changes
+                                            </button>
+                                            <button
+                                              className="cancel-btn"
+                                              onClick={handleCancelEdit}
+                                            >
+                                              <FaTimes /> Cancel
+                                            </button>
+                                          </>
+                                        ) : (
+                                          <button
+                                            className="edit-btn"
+                                            onClick={() => handleEditReport(report)}
+                                          >
+                                            <FaEdit /> Edit Report
+                                          </button>
+                                        )}
+                                      </>
+                                    )}
+                                  </div>
                                 </div>
                               </td>
                             </tr>

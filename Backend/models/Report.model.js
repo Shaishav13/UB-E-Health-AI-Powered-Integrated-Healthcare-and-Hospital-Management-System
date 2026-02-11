@@ -11,6 +11,8 @@ const reportSchema = new mongoose.Schema({
   bp: { type: String, required: false },
   glucose: { type: String, required: false },
   info: { type: String, required: false },
+  medications: { type: String, required: false }, // Prescribed medications
+  labTests: { type: String, required: false }, // Suggested lab tests
 }, { timestamps: true });
 
 const Report = mongoose.model("Report", reportSchema);

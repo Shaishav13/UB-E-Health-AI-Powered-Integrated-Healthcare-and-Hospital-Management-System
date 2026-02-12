@@ -33,6 +33,7 @@ const FrontPage = () => {
   const { patients } = useSelector((store) => store.data.patients);
   const { doctors } = useSelector((store) => store.data.doctors);
   const { medicines } = useSelector((store) => store.data.medicines);
+  const { reports } = useSelector((store) => store.data.reports);
   const reportCount = useSelector(
     (store) => store.data.reports
   )?.reports?.length;
@@ -495,6 +496,194 @@ const FrontPage = () => {
           font-size: 1rem;
           margin: 0;
         }
+
+        /* Lab Tests Grid */
+        .labtests-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1.5rem;
+          max-width: 1400px;
+          margin: 0 auto;
+        }
+
+        .labtest-card-dashboard {
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          padding: 1.8rem;
+          border-radius: 20px;
+          box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.1),
+            0 1px 0 rgba(255, 255, 255, 0.2) inset;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .labtest-card-dashboard::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .labtest-card-dashboard:hover {
+          transform: translateY(-8px);
+          box-shadow: 
+            0 32px 64px rgba(0, 0, 0, 0.15),
+            0 1px 0 rgba(255, 255, 255, 0.3) inset;
+        }
+
+        .labtest-card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1.2rem;
+          padding-bottom: 1rem;
+          border-bottom: 2px solid rgba(59, 130, 246, 0.1);
+          flex-wrap: wrap;
+          gap: 0.5rem;
+        }
+
+        .labtest-title-dashboard {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .labtest-icon {
+          font-size: 1.5rem;
+        }
+
+        .labtest-disease {
+          font-size: 1.2rem;
+          font-weight: 700;
+          color: #374151;
+        }
+
+        .labtest-date-dashboard {
+          background: rgba(59, 130, 246, 0.1);
+          padding: 0.4rem 0.8rem;
+          border-radius: 12px;
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: #2563eb;
+        }
+
+        .labtest-content-dashboard {
+          background: rgba(240, 250, 255, 0.8);
+          padding: 1rem;
+          border-radius: 12px;
+          margin-bottom: 1rem;
+          border-left: 3px solid #3b82f6;
+        }
+
+        .labtest-label-dashboard {
+          font-size: 0.85rem;
+          color: #64748b;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-bottom: 0.8rem;
+        }
+
+        .labtest-text-dashboard {
+          color: #374151;
+          font-weight: 500;
+          line-height: 1.6;
+        }
+
+        .labtest-item {
+          padding: 0.4rem 0;
+          font-size: 0.95rem;
+        }
+
+        .labtest-footer-dashboard {
+          background: rgba(248, 250, 252, 0.8);
+          padding: 0.8rem;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .doctor-info-dashboard {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          flex-wrap: wrap;
+        }
+
+        .doctor-label {
+          font-size: 0.85rem;
+          color: #64748b;
+          font-weight: 600;
+        }
+
+        .doctor-name {
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: #374151;
+        }
+
+        .empty-labtests-dashboard {
+          grid-column: 1 / -1;
+          text-align: center;
+          padding: 4rem 2rem;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border-radius: 20px;
+          box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.1),
+            0 1px 0 rgba(255, 255, 255, 0.2) inset;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .empty-labtests-dashboard::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .empty-icon-dashboard {
+          font-size: 4rem;
+          margin-bottom: 1rem;
+          opacity: 0.7;
+        }
+
+        .empty-title-dashboard {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: #374151;
+          margin-bottom: 0.5rem;
+        }
+
+        .empty-text-dashboard {
+          font-size: 1rem;
+          color: #64748b;
+          font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+          .labtests-grid {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+          }
+
+          .labtest-card-header {
+            flex-direction: column;
+            align-items: flex-start;
+          }
+        }
       `}</style>
 
       {/* ---------------- PAGE STRUCTURE ---------------- */}
@@ -602,20 +791,57 @@ const FrontPage = () => {
                   <Descriptions.Item label="📊 Total Reports">
                     {reportCount || 0}
                   </Descriptions.Item>
-                  <Descriptions.Item label="💊 Active Medications">
-                    {medicines?.length || 0}
+                  <Descriptions.Item label="🔬 Pending Lab Tests">
+                    {reports?.filter(r => r.labTests && r.labTests.trim() !== '').length || 0}
                   </Descriptions.Item>
                 </Descriptions>
               </div>
 
-              <h2 className="subHeading">💊 Current Medications</h2>
-              <div className="tableBox">
-                <Table 
-                  columns={patientMedication} 
-                  dataSource={medicines} 
-                  rowKey={(record) => record._id || record.id || Math.random()}
-                  pagination={{ pageSize: 5 }}
-                />
+              <h2 className="subHeading">🔬 Suggested Lab Tests</h2>
+              <div className="labtests-grid">
+                {reports && reports.length > 0 && reports.some(report => report.labTests && report.labTests.trim() !== '') ? (
+                  reports
+                    .filter(report => report.labTests && report.labTests.trim() !== '')
+                    .map((report) => (
+                      <div key={report._id || report.id || Math.random()} className="labtest-card-dashboard">
+                        <div className="labtest-card-header">
+                          <div className="labtest-title-dashboard">
+                            <span className="labtest-icon">🔬</span>
+                            <span className="labtest-disease">{report.disease || 'Medical Report'}</span>
+                          </div>
+                          <div className="labtest-date-dashboard">
+                            📅 {report.date ? new Date(report.date).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            }) : 'N/A'}
+                          </div>
+                        </div>
+                        
+                        <div className="labtest-content-dashboard">
+                          <div className="labtest-label-dashboard">Recommended Tests:</div>
+                          <div className="labtest-text-dashboard">
+                            {report.labTests.split('\n').map((line, index) => (
+                              line.trim() && <div key={index} className="labtest-item">✓ {line.trim()}</div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="labtest-footer-dashboard">
+                          <div className="doctor-info-dashboard">
+                            <span className="doctor-label">👨‍⚕️ Prescribed by:</span>
+                            <span className="doctor-name">{report.doctorid?.name || report.doctorName || 'Doctor'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                ) : (
+                  <div className="empty-labtests-dashboard">
+                    <div className="empty-icon-dashboard">🔬</div>
+                    <div className="empty-title-dashboard">No Lab Tests Suggested</div>
+                    <div className="empty-text-dashboard">Your doctor's recommended lab tests will appear here</div>
+                  </div>
+                )}
               </div>
             </>
           )}

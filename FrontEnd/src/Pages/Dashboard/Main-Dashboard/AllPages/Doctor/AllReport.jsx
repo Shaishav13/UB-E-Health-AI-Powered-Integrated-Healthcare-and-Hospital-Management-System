@@ -41,6 +41,14 @@ const AllReport = () => {
     }
   }, [user]);
 
+  // Auto-expand all reports when they load
+  useEffect(() => {
+    if (reports && reports.length > 0) {
+      const allReportIds = reports.map(report => report._id || report.id);
+      setExpandedRows(allReportIds);
+    }
+  }, [reports]);
+
   const toggleRow = (report) => {
     const reportId = report._id || report.id;
     setExpandedRows((prev) =>
@@ -116,6 +124,17 @@ const AllReport = () => {
 
   const handleDownloadReport = (report) => {
     try {
+      console.log('=== DOWNLOAD REPORT DEBUG ===');
+      console.log('Full report object:', report);
+      console.log('Report keys:', Object.keys(report));
+      console.log('Patient ID field:', report.patientid);
+      console.log('Patient ID type:', typeof report.patientid);
+      console.log('Is patientid an object?', typeof report.patientid === 'object');
+      console.log('Patient ID keys:', report.patientid ? Object.keys(report.patientid) : 'null/undefined');
+      console.log('Doctor ID field:', report.doctorid);
+      console.log('Doctor ID type:', typeof report.doctorid);
+      console.log('=== END DOWNLOAD DEBUG ===');
+      
       generateReport(report, user);
       notify("Report downloaded successfully!");
     } catch (error) {
@@ -170,22 +189,40 @@ const AllReport = () => {
   }
 
   .reports-card {
+    background: transparent;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    transition: none;
+    position: relative;
+    overflow: visible;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  /* Card Grid Layout */
+  .reports-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    width: 100%;
+  }
+
+  .report-card {
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
-    padding: 2.5rem;
-    border-radius: 24px;
+    padding: 2rem;
+    border-radius: 20px;
     box-shadow: 
-      0 20px 40px rgba(0, 0, 0, 0.1),
+      0 10px 30px rgba(0, 0, 0, 0.1),
       0 1px 0 rgba(255, 255, 255, 0.2) inset;
     border: 1px solid rgba(255, 255, 255, 0.2);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
-    max-width: 1400px;
-    margin: 0 auto;
   }
 
-  .reports-card::before {
+  .report-card::before {
     content: '';
     position: absolute;
     top: 0;
@@ -195,11 +232,66 @@ const AllReport = () => {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   }
 
-  .reports-card:hover {
+  .report-card:hover {
     transform: translateY(-8px);
     box-shadow: 
-      0 32px 64px rgba(0, 0, 0, 0.15),
+      0 20px 40px rgba(0, 0, 0, 0.15),
       0 1px 0 rgba(255, 255, 255, 0.3) inset;
+  }
+
+  .report-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+  }
+
+  .report-card-title {
+    flex: 1;
+  }
+
+  .report-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #374151;
+    margin-bottom: 0.5rem;
+  }
+
+  .report-meta {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+    color: #64748b;
+  }
+
+  .report-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .expand-toggle {
+    background: rgba(102, 126, 234, 0.1);
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #667eea;
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+  }
+
+  .expand-toggle:hover {
+    background: rgba(102, 126, 234, 0.2);
+    transform: scale(1.1);
   }
 
   /* Enhanced Custom Table Styles */
@@ -209,6 +301,7 @@ const AllReport = () => {
     border-radius: 16px;
     overflow: hidden;
     background: rgba(248, 250, 252, 0.8);
+    table-layout: auto;
   }
 
   .custom-table thead {
@@ -222,6 +315,32 @@ const AllReport = () => {
     text-align: center;
     font-size: 0.95rem;
     position: relative;
+    white-space: nowrap;
+  }
+
+  .custom-table th:first-child {
+    width: 80px;
+    text-align: center;
+  }
+
+  .custom-table th:nth-child(2) {
+    width: auto;
+    min-width: 150px;
+  }
+
+  .custom-table th:nth-child(3) {
+    width: auto;
+    min-width: 120px;
+  }
+
+  .custom-table th:nth-child(4) {
+    width: auto;
+    min-width: 100px;
+  }
+
+  .custom-table th:nth-child(5) {
+    width: auto;
+    min-width: 150px;
   }
 
   .custom-table th::before {
@@ -258,6 +377,17 @@ const AllReport = () => {
     text-align: center;
     font-weight: 500;
     color: #374151;
+  }
+
+  .custom-table td:first-child {
+    text-align: center;
+  }
+
+  .custom-table td:nth-child(2),
+  .custom-table td:nth-child(3),
+  .custom-table td:nth-child(4),
+  .custom-table td:nth-child(5) {
+    text-align: center;
   }
 
   .expand-btn {
@@ -435,7 +565,12 @@ const AllReport = () => {
       padding: 1.5rem 1rem;
     }
 
-    .reports-card {
+    .reports-grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    .report-card {
       padding: 1.5rem;
     }
 
@@ -446,12 +581,6 @@ const AllReport = () => {
     .detail-grid {
       grid-template-columns: 1fr;
       gap: 1rem;
-    }
-
-    .custom-table th,
-    .custom-table td {
-      padding: 0.75rem 0.5rem;
-      font-size: 0.9rem;
     }
   }
 
@@ -568,43 +697,30 @@ const AllReport = () => {
           {user?.userType !== "admin" && (
             <div className="reports-card">
               {reports && reports.length > 0 ? (
-                <table className="custom-table">
-                  <thead>
-                    <tr>
-                      <th style={{ width: "80px" }}>Action</th>
-                      <th>{Name}</th>
-                      <th>Date</th>
-                      <th>Time</th>
-                      <th>Disease</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {reports.map((report) => {
-                      const reportId = report._id || report.id;
-                      return (
-                        <React.Fragment key={reportId}>
-                          <tr>
-                            <td>
-                              <button
-                                className="expand-btn"
-                                onClick={() => toggleRow(report)}
-                              >
-                                {isExpanded(report) ? (
-                                  <FaChevronUp />
-                                ) : (
-                                  <FaChevronDown />
-                                )}
-                              </button>
-                            </td>
-                            <td>{report.name}</td>
-                            <td>{report.date}</td>
-                            <td>{report.time}</td>
-                            <td>{report.disease}</td>
-                          </tr>
-                          {isExpanded(report) && (
-                            <tr>
-                              <td colSpan="5">
-                                <div className="expanded-details">
+                <div className="reports-grid">
+                  {reports.map((report) => {
+                    const reportId = report._id || report.id;
+                    return (
+                      <div key={reportId} className="report-card">
+                        <div className="report-card-header">
+                          <div className="report-card-title">
+                            <div className="report-name">{report.name}</div>
+                            <div className="report-meta">
+                              <span className="report-meta-item">📅 {report.date}</span>
+                              <span className="report-meta-item">🕐 {report.time}</span>
+                              <span className="report-meta-item">🩺 {report.disease}</span>
+                            </div>
+                          </div>
+                          <button
+                            className="expand-toggle"
+                            onClick={() => toggleRow(report)}
+                          >
+                            {isExpanded(report) ? <FaChevronUp /> : <FaChevronDown />}
+                          </button>
+                        </div>
+
+                        {isExpanded(report) && (
+                          <div className="expanded-details">
                                   <div className="detail-grid">
                                     <div className="detail-item">
                                       <div className="detail-label">
@@ -787,19 +903,16 @@ const AllReport = () => {
                                     )}
                                   </div>
                                 </div>
-                              </td>
-                            </tr>
-                          )}
-                        </React.Fragment>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              ) : (
-                <div className="no-reports">
-                  <p>No reports available</p>
-                </div>
-              )}
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="no-reports">
+                        <p>No reports available</p>
+                      </div>
+                    )}
             </div>
           )}
         </div>

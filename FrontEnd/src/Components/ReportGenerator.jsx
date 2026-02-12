@@ -1,8 +1,15 @@
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import 'jspdf-autotable';
 
 export const generateReport = (report, user) => {
   const doc = new jsPDF();
+  
+  // Debug logging - check what we received
+  console.log('=== REPORT GENERATOR DEBUG ===');
+  console.log('Full report object:', report);
+  console.log('Report keys:', Object.keys(report));
+  console.log('Patient ID field:', report.patientid);
+  console.log('Patient ID type:', typeof report.patientid);
   
   // Header with hospital name
   doc.setFillColor(11, 107, 97);
@@ -31,9 +38,27 @@ export const generateReport = (report, user) => {
   doc.setFontSize(10);
   doc.setFont(undefined, 'normal');
   
-  // Get patient and doctor names
-  const patientName = report.patientid?.name || report.patientName || 'N/A';
+  // Get patient and doctor names - handle both populated and string ID cases
+  let patientName = 'N/A';
+  let patientInfo = {};
+  
+  if (report.patientid) {
+    if (typeof report.patientid === 'object' && report.patientid.name) {
+      // Populated object
+      patientName = report.patientid.name;
+      patientInfo = report.patientid;
+      console.log('Patient data is populated object:', patientInfo);
+    } else if (typeof report.patientid === 'string') {
+      // Just an ID string
+      console.log('Patient data is just an ID string:', report.patientid);
+      patientName = report.patientName || 'N/A';
+    }
+  }
+  
   const doctorName = report.doctorid?.name || report.doctorName || 'N/A';
+  
+  console.log('Extracted patient name:', patientName);
+  console.log('Extracted patient info:', patientInfo);
   
   // Format date
   const reportDate = report.date ? new Date(report.date).toLocaleDateString('en-US', {
@@ -84,6 +109,71 @@ export const generateReport = (report, user) => {
   
   yPos += 30;
   
+  // Patient Details Section
+  doc.setFontSize(14);
+  doc.setFont(undefined, 'bold');
+  doc.text('Patient Details', 20, yPos);
+  
+  yPos += 2;
+  doc.setDrawColor(11, 107, 97);
+  doc.setLineWidth(0.5);
+  doc.line(20, yPos, 190, yPos);
+  
+  yPos += 8;
+  
+  // Extract patient details with better handling
+  const patientAge = patientInfo.age || 'N/A';
+  const patientGender = patientInfo.gender === 'M' ? 'Male' : patientInfo.gender === 'F' ? 'Female' : patientInfo.gender || 'N/A';
+  const patientBloodGroup = patientInfo.bloodgroup || patientInfo.bloodGroup || 'N/A';
+  const patientPhone = patientInfo.phonenum || patientInfo.phoneNum || 'N/A';
+  const patientEmail = patientInfo.email || 'N/A';
+  
+  console.log('Final extracted values:');
+  console.log('- Age:', patientAge);
+  console.log('- Gender:', patientGender);
+  console.log('- Blood Group:', patientBloodGroup);
+  console.log('- Phone:', patientPhone);
+  console.log('- Email:', patientEmail);
+  console.log('=== END DEBUG ===');
+  
+  doc.setFontSize(10);
+  
+  // Left column - Patient details
+  const detailsLeftCol = 20;
+  const detailsRightCol = 110;
+  
+  doc.setFont(undefined, 'bold');
+  doc.text('Age:', detailsLeftCol, yPos);
+  doc.setFont(undefined, 'normal');
+  doc.text(String(patientAge), detailsLeftCol + 30, yPos);
+  
+  doc.setFont(undefined, 'bold');
+  doc.text('Gender:', detailsRightCol, yPos);
+  doc.setFont(undefined, 'normal');
+  doc.text(patientGender, detailsRightCol + 30, yPos);
+  
+  yPos += 7;
+  
+  doc.setFont(undefined, 'bold');
+  doc.text('Blood Group:', detailsLeftCol, yPos);
+  doc.setFont(undefined, 'normal');
+  doc.text(patientBloodGroup, detailsLeftCol + 30, yPos);
+  
+  doc.setFont(undefined, 'bold');
+  doc.text('Phone:', detailsRightCol, yPos);
+  doc.setFont(undefined, 'normal');
+  doc.text(String(patientPhone), detailsRightCol + 30, yPos);
+  
+  yPos += 7;
+  
+  doc.setFont(undefined, 'bold');
+  doc.text('Email:', detailsLeftCol, yPos);
+  doc.setFont(undefined, 'normal');
+  const emailText = doc.splitTextToSize(patientEmail, 160);
+  doc.text(emailText, detailsLeftCol + 30, yPos);
+  
+  yPos += 10;
+  
   // Divider line
   doc.setDrawColor(11, 107, 97);
   doc.setLineWidth(0.5);
@@ -96,32 +186,62 @@ export const generateReport = (report, user) => {
   doc.setFont(undefined, 'bold');
   doc.text('Vital Signs', 20, yPos);
   
-  yPos += 8;
+  yPos += 10;
   
-  const vitalSigns = [
-    ['Temperature', `${report.temperature || 'N/A'} F`, 'Weight', `${report.weight || 'N/A'} kg`],
-    ['Blood Pressure', `${report.bp || 'N/A'} mmHg`, 'Glucose Level', `${report.glucose || 'N/A'} mg/dL`],
-  ];
+  // Create vital signs table manually
+  doc.setFontSize(10);
+  doc.setFont(undefined, 'bold');
+  doc.setFillColor(240, 240, 240);
   
-  doc.autoTable({
-    startY: yPos,
-    head: [],
-    body: vitalSigns,
-    theme: 'grid',
-    styles: {
-      fontSize: 10,
-      cellPadding: 5,
-    },
-    columnStyles: {
-      0: { fontStyle: 'bold', fillColor: [240, 240, 240], cellWidth: 45 },
-      1: { cellWidth: 45 },
-      2: { fontStyle: 'bold', fillColor: [240, 240, 240], cellWidth: 45 },
-      3: { cellWidth: 45 },
-    },
-    margin: { left: 20, right: 20 },
-  });
+  // Row 1
+  doc.rect(20, yPos, 85, 10, 'F');
+  doc.rect(20, yPos, 85, 10);
+  doc.text('Temperature', 25, yPos + 7);
   
-  yPos = doc.lastAutoTable.finalY + 10;
+  doc.setFont(undefined, 'normal');
+  doc.rect(105, yPos, 85, 10);
+  doc.text(`${report.temperature || 'N/A'} F`, 110, yPos + 7);
+  
+  yPos += 10;
+  
+  // Row 2
+  doc.setFont(undefined, 'bold');
+  doc.setFillColor(240, 240, 240);
+  doc.rect(20, yPos, 85, 10, 'F');
+  doc.rect(20, yPos, 85, 10);
+  doc.text('Weight', 25, yPos + 7);
+  
+  doc.setFont(undefined, 'normal');
+  doc.rect(105, yPos, 85, 10);
+  doc.text(`${report.weight || 'N/A'} kg`, 110, yPos + 7);
+  
+  yPos += 10;
+  
+  // Row 3
+  doc.setFont(undefined, 'bold');
+  doc.setFillColor(240, 240, 240);
+  doc.rect(20, yPos, 85, 10, 'F');
+  doc.rect(20, yPos, 85, 10);
+  doc.text('Blood Pressure', 25, yPos + 7);
+  
+  doc.setFont(undefined, 'normal');
+  doc.rect(105, yPos, 85, 10);
+  doc.text(`${report.bp || 'N/A'} mmHg`, 110, yPos + 7);
+  
+  yPos += 10;
+  
+  // Row 4
+  doc.setFont(undefined, 'bold');
+  doc.setFillColor(240, 240, 240);
+  doc.rect(20, yPos, 85, 10, 'F');
+  doc.rect(20, yPos, 85, 10);
+  doc.text('Glucose Level', 25, yPos + 7);
+  
+  doc.setFont(undefined, 'normal');
+  doc.rect(105, yPos, 85, 10);
+  doc.text(`${report.glucose || 'N/A'} mg/dL`, 110, yPos + 7);
+  
+  yPos += 15;
   
   // Diagnosis Section
   doc.setFontSize(14);
@@ -255,15 +375,19 @@ export const generateReport = (report, user) => {
     yPos += labTestsHeight + 10;
   }
   
-  // Footer with doctor signature
+  // Footer with doctor signature - place at bottom of current page if space available
   const pageHeight = doc.internal.pageSize.height;
-  const footerY = pageHeight - 30;
+  const footerHeight = 25; // Height needed for footer
+  const minFooterY = pageHeight - 30; // Minimum Y position for footer
   
-  // Ensure we're on the same page or add new page if needed
-  if (yPos > footerY - 20) {
+  // Only add new page if current content goes beyond safe zone
+  if (yPos > minFooterY - 10) {
     doc.addPage();
     yPos = 20;
   }
+  
+  // Place footer at bottom of page
+  const footerY = Math.max(yPos + 10, minFooterY);
   
   doc.setDrawColor(11, 107, 97);
   doc.setLineWidth(0.3);

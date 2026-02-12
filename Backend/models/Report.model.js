@@ -57,11 +57,52 @@ const getReportsByDoctor = async (doctorId) => {
 };
 
 const getDoctorReports = async (doctorId) => {
-  return await Report.find({ doctorid: doctorId }).populate('patientid');
+  try {
+    const reports = await Report.find({ doctorid: doctorId })
+      .populate({
+        path: 'patientid',
+        model: 'Patient'
+      })
+      .populate({
+        path: 'doctorid',
+        model: 'Doctor'
+      })
+      .exec();
+    
+    console.log('getDoctorReports - Number of reports:', reports.length);
+    if (reports.length > 0) {
+      console.log('getDoctorReports - First report patientid:', reports[0].patientid);
+      console.log('getDoctorReports - Is populated?', reports[0].patientid && typeof reports[0].patientid === 'object' && reports[0].patientid.name);
+    }
+    return reports;
+  } catch (error) {
+    console.error('Error in getDoctorReports:', error);
+    throw error;
+  }
 };
 
 const getPatientReports = async (patientId) => {
-  return await Report.find({ patientid: patientId }).populate('doctorid');
+  try {
+    const reports = await Report.find({ patientid: patientId })
+      .populate({
+        path: 'doctorid',
+        model: 'Doctor'
+      })
+      .populate({
+        path: 'patientid',
+        model: 'Patient'
+      })
+      .exec();
+    
+    console.log('getPatientReports - Number of reports:', reports.length);
+    if (reports.length > 0) {
+      console.log('getPatientReports - First report patientid:', reports[0].patientid);
+    }
+    return reports;
+  } catch (error) {
+    console.error('Error in getPatientReports:', error);
+    throw error;
+  }
 };
 
 const getLastReportId = async () => {

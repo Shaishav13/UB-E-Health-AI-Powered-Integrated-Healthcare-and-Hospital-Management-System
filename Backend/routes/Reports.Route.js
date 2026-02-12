@@ -38,15 +38,40 @@ router.get("/:userType/:id", async (req, res) => {
         ? await getDoctorReports(id)
         : await getPatientReports(id);
     
+    console.log("=== BACKEND REPORTS DEBUG ===");
+    console.log("Number of reports:", reports.length);
+    if (reports.length > 0) {
+      console.log("First report raw:", reports[0]);
+      console.log("First report patientid:", reports[0].patientid);
+      console.log("First report patientid type:", typeof reports[0].patientid);
+      console.log("Is patientid populated?", reports[0].patientid && typeof reports[0].patientid === 'object' && reports[0].patientid.name);
+    }
+    console.log("=== END BACKEND DEBUG ===");
+    
     // Format the dates in the reports
-    const formattedReports = reports.map(report => ({
-      ...report.toObject ? report.toObject() : report,
-      date: report.date ? new Date(report.date).toISOString().split('T')[0] : null, // Format as YYYY-MM-DD
-      name: report.patientid?.name || report.doctorid?.name || "Unknown",
-      id: report._id
-    }));
+    const formattedReports = reports.map(report => {
+      const reportObj = report.toObject ? report.toObject() : report;
+      
+      console.log("Processing report:", report._id);
+      console.log("Report patientid before formatting:", reportObj.patientid);
+      
+      return {
+        ...reportObj,
+        date: report.date ? new Date(report.date).toISOString().split('T')[0] : null, // Format as YYYY-MM-DD
+        name: report.patientid?.name || report.doctorid?.name || "Unknown",
+        id: report._id,
+        // Ensure populated data is included
+        patientid: reportObj.patientid,
+        doctorid: reportObj.doctorid
+      };
+    });
+    
+    console.log("=== FORMATTED REPORTS DEBUG ===");
+    console.log("First formatted report patientid:", formattedReports[0]?.patientid);
+    console.log("=== END FORMATTED DEBUG ===");
     
     console.log("router reports", formattedReports);
+    console.log("First report patientid:", formattedReports[0]?.patientid);
     res.status(200).send({ message: "Successful", data: formattedReports });
   } catch (error) {
     console.error("Error in reports route:", error);

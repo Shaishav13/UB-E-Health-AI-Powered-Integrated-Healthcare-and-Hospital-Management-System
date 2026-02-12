@@ -40,9 +40,27 @@ const countDoctor = async () => {
 };
 
 const addDoctor = async (doctor) => {
-  // Get the next available doctor ID
-  const lastDoctor = await Doctor.findOne().sort({ doctorId: -1 });
-  const nextDoctorId = lastDoctor ? lastDoctor.doctorId + 1 : 1;
+  // Find all existing doctors and get their IDs
+  const allDoctors = await Doctor.find({}).sort({ doctorId: 1 });
+  const existingIds = allDoctors.map(d => d.doctorId);
+  
+  // Find the first available ID (starting from 1)
+  let nextDoctorId = 1;
+  for (let i = 0; i < existingIds.length; i++) {
+    if (existingIds[i] !== nextDoctorId) {
+      // Found a gap - use this ID
+      break;
+    }
+    nextDoctorId++;
+  }
+  
+  // If no gaps found, use the next sequential ID
+  if (existingIds.includes(nextDoctorId)) {
+    nextDoctorId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 1;
+  }
+  
+  console.log(`Assigning doctor ID: ${nextDoctorId}`);
+  console.log(`Existing IDs: ${existingIds.join(', ')}`);
   
   const hashedPassword = await bcrypt.hash(doctor.password, 10);
   const newDoctor = new Doctor({ 

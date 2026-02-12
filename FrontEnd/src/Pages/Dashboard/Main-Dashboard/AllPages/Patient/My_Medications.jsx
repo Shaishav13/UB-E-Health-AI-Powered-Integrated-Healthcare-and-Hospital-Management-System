@@ -485,6 +485,144 @@ const My_Medications = () => {
           font-weight: 500;
         }
 
+        /* Table View Styles */
+        .table-container {
+          max-width: 1400px;
+          margin: 0 auto;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border-radius: 20px;
+          box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.1),
+            0 1px 0 rgba(255, 255, 255, 0.2) inset;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          overflow: hidden;
+          position: relative;
+        }
+
+        .table-container::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .medications-table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+
+        .medications-table thead {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .medications-table th {
+          color: white;
+          font-weight: 700;
+          padding: 1.2rem 1rem;
+          text-align: left;
+          font-size: 0.95rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .medications-table tbody tr {
+          border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .medications-table tbody tr:hover {
+          background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(52, 211, 153, 0.05) 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+
+        .medications-table tbody tr:nth-child(even) {
+          background: rgba(248, 250, 252, 0.5);
+        }
+
+        .medications-table tbody tr:nth-child(odd) {
+          background: rgba(255, 255, 255, 0.8);
+        }
+
+        .medications-table tbody tr.completed {
+          opacity: 0.6;
+        }
+
+        .medications-table tbody tr.completed td {
+          text-decoration: line-through;
+          color: #9ca3af;
+        }
+
+        .medications-table td {
+          padding: 1.2rem 1rem;
+          font-weight: 500;
+          color: #374151;
+          font-size: 0.95rem;
+        }
+
+        .table-actions {
+          display: flex;
+          gap: 0.5rem;
+        }
+
+        .table-action-btn {
+          padding: 0.5rem 1rem;
+          border: none;
+          border-radius: 8px;
+          font-size: 0.85rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .table-complete-btn {
+          background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+          color: white;
+        }
+
+        .table-complete-btn:hover {
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(52, 211, 153, 0.3);
+        }
+
+        .view-toggle {
+          display: flex;
+          justify-content: center;
+          gap: 0.5rem;
+          margin-bottom: 2rem;
+        }
+
+        .view-btn {
+          padding: 0.75rem 1.5rem;
+          border: 2px solid rgba(102, 126, 234, 0.2);
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(10px);
+          border-radius: 12px;
+          font-size: 0.95rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          color: #374151;
+        }
+
+        .view-btn:hover {
+          border-color: #667eea;
+          color: #667eea;
+          transform: translateY(-2px);
+        }
+
+        .view-btn.active {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border-color: transparent;
+          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
         @media (max-width: 768px) {
           .medications-content {
             padding: 1.5rem 1rem;
@@ -512,6 +650,15 @@ const My_Medications = () => {
 
           .medications-title {
             font-size: 2rem;
+          }
+
+          .medications-table {
+            font-size: 0.85rem;
+          }
+
+          .medications-table th,
+          .medications-table td {
+            padding: 0.75rem 0.5rem;
           }
         }
       `}</style>

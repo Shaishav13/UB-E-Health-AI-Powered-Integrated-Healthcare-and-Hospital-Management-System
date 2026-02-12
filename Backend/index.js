@@ -15,11 +15,17 @@ const hospitalRouter = require("./routes/Hospitals.Route");
 const patientRouter = require("./routes/Patients.Route");
 const prescriptionRouter = require("./routes/Prescriptions.Route");
 const reportRouter = require("./routes/Reports.Route");
+const notificationRouter = require("./routes/Notifications.Route");
+const analyticsRouter = require("./routes/Analytics.Route");
+const documentsRouter = require("./routes/Documents.Route");
 
 const app = express();
 const { connectDB } = require("./configs/db");
 app.use(express.json());
 app.use(cors());
+
+// Serve uploaded files
+app.use('/uploads', express.static('uploads'));
 
 app.get("/", (req, res) => {
   res.send("Healthcare System");
@@ -33,6 +39,9 @@ app.use("/hospitals", hospitalRouter);
 app.use("/patients", patientRouter);
 app.use("/prescriptions", prescriptionRouter);
 app.use("/reports", reportRouter);
+app.use("/notifications", notificationRouter);
+app.use("/analytics", analyticsRouter);
+app.use("/documents", documentsRouter);
 
 // Models will be imported as needed in routes
 
@@ -42,6 +51,10 @@ app.listen(process.env.port, async () => {
     await connectDB();
 
     console.log("Database initialization complete.");
+
+    // Initialize notification scheduler
+    const { initializeNotificationScheduler } = require("./services/notificationService");
+    initializeNotificationScheduler();
 
     console.log(`Listening at port ${process.env.port}`);
   } catch (err) {

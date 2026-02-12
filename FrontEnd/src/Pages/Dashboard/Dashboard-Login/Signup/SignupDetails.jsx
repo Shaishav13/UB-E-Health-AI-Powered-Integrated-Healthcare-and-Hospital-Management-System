@@ -25,7 +25,24 @@ const SignupDetails = () => {
   });
 
   const handleChange = (e) => {
-    setFormValue({ ...formValue, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    // If DOB is changed, auto-calculate age
+    if (name === 'dob' && value) {
+      const birthDate = new Date(value);
+      const today = new Date();
+      
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      
+      setFormValue({ ...formValue, [name]: value, age: age });
+    } else {
+      setFormValue({ ...formValue, [name]: value });
+    }
   };
 
   const HandleSubmit = (e) => {
@@ -142,6 +159,9 @@ const SignupDetails = () => {
                 name="age"
                 value={formValue.age}
                 onChange={handleChange}
+                readOnly
+                placeholder="Age"
+                style={{ backgroundColor: '#f0f0f0', cursor: 'not-allowed' }}
                 required
               />
               <h3>Gender</h3>

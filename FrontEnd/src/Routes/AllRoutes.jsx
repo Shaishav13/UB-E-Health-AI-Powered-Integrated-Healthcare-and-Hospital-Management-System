@@ -15,6 +15,10 @@ import Patient_Profile from "../Pages/Dashboard/Main-Dashboard/AllPages/Patient/
 import Payment_Gateway from "../Pages/Dashboard/Main-Dashboard/AllPages/Patient/Payment_Gateway";
 import My_Medications from "../Pages/Dashboard/Main-Dashboard/AllPages/Patient/My_Medications";
 import My_Appointments from "../Pages/Dashboard/Main-Dashboard/AllPages/Patient/My_Appointments";
+import Notification_Settings from "../Pages/Dashboard/Main-Dashboard/AllPages/Patient/Notification_Settings";
+import Health_Trends from "../Pages/Dashboard/Main-Dashboard/AllPages/Patient/Health_Trends";
+import My_Documents from "../Pages/Dashboard/Main-Dashboard/AllPages/Patient/My_Documents";
+import Patient_Documents from "../Pages/Dashboard/Main-Dashboard/AllPages/Doctor/Patient_Documents";
 import FrontPage from "../Pages/Dashboard/Main-Dashboard/GlobalFiles/FrontPage";
 import Admin_Profile from "../Pages/Dashboard/Main-Dashboard/AllPages/Admin/Admin_Profile";
 import ManageDoctors from "../Pages/Dashboard/Main-Dashboard/AllPages/Admin/Manage_Doctors";
@@ -46,6 +50,10 @@ const AllRoutes = () => {
         <Route path="/patientprofile" element={<Patient_Profile />} />
         <Route path="/mymedications" element={<My_Medications />} />
         <Route path="/myappointments" element={<My_Appointments />} />
+        <Route path="/notificationsettings" element={<Notification_Settings />} />
+        <Route path="/healthtrends" element={<Health_Trends />} />
+        <Route path="/mydocuments" element={<My_Documents />} />
+        <Route path="/patientdocuments" element={<Patient_Documents />} />
       </Routes>
     </>
   );

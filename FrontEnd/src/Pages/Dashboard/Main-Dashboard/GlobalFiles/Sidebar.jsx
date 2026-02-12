@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { AiOutlineUserAdd } from "react-icons/ai";
-import { FaAmbulance, FaUsers, FaPills } from "react-icons/fa";
+import { FaAmbulance, FaUsers, FaPills, FaBell, FaChartLine, FaFolder } from "react-icons/fa";
 import { BsBookmarkPlus, BsFillBookmarkCheckFill } from "react-icons/bs";
 import { CgProfile } from "react-icons/cg";
 import { TbReportMedical } from "react-icons/tb";
@@ -593,6 +593,30 @@ const Sidebar = () => {
                     <FaPills className="side-icon" />
                     {(isOpen || hovered) && <span>My Medications</span>}
                   </Link>
+
+                  <Link
+                    className="side-link"
+                    to="/notificationsettings"
+                  >
+                    <FaBell className="side-icon" />
+                    {(isOpen || hovered) && <span>Notification Settings</span>}
+                  </Link>
+
+                  <Link
+                    className="side-link"
+                    to="/healthtrends"
+                  >
+                    <FaChartLine className="side-icon" />
+                    {(isOpen || hovered) && <span>Health Trends</span>}
+                  </Link>
+
+                  <Link
+                    className="side-link"
+                    to="/mydocuments"
+                  >
+                    <FaFolder className="side-icon" />
+                    {(isOpen || hovered) && <span>My Documents</span>}
+                  </Link>
                 </>
               )}
 
@@ -666,6 +690,14 @@ const Sidebar = () => {
                   >
                     <FaUsers className="side-icon" />
                     {(isOpen || hovered) && <span>Patients</span>}
+                  </Link>
+
+                  <Link
+                    className="side-link"
+                    to="/patientdocuments"
+                  >
+                    <FaFolder className="side-icon" />
+                    {(isOpen || hovered) && <span>Patient Documents</span>}
                   </Link>
                 </>
               )}

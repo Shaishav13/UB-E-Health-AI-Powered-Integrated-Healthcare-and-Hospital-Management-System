@@ -70,16 +70,14 @@ npm start
 
 ### Test Credentials
 
-**Patient**
-- Email: sk.shaishav.13@gmail.com
-- Password: Shaishav123
+
 
 **Doctor**
-- Email: rajesh.kumar@hospital.com
+- Doctor ID: 3
 - Password: Doctor2123
 
 **Admin**
-- Email: admin@hospital.com
+- Email: admin
 - Password: Admin@123
 
 ### API Endpoints Count

@@ -157,6 +157,79 @@ const emailTemplates = {
       </body>
       </html>
     `
+  }),
+
+  labPersonnelCredentials: (name, labId, password, specialization, qualification) => ({
+    subject: '🧪 Your Lab Personnel Account - UB E-Health',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
+          .credentials-box { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #8b5cf6; }
+          .credential-item { background: #f3f4f6; padding: 12px; margin: 10px 0; border-radius: 5px; font-family: monospace; }
+          .warning { background: #fef3c7; padding: 15px; border-radius: 5px; border-left: 4px solid #f59e0b; margin: 20px 0; }
+          .button { display: inline-block; padding: 12px 30px; background: #8b5cf6; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🧪 UB E-Health</h1>
+            <p>Lab Personnel Account Created</p>
+          </div>
+          <div class="content">
+            <h2>Welcome ${name}!</h2>
+            <p>Your laboratory personnel account has been successfully created in the UB E-Health Management System.</p>
+            
+            <div class="credentials-box">
+              <h3>🔐 Your Login Credentials</h3>
+              <div class="credential-item">
+                <strong>Lab ID:</strong> ${labId}
+              </div>
+              <div class="credential-item">
+                <strong>Password:</strong> ${password}
+              </div>
+              <div class="credential-item">
+                <strong>Login URL:</strong> http://localhost:3000/dashboard-login
+              </div>
+            </div>
+            
+            <div class="warning">
+              <strong>⚠️ Important:</strong> Please use the "Doctor/Lab" login option and enter your Lab ID (${labId}). We strongly recommend changing your password after your first login.
+            </div>
+            
+            <div class="credentials-box">
+              <h3>👤 Your Profile Information</h3>
+              <p><strong>Specialization:</strong> ${specialization}</p>
+              <p><strong>Qualification:</strong> ${qualification}</p>
+            </div>
+            
+            <p>As a lab personnel member, you will have access to:</p>
+            <ul>
+              <li>View and manage lab test requests</li>
+              <li>Update test status</li>
+              <li>Enter test results</li>
+              <li>Manage home service requests</li>
+            </ul>
+            
+            <a href="http://localhost:3000/dashboard-login" class="button">Login Now</a>
+            
+            <div class="footer">
+              <p>This is an automated email from UB E-Health</p>
+              <p>If you did not expect this email, please contact the administrator</p>
+              <p>Copyright © 2025-2026 UB E-Health Management Hub</p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
   })
 };
 
@@ -381,6 +454,32 @@ const updatePatientAges = async () => {
   }
 };
 
+// Send lab personnel credentials email
+const sendLabPersonnelCredentials = async (labPersonnel, plainPassword) => {
+  try {
+    const { subject, html } = emailTemplates.labPersonnelCredentials(
+      labPersonnel.name,
+      labPersonnel.labId,
+      plainPassword,
+      labPersonnel.specialization,
+      labPersonnel.qualification
+    );
+    
+    const result = await sendEmail(labPersonnel.email, subject, html);
+    
+    if (result.success) {
+      console.log(`✅ Lab personnel credentials sent to ${labPersonnel.email}`);
+      return { success: true, message: 'Credentials email sent successfully' };
+    } else {
+      console.error(`❌ Failed to send credentials to ${labPersonnel.email}:`, result.error);
+      return { success: false, error: result.error };
+    }
+  } catch (error) {
+    console.error('❌ Error sending lab personnel credentials:', error);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   sendEmail,
   emailTemplates,
@@ -388,5 +487,6 @@ module.exports = {
   checkMedicationReminders,
   checkLabTestReminders,
   initializeNotificationScheduler,
-  updatePatientAges
+  updatePatientAges,
+  sendLabPersonnelCredentials
 };

@@ -3,17 +3,29 @@ require("dotenv").config();
 
 const authenticate = (req, res, next) => {
   const token = req.headers.authorization;
-  if (token) {
-    const decoded = jwt.verify(token, process.env.key);
+  if (!token) {
+    return res.status(401).send({ 
+      error: "Inadequate permissions, Please login first." 
+    });
+  }
+  
+  try {
+    const decoded = jwt.verify(token, process.env.KEY);
     if (decoded) {
-      const adminID = decoded.adminID;
+      const adminID = decoded.adminID || decoded.adminId;
       req.body.adminID = adminID;
       next();
     } else {
-      res.send("You cannot edit this token.");
+      return res.status(401).send({ 
+        error: "You cannot edit this token." 
+      });
     }
-  } else {
-    res.send("Inadequate permissions, Please login first.");
+  } catch (error) {
+    console.error("Admin auth error:", error.message);
+    return res.status(401).send({ 
+      error: "Invalid or expired token",
+      details: error.message
+    });
   }
 };
 

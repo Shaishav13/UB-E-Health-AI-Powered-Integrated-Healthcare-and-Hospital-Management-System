@@ -9,6 +9,10 @@ const {
   addAvailableTimes,
 } = require("../models/Doctor.model");
 const { getPatientsByDoctor } = require("../models/Patient.model");
+const { 
+  findById: findLabPersonnelById,
+  findByEmail: findLabPersonnelByEmail
+} = require("../models/LabPersonnel.model");
 const { authenticate } = require("../middlewares/doctorAuth");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
@@ -51,36 +55,118 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   const { docID, password } = req.body;
   try {
-    // Validate that docID is a number
-    const doctorId = parseInt(docID);
-    if (isNaN(doctorId) || doctorId <= 0) {
-      return res.status(400).send({ 
-        message: "Invalid Doctor ID. Please enter a valid numeric ID" 
-      });
-    }
+    // Check if docID starts with "L" to determine if it's a lab personnel
+    const isLabPersonnel = typeof docID === 'string' && docID.toUpperCase().startsWith('L');
     
-    // Find doctor by numeric doctorId
-    const doctor = await findById(doctorId);
-    
-    if (!doctor) {
-      return res.status(404).send({ message: "Doctor not found" });
-    }
-    
-    // Use bcrypt to compare the password with the hashed password
-    const bcrypt = require("bcrypt");
-    const isPasswordValid = await bcrypt.compare(password, doctor.password);
-    
-    if (isPasswordValid) {
-      const token = jwt.sign({ doctorId: doctor.doctorId }, process.env.KEY, {
-        expiresIn: "24h",
-      });
-      res.send({
-        message: "Successful",
-        user: { ...doctor.toObject(), userType: "doctor" },
-        token: token,
-      });
+    if (isLabPersonnel) {
+      // Lab Personnel Login
+      const labId = docID.toUpperCase(); // Normalize to uppercase (L1, L2, L3)
+      
+      // Find lab personnel by labId
+      const labPersonnel = await findLabPersonnelById(labId);
+      
+      if (!labPersonnel) {
+        // Try to find by email if labId not found
+        const labPersonnelByEmail = await findLabPersonnelByEmail(docID);
+        if (!labPersonnelByEmail) {
+          return res.status(404).send({ message: "Lab personnel not found" });
+        }
+        
+        // Use bcrypt to compare the password
+        const bcrypt = require("bcrypt");
+        const isPasswordValid = await bcrypt.compare(password, labPersonnelByEmail.password);
+        
+        if (isPasswordValid) {
+          const token = jwt.sign({ 
+            labId: labPersonnelByEmail.labId,
+            email: labPersonnelByEmail.email,
+            userType: "laboratory"
+          }, process.env.KEY, {
+            expiresIn: "24h",
+          });
+          
+          // Remove password from response
+          const { password: _, ...labPersonnelData } = labPersonnelByEmail.toObject();
+          
+          res.send({
+            message: "Successful",
+            user: { ...labPersonnelData, userType: "laboratory" },
+            token: token,
+          });
+        } else {
+          res.send({ message: "Wrong credentials" });
+        }
+        return;
+      }
+      
+      // Lab personnel found by labId - need to get full document with password
+      const labPersonnelWithPassword = await findLabPersonnelByEmail(labPersonnel.email);
+      
+      if (!labPersonnelWithPassword) {
+        return res.status(404).send({ message: "Lab personnel not found" });
+      }
+      
+      // Use bcrypt to compare the password
+      const bcrypt = require("bcrypt");
+      const isPasswordValid = await bcrypt.compare(password, labPersonnelWithPassword.password);
+      
+      if (isPasswordValid) {
+        const token = jwt.sign({ 
+          labId: labPersonnelWithPassword.labId,
+          email: labPersonnelWithPassword.email,
+          userType: "laboratory"
+        }, process.env.KEY, {
+          expiresIn: "24h",
+        });
+        
+        // Remove password from response
+        const { password: _, ...labPersonnelData } = labPersonnelWithPassword.toObject();
+        
+        res.send({
+          message: "Successful",
+          user: { ...labPersonnelData, userType: "laboratory" },
+          token: token,
+        });
+      } else {
+        res.send({ message: "Wrong credentials" });
+      }
     } else {
-      res.send({ message: "Wrong credentials" });
+      // Doctor Login (numeric ID)
+      // Validate that docID is a number
+      const doctorId = parseInt(docID);
+      if (isNaN(doctorId) || doctorId <= 0) {
+        return res.status(400).send({ 
+          message: "Invalid Doctor ID. Please enter a valid numeric ID" 
+        });
+      }
+      
+      // Find doctor by numeric doctorId
+      const doctor = await findById(doctorId);
+      
+      if (!doctor) {
+        return res.status(404).send({ message: "Doctor not found" });
+      }
+      
+      // Use bcrypt to compare the password with the hashed password
+      const bcrypt = require("bcrypt");
+      const isPasswordValid = await bcrypt.compare(password, doctor.password);
+      
+      if (isPasswordValid) {
+        const token = jwt.sign({ 
+          doctorID: doctor.doctorId.toString(),
+          doctorId: doctor.doctorId.toString(),
+          userType: "doctor"
+        }, process.env.KEY, {
+          expiresIn: "24h",
+        });
+        res.send({
+          message: "Successful",
+          user: { ...doctor.toObject(), userType: "doctor" },
+          token: token,
+        });
+      } else {
+        res.send({ message: "Wrong credentials" });
+      }
     }
   } catch (error) {
     console.log("Login error:", error);

@@ -78,7 +78,7 @@ const DLogin = () => {
           notify("Network error. Please check your connection.");
         });
       } else if (placement === "Doctor") {
-        // For doctors, send docID (numeric) and password
+        // For doctors and lab personnel, send docID and password
         let data = {
           docID: formValue.ID,
           password: formValue.password,
@@ -88,7 +88,7 @@ const DLogin = () => {
           if (res && res.message === "Successful") {
             notify("Login Successful");
             setLoading(false);
-
+            // Redirect based on userType
             return navigate("/dashboard");
           }
           if (res && res.message === "Wrong credentials") {
@@ -99,7 +99,7 @@ const DLogin = () => {
           if (res && res.message === "Doctor not found") {
             setLoading(false);
 
-            notify("Doctor not found");
+            notify("Doctor/Lab personnel not found");
           }
           if (res && res.message === "Internal server error") {
             setLoading(false);
@@ -109,7 +109,7 @@ const DLogin = () => {
           if (res && res.message && res.message.includes("Invalid Doctor ID")) {
             setLoading(false);
 
-            notify("Invalid Doctor ID. Please enter a numeric ID");
+            notify("Invalid ID. Please enter a numeric ID (1, 2, 3) or Lab ID (L1, L2, L3)");
           }
           if (!res || res.error || res.message === "Error") {
             setLoading(false);
@@ -215,7 +215,7 @@ const DLogin = () => {
                 Patient
               </Radio.Button>
               <Radio.Button value="Doctor" className={"radiobutton"}>
-                Doctor
+                Doctor/Lab
               </Radio.Button>
               <Radio.Button value="Admin" className={"radiobutton"}>
                 Admin
@@ -238,7 +238,7 @@ const DLogin = () => {
                 value={formValue.ID}
                 onChange={Handlechange}
                 placeholder={placement === "Patient" ? "Enter your email" : 
-                           placement === "Doctor" ? "Enter ID (1, 2, 3)" : 
+                           placement === "Doctor" ? "Enter ID (1, 2, 3 for Doctor or L1, L2, L3 for Lab)" : 
                            "Enter username (admin)"}
                 required
               />
@@ -248,7 +248,7 @@ const DLogin = () => {
                 name="password"
                 value={formValue.password}
                 onChange={Handlechange}
-                placeholder={placement === "Admin" ? "Enter password (admin@123)" : "Enter your password"}
+                placeholder={placement === "Admin" ? "Enter password" : "Enter your password"}
                 required
               />
               <button type="submit">{Loading ? "Loading..." : "Submit"}</button>

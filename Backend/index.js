@@ -18,6 +18,8 @@ const reportRouter = require("./routes/Reports.Route");
 const notificationRouter = require("./routes/Notifications.Route");
 const analyticsRouter = require("./routes/Analytics.Route");
 const documentsRouter = require("./routes/Documents.Route");
+const labReportsRouter = require("./routes/LabReports.Route");
+const labPersonnelRouter = require("./routes/LabPersonnel.Route");
 
 const app = express();
 const { connectDB } = require("./configs/db");
@@ -42,6 +44,8 @@ app.use("/reports", reportRouter);
 app.use("/notifications", notificationRouter);
 app.use("/analytics", analyticsRouter);
 app.use("/documents", documentsRouter);
+app.use("/lab-reports", labReportsRouter);
+app.use("/lab-personnel", labPersonnelRouter);
 
 // Models will be imported as needed in routes
 

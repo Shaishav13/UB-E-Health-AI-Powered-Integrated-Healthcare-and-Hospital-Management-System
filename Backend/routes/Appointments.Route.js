@@ -9,6 +9,7 @@ const {
   findById,
 } = require("../models/Appointment.model");
 const { getDoctorCredFromEmail, findById: findDoctorById } = require("../models/Doctor.model");
+const Patient = require("../models/Patient.model");
 const router = express.Router();
 
 // Mock Razorpay for demo purposes (since no account available)
@@ -89,6 +90,27 @@ router.post("/verify-payment", async (req, res) => {
       
       console.log("Payment verification - Creating appointment:", JSON.stringify(appointment, null, 2));
       await createAppointment(appointment);
+      
+      // Automatically assign patient to doctor if not already assigned
+      try {
+        const PatientModel = mongoose.model('Patient');
+        const patient = await PatientModel.findById(appointmentData.patientId);
+        
+        if (patient && !patient.docID) {
+          // Get doctor's numeric ID
+          const doctorDetails = await findDoctorById(doctor[0]._id);
+          if (doctorDetails && doctorDetails.doctorId) {
+            await PatientModel.findByIdAndUpdate(appointmentData.patientId, {
+              docID: doctorDetails.doctorId
+            });
+            console.log(`Patient ${appointmentData.patientId} automatically assigned to doctor ${doctorDetails.doctorId}`);
+          }
+        }
+      } catch (assignError) {
+        console.error("Error auto-assigning patient to doctor:", assignError);
+        // Don't fail the appointment creation if assignment fails
+      }
+      
       res.status(200).send({ message: "Appointment booked successfully (mock payment)" });
     } else {
       res.status(404).send({ message: "Doctor not found" });
@@ -152,6 +174,27 @@ router.post("/create", async (req, res) => {
       console.log("Creating appointment with data:", JSON.stringify(appointment, null, 2));
       const result = await createAppointment(appointment);
       console.log("Appointment created successfully:", result._id);
+      
+      // Automatically assign patient to doctor if not already assigned
+      try {
+        const PatientModel = mongoose.model('Patient');
+        const patient = await PatientModel.findById(payload.patientId);
+        
+        if (patient && !patient.docID) {
+          // Get doctor's numeric ID
+          const doctorDetails = await findDoctorById(doctor[0]._id);
+          if (doctorDetails && doctorDetails.doctorId) {
+            await PatientModel.findByIdAndUpdate(payload.patientId, {
+              docID: doctorDetails.doctorId
+            });
+            console.log(`Patient ${payload.patientId} automatically assigned to doctor ${doctorDetails.doctorId}`);
+          }
+        }
+      } catch (assignError) {
+        console.error("Error auto-assigning patient to doctor:", assignError);
+        // Don't fail the appointment creation if assignment fails
+      }
+      
       res.status(200).send({ message: "Successful" });
     } else {
       console.log("Doctor not found for email:", req.body.docemail);

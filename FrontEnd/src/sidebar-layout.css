@@ -1,0 +1,160 @@
+/* Global Sidebar Layout Styles */
+/* This file ensures all pages with Sidebar component have proper spacing */
+
+/* Common container patterns used across the app */
+.dashboardContainer,
+.dashboard-container,
+.doctor-dashboard-container,
+.patient-dashboard-container,
+.admin-dashboard-container,
+.lab-dashboard-container,
+.payment-history-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Common content patterns - add left margin for fixed sidebar */
+.mainContent,
+.dashboard-content,
+.doctor-dashboard-content,
+.patient-dashboard-content,
+.patient-details-container,
+.main-content,
+.content-area,
+.page-content,
+.appointment-wrapper,
+.medications-content,
+.settings-content,
+.trends-content,
+.documents-content,
+.reports-content,
+.patient-content,
+.appointments-content,
+.doctor-main,
+.report-content,
+.loading-content,
+.no-appointments-content,
+.payment-history-wrapper,
+.book-page-container > div:not(.sidebar-container):not(.sidebar-modern),
+.profile-container,
+.report-container,
+.medication-container,
+.document-container,
+.lab-container,
+.admin-container {
+  margin-left: 80px !important;
+  transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Specific page wrappers that need margin */
+.book-page-container,
+.profile-page-container,
+.report-page-container,
+.medication-page-container,
+.document-page-container,
+.lab-page-container,
+.admin-page-container,
+.medications-container,
+.settings-container,
+.trends-container,
+.documents-container,
+.reports-container,
+.loading-container,
+.no-appointments,
+.doctor-profile-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.book-page-container > .appointment-wrapper,
+.profile-page-container > div:last-child,
+.report-page-container > div:last-child,
+.medication-page-container > div:last-child,
+.document-page-container > div:last-child,
+.lab-page-container > div:last-child,
+.admin-page-container > div:last-child {
+  margin-left: 80px !important;
+}
+
+/* Mobile responsive - remove margin on small screens */
+@media (max-width: 767px) {
+  .mainContent,
+  .dashboard-content,
+  .doctor-dashboard-content,
+  .patient-dashboard-content,
+  .patient-details-container,
+  .main-content,
+  .content-area,
+  .page-content,
+  .appointment-wrapper,
+  .medications-content,
+  .settings-content,
+  .trends-content,
+  .documents-content,
+  .reports-content,
+  .patient-content,
+  .appointments-content,
+  .doctor-main,
+  .report-content,
+  .loading-content,
+  .no-appointments-content,
+  .payment-history-wrapper,
+  .book-page-container > div:not(.sidebar-container):not(.sidebar-modern),
+  .profile-container,
+  .report-container,
+  .medication-container,
+  .document-container,
+  .lab-container,
+  .admin-container,
+  .book-page-container > .appointment-wrapper,
+  .profile-page-container > div:last-child,
+  .report-page-container > div:last-child,
+  .medication-page-container > div:last-child,
+  .document-page-container > div:last-child,
+  .lab-page-container > div:last-child,
+  .admin-page-container > div:last-child {
+    margin-left: 0 !important;
+  }
+}
+
+/* Tablet responsive */
+@media (max-width: 991px) and (min-width: 768px) {
+  .mainContent,
+  .dashboard-content,
+  .doctor-dashboard-content,
+  .patient-dashboard-content,
+  .patient-details-container,
+  .main-content,
+  .content-area,
+  .page-content,
+  .appointment-wrapper,
+  .medications-content,
+  .settings-content,
+  .trends-content,
+  .documents-content,
+  .reports-content,
+  .patient-content,
+  .appointments-content,
+  .doctor-main,
+  .report-content,
+  .loading-content,
+  .no-appointments-content,
+  .payment-history-wrapper,
+  .book-page-container > div:not(.sidebar-container):not(.sidebar-modern),
+  .profile-container,
+  .report-container,
+  .medication-container,
+  .document-container,
+  .lab-container,
+  .admin-container,
+  .book-page-container > .appointment-wrapper,
+  .profile-page-container > div:last-child,
+  .report-page-container > div:last-child,
+  .medication-page-container > div:last-child,
+  .document-page-container > div:last-child,
+  .lab-page-container > div:last-child,
+  .admin-page-container > div:last-child {
+    margin-left: 70px !important;
+  }
+}
+

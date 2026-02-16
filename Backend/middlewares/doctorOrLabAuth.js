@@ -20,7 +20,7 @@ const authenticate = (req, res, next) => {
   
   try {
     // Verify JWT token
-    const decoded = jwt.verify(token, process.env.key);
+    const decoded = jwt.verify(token, process.env.KEY);
     
     if (!decoded) {
       return res.status(401).send({

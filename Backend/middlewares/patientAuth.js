@@ -4,7 +4,7 @@ require("dotenv").config();
 const authenticate = (req, res, next) => {
   const token = req.headers.authorization;
   if (token) {
-    const decoded = jwt.verify(token, process.env.key);
+    const decoded = jwt.verify(token, process.env.KEY);
     if (decoded) {
       const patientID = decoded.patientID;
       req.body.patientID = patientID;

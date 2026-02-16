@@ -13,6 +13,9 @@ import { FaChevronDown, FaChevronUp, FaEdit, FaSave, FaTimes, FaDownload } from 
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { generateReport } from "../../../../../Components/ReportGenerator";
+import AIReportInterpretation from "../../../../../Components/AIReportInterpretation";
+import DoctorReportAI from "../../../../../Components/DoctorReportAI";
+import axios from "axios";
 
 const notify = (text) => toast(text);
 
@@ -22,6 +25,13 @@ const AllReport = () => {
   const [expandedRows, setExpandedRows] = useState([]);
   const [editingReport, setEditingReport] = useState(null);
   const [editFormData, setEditFormData] = useState({});
+  const [reportType, setReportType] = useState('doctor'); // 'doctor' or 'lab'
+  const [labReports, setLabReports] = useState([]);
+  const [loadingLabReports, setLoadingLabReports] = useState(false);
+  const [showAIInterpretation, setShowAIInterpretation] = useState(false);
+  const [selectedReportId, setSelectedReportId] = useState(null);
+  const [showDoctorReportAI, setShowDoctorReportAI] = useState(false);
+  const [selectedDoctorReportId, setSelectedDoctorReportId] = useState(null);
 
   const {
     data: { user },
@@ -41,13 +51,46 @@ const AllReport = () => {
     }
   }, [user]);
 
+  // Fetch lab reports when toggle changes
+  useEffect(() => {
+    if (reportType === 'lab' && user && user._id) {
+      fetchLabReports();
+    }
+  }, [reportType, user]);
+
+  const fetchLabReports = async () => {
+    try {
+      setLoadingLabReports(true);
+      const response = await axios.get(
+        `http://127.0.0.1:3001/lab-reports/patient/${user._id}`
+      );
+      
+      // Sort lab reports by date (newest first)
+      const sortedLabReports = (response.data.labReports || []).sort((a, b) => {
+        const dateA = new Date(a.preferredDate || a.createdAt);
+        const dateB = new Date(b.preferredDate || b.createdAt);
+        return dateB - dateA; // Descending order (newest first)
+      });
+      
+      setLabReports(sortedLabReports);
+      setLoadingLabReports(false);
+    } catch (error) {
+      console.error("Error fetching lab reports:", error);
+      setLabReports([]);
+      setLoadingLabReports(false);
+    }
+  };
+
   // Auto-expand all reports when they load
   useEffect(() => {
-    if (reports && reports.length > 0) {
+    if (reportType === 'doctor' && reports && reports.length > 0) {
       const allReportIds = reports.map(report => report._id || report.id);
       setExpandedRows(allReportIds);
+    } else if (reportType === 'lab' && labReports && labReports.length > 0) {
+      const allLabReportIds = labReports.map(report => report._id);
+      setExpandedRows(allLabReportIds);
     }
-  }, [reports]);
+  }, [reports, labReports, reportType]);
 
   const toggleRow = (report) => {
     const reportId = report._id || report.id;
@@ -141,6 +184,16 @@ const AllReport = () => {
       console.error("Error generating report:", error);
       notify("Failed to generate report");
     }
+  };
+
+  const handleExplainReport = (reportId) => {
+    setSelectedReportId(reportId);
+    setShowAIInterpretation(true);
+  };
+
+  const handleExplainDoctorReport = (reportId) => {
+    setSelectedDoctorReportId(reportId);
+    setShowDoctorReportAI(true);
   };
 
   let Name = user?.userType === "patient" ? "Doctor Name" : "Patient Name";
@@ -685,6 +738,31 @@ const AllReport = () => {
     box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
     background: white;
   }
+
+  .btn-ai-explain {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  }
+
+  .btn-ai-explain:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+  }
+
+  .btn-ai-explain:active {
+    transform: translateY(0);
+  }
 `}</style>
 
 
@@ -694,9 +772,63 @@ const AllReport = () => {
         <div className="reports-content">
           <h1 className="reports-heading">📋 Medical Reports</h1>
 
+          {/* Toggle Buttons */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '1rem',
+            marginBottom: '2rem'
+          }}>
+            <button
+              onClick={() => setReportType('doctor')}
+              style={{
+                padding: '0.875rem 2rem',
+                border: reportType === 'doctor' ? 'none' : '2px solid rgba(102, 126, 234, 0.2)',
+                background: reportType === 'doctor' 
+                  ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                  : 'white',
+                color: reportType === 'doctor' ? 'white' : '#374151',
+                borderRadius: '12px',
+                fontSize: '1rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: reportType === 'doctor' 
+                  ? '0 8px 20px rgba(102, 126, 234, 0.4)'
+                  : '0 2px 8px rgba(0, 0, 0, 0.05)'
+              }}
+            >
+              🩺 Doctor Reports
+            </button>
+            <button
+              onClick={() => setReportType('lab')}
+              style={{
+                padding: '0.875rem 2rem',
+                border: reportType === 'lab' ? 'none' : '2px solid rgba(102, 126, 234, 0.2)',
+                background: reportType === 'lab' 
+                  ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+                  : 'white',
+                color: reportType === 'lab' ? 'white' : '#374151',
+                borderRadius: '12px',
+                fontSize: '1rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: reportType === 'lab' 
+                  ? '0 8px 20px rgba(102, 126, 234, 0.4)'
+                  : '0 2px 8px rgba(0, 0, 0, 0.05)'
+              }}
+            >
+              🧪 Lab Reports
+            </button>
+          </div>
+
           {user?.userType !== "admin" && (
             <div className="reports-card">
-              {reports && reports.length > 0 ? (
+              {/* Doctor Reports Section */}
+              {reportType === 'doctor' && (
+                <>
+                  {reports && reports.length > 0 ? (
                 <div className="reports-grid">
                   {reports.map((report) => {
                     const reportId = report._id || report.id;
@@ -873,6 +1005,16 @@ const AllReport = () => {
                                       <FaDownload /> Download Report
                                     </button>
                                     
+                                    {/* AI Explain button for patients */}
+                                    {user?.userType === "patient" && (
+                                      <button
+                                        className="btn-ai-explain"
+                                        onClick={() => handleExplainDoctorReport(report._id || report.id)}
+                                      >
+                                        ✨ Explain My Report with AI
+                                      </button>
+                                    )}
+                                    
                                     {/* Edit buttons only for doctors */}
                                     {user?.userType === "doctor" && (
                                       <>
@@ -910,13 +1052,235 @@ const AllReport = () => {
                       </div>
                     ) : (
                       <div className="no-reports">
-                        <p>No reports available</p>
+                        <p>No doctor reports available</p>
                       </div>
                     )}
+                </>
+              )}
+
+              {/* Lab Reports Section */}
+              {reportType === 'lab' && (
+                <>
+                  {loadingLabReports ? (
+                    <div className="no-reports">
+                      <p>Loading lab reports...</p>
+                    </div>
+                  ) : labReports && labReports.length > 0 ? (
+                    <div className="reports-grid">
+                      {labReports.map((labReport) => {
+                        const reportId = labReport._id;
+                        const statusColors = {
+                          'Pending': '#f59e0b',
+                          'Sample Collected': '#3b82f6',
+                          'Processing': '#8b5cf6',
+                          'Completed': '#10b981',
+                          'Cancelled': '#ef4444'
+                        };
+                        return (
+                          <div key={reportId} className="report-card">
+                            <div className="report-card-header">
+                              <div className="report-card-title">
+                                <div className="report-name">🧪 {labReport.testName}</div>
+                                <div className="report-meta">
+                                  <span className="report-meta-item">
+                                    📅 {new Date(labReport.preferredDate).toLocaleDateString()}
+                                  </span>
+                                  <span className="report-meta-item">
+                                    🕐 {labReport.preferredTime}
+                                  </span>
+                                  <span className="report-meta-item" style={{
+                                    background: statusColors[labReport.status] || '#64748b',
+                                    color: 'white',
+                                    padding: '0.25rem 0.75rem',
+                                    borderRadius: '8px',
+                                    fontSize: '0.85rem',
+                                    fontWeight: '600'
+                                  }}>
+                                    {labReport.status}
+                                  </span>
+                                  {labReport.homeService && (
+                                    <span className="report-meta-item" style={{
+                                      background: '#34d399',
+                                      color: 'white',
+                                      padding: '0.25rem 0.75rem',
+                                      borderRadius: '8px',
+                                      fontSize: '0.85rem',
+                                      fontWeight: '600'
+                                    }}>
+                                      🏠 Home Service
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <button
+                                className="expand-toggle"
+                                onClick={() => toggleRow(labReport)}
+                              >
+                                {isExpanded(labReport) ? <FaChevronUp /> : <FaChevronDown />}
+                              </button>
+                            </div>
+
+                            {isExpanded(labReport) && (
+                              <div className="expanded-details">
+                                <div className="detail-grid">
+                                  <div className="detail-item">
+                                    <div className="detail-label">Test Type</div>
+                                    <div className="detail-value">{labReport.testType}</div>
+                                  </div>
+                                  <div className="detail-item">
+                                    <div className="detail-label">Cost</div>
+                                    <div className="detail-value">₹{labReport.cost}</div>
+                                  </div>
+                                  <div className="detail-item">
+                                    <div className="detail-label">Payment Status</div>
+                                    <div className="detail-value">{labReport.paymentStatus}</div>
+                                  </div>
+                                  {labReport.sampleCollectedDate && (
+                                    <div className="detail-item">
+                                      <div className="detail-label">Sample Collected</div>
+                                      <div className="detail-value">
+                                        {new Date(labReport.sampleCollectedDate).toLocaleDateString()}
+                                      </div>
+                                    </div>
+                                  )}
+                                  {labReport.reportDate && (
+                                    <div className="detail-item">
+                                      <div className="detail-label">Report Date</div>
+                                      <div className="detail-value">
+                                        {new Date(labReport.reportDate).toLocaleDateString()}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {labReport.homeService && labReport.address && (
+                                  <div className="info-section" style={{ borderLeft: '4px solid #34d399' }}>
+                                    <h4>🏠 Home Service Address</h4>
+                                    <p>{labReport.address}</p>
+                                  </div>
+                                )}
+
+                                {labReport.results && labReport.results.parameters && labReport.results.parameters.length > 0 && (
+                                  <div className="info-section" style={{ borderLeft: '4px solid #10b981' }}>
+                                    <h4>📊 Test Results</h4>
+                                    <div style={{ overflowX: 'auto' }}>
+                                      <table style={{
+                                        width: '100%',
+                                        borderCollapse: 'collapse',
+                                        marginTop: '1rem'
+                                      }}>
+                                        <thead>
+                                          <tr style={{ background: '#f8fafc' }}>
+                                            <th style={{ padding: '0.75rem', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>Parameter</th>
+                                            <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '2px solid #e2e8f0' }}>Value</th>
+                                            <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '2px solid #e2e8f0' }}>Unit</th>
+                                            <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '2px solid #e2e8f0' }}>Normal Range</th>
+                                            <th style={{ padding: '0.75rem', textAlign: 'center', borderBottom: '2px solid #e2e8f0' }}>Status</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {labReport.results.parameters.map((param, index) => (
+                                            <tr key={index} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                              <td style={{ padding: '0.75rem', fontWeight: '600' }}>{param.name}</td>
+                                              <td style={{ padding: '0.75rem', textAlign: 'center', fontWeight: '700' }}>{param.value}</td>
+                                              <td style={{ padding: '0.75rem', textAlign: 'center' }}>{param.unit}</td>
+                                              <td style={{ padding: '0.75rem', textAlign: 'center', color: '#64748b' }}>{param.normalRange}</td>
+                                              <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                                                <span style={{
+                                                  padding: '0.25rem 0.75rem',
+                                                  borderRadius: '6px',
+                                                  fontSize: '0.85rem',
+                                                  fontWeight: '600',
+                                                  background: param.status === 'Normal' ? '#d1fae5' : 
+                                                             param.status === 'High' ? '#fee2e2' :
+                                                             param.status === 'Low' ? '#fef3c7' : '#fecaca',
+                                                  color: param.status === 'Normal' ? '#065f46' :
+                                                         param.status === 'High' ? '#991b1b' :
+                                                         param.status === 'Low' ? '#92400e' : '#7f1d1d'
+                                                }}>
+                                                  {param.status}
+                                                </span>
+                                              </td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                    {labReport.results.summary && (
+                                      <div style={{ marginTop: '1rem', padding: '1rem', background: '#f0fdf4', borderRadius: '8px' }}>
+                                        <strong>Summary:</strong> {labReport.results.summary}
+                                      </div>
+                                    )}
+                                    {labReport.results.remarks && (
+                                      <div style={{ marginTop: '0.5rem', padding: '1rem', background: '#fef3c7', borderRadius: '8px' }}>
+                                        <strong>Remarks:</strong> {labReport.results.remarks}
+                                      </div>
+                                    )}
+                                    {labReport.results.technician && (
+                                      <div style={{ marginTop: '0.5rem', fontSize: '0.9rem', color: '#64748b' }}>
+                                        <strong>Technician:</strong> {labReport.results.technician}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+
+                                {labReport.status === 'Completed' && (
+                                  <div className="edit-actions">
+                                    <button
+                                      className="download-btn"
+                                      onClick={() => notify("Lab report download feature coming soon!")}
+                                    >
+                                      <FaDownload /> Download Lab Report
+                                    </button>
+                                    {labReport.results && labReport.results.parameters && labReport.results.parameters.length > 0 && (
+                                      <button
+                                        className="btn-ai-explain"
+                                        onClick={() => handleExplainReport(labReport._id)}
+                                      >
+                                        ✨ Explain Report with AI
+                                      </button>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="no-reports">
+                      <p>No lab reports available</p>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           )}
         </div>
       </div>
+
+      {/* AI Report Interpretation Modal for Lab Reports */}
+      {showAIInterpretation && (
+        <AIReportInterpretation
+          reportId={selectedReportId}
+          onClose={() => {
+            setShowAIInterpretation(false);
+            setSelectedReportId(null);
+          }}
+        />
+      )}
+
+      {/* AI Report Interpretation Modal for Doctor Reports */}
+      {showDoctorReportAI && (
+        <DoctorReportAI
+          reportId={selectedDoctorReportId}
+          onClose={() => {
+            setShowDoctorReportAI(false);
+            setSelectedDoctorReportId(null);
+          }}
+        />
+      )}
     </>
   );
 };

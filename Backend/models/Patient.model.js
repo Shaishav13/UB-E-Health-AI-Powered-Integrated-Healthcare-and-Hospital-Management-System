@@ -11,7 +11,12 @@ const patientSchema = new mongoose.Schema({
   bloodgroup: { type: String, required: true },
   dob: { type: Date, required: true },
   address: { type: String, required: true },
-  docID: { type: mongoose.Schema.Types.ObjectId, ref: 'Doctor', default: null },
+  docID: { type: Number, ref: 'Doctor', default: null },
+  status: { 
+    type: String, 
+    enum: ['active', 'follow-up', 'critical', 'under-treatment', 'recovered'],
+    default: 'active'
+  },
   notificationPreferences: {
     appointmentReminders: { type: Boolean, default: true },
     medicationReminders: { type: Boolean, default: true },
@@ -89,7 +94,7 @@ const createTable = async () => {
 };
 
 const getAllPatients = async () => {
-  return await Patient.find({}).populate('docID');
+  return await Patient.find({});
 };
 
 const findIfExists = async (email) => {
@@ -109,7 +114,7 @@ const addPatient = async (patient) => {
 };
 
 const findCred = async (ID) => {
-  return await Patient.findById(ID).populate('docID');
+  return await Patient.findById(ID);
 };
 
 const updatePass = async (password, id) => {

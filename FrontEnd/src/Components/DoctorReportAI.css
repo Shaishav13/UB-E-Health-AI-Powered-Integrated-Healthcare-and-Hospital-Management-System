@@ -1,0 +1,611 @@
+/* Doctor Report AI Modal Styles */
+
+.doctor-ai-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.doctor-ai-modal-content {
+  background: white;
+  border-radius: 20px;
+  max-width: 900px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.doctor-ai-close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.1);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.doctor-ai-close-btn:hover {
+  background: rgba(0, 0, 0, 0.2);
+  transform: rotate(90deg);
+}
+
+/* Consent Screen */
+.doctor-ai-consent-screen {
+  padding: 60px 40px 40px;
+  text-align: center;
+}
+
+.doctor-ai-consent-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.doctor-ai-consent-screen h2 {
+  font-size: 32px;
+  color: #1e293b;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.doctor-ai-consent-subtitle {
+  font-size: 18px;
+  color: #64748b;
+  margin-bottom: 30px;
+}
+
+.doctor-ai-consent-info {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  padding: 30px;
+  border-radius: 16px;
+  margin-bottom: 30px;
+  text-align: left;
+}
+
+.doctor-ai-consent-info h3 {
+  color: #0369a1;
+  margin-bottom: 15px;
+  font-size: 20px;
+}
+
+.doctor-ai-consent-info ul {
+  list-style: none;
+  padding: 0;
+}
+
+.doctor-ai-consent-info li {
+  padding: 10px 0;
+  color: #334155;
+  font-size: 16px;
+  border-bottom: 1px solid rgba(3, 105, 161, 0.1);
+}
+
+.doctor-ai-consent-info li:last-child {
+  border-bottom: none;
+}
+
+.doctor-ai-disclaimer {
+  background: #fef3c7;
+  padding: 20px;
+  border-radius: 12px;
+  border-left: 4px solid #f59e0b;
+  margin-bottom: 30px;
+  text-align: left;
+}
+
+.doctor-ai-disclaimer strong {
+  color: #92400e;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.doctor-ai-disclaimer p {
+  color: #78350f;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.doctor-ai-consent-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.doctor-ai-btn-proceed,
+.doctor-ai-btn-cancel {
+  padding: 15px 40px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.doctor-ai-btn-proceed {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+.doctor-ai-btn-proceed:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+}
+
+.doctor-ai-btn-cancel {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.doctor-ai-btn-cancel:hover {
+  background: #e2e8f0;
+}
+
+/* Loading State */
+.doctor-ai-loading {
+  padding: 80px 40px;
+  text-align: center;
+}
+
+.doctor-ai-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #0ea5e9;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.doctor-ai-loading p {
+  color: #64748b;
+  font-size: 16px;
+}
+
+/* Error State */
+.doctor-ai-error {
+  padding: 60px 40px;
+  text-align: center;
+}
+
+.doctor-ai-error p {
+  color: #dc2626;
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.doctor-ai-error button {
+  padding: 12px 30px;
+  background: #0ea5e9;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Interpretation View */
+.doctor-ai-interpretation-view {
+  padding: 40px;
+}
+
+.doctor-ai-interpretation {
+  padding-top: 20px;
+}
+
+.doctor-ai-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.doctor-ai-header h2 {
+  font-size: 28px;
+  color: #1e293b;
+  margin: 0;
+}
+
+.doctor-ai-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.doctor-ai-badge.ai-powered {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  color: white;
+}
+
+.doctor-ai-badge.rule-based {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+/* Sections */
+.doctor-ai-section {
+  margin-bottom: 30px;
+  padding: 25px;
+  background: #f8fafc;
+  border-radius: 16px;
+  border-left: 4px solid #0ea5e9;
+}
+
+.doctor-ai-section h3 {
+  font-size: 22px;
+  color: #1e293b;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Summary */
+.doctor-ai-summary {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-left-color: #0ea5e9;
+}
+
+.doctor-ai-summary p {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #334155;
+}
+
+/* Diagnosis */
+.doctor-ai-diagnosis {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-left-color: #f59e0b;
+}
+
+.doctor-ai-diagnosis-card h4 {
+  font-size: 20px;
+  color: #92400e;
+  margin-bottom: 15px;
+}
+
+.doctor-ai-diagnosis-detail {
+  margin-bottom: 15px;
+}
+
+.doctor-ai-diagnosis-detail strong {
+  color: #78350f;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.doctor-ai-diagnosis-detail p {
+  color: #451a03;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Vital Signs */
+.doctor-ai-vitals {
+  background: white;
+  border-left-color: #10b981;
+}
+
+.doctor-ai-vitals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.doctor-ai-vital-card {
+  padding: 20px;
+  border-radius: 12px;
+  background: white;
+  border: 2px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.doctor-ai-vital-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.doctor-ai-vital-card.status-normal {
+  border-color: #10b981;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+.doctor-ai-vital-card.status-high {
+  border-color: #ef4444;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+}
+
+.doctor-ai-vital-card.status-low {
+  border-color: #f59e0b;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.doctor-ai-vital-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.doctor-ai-vital-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: capitalize;
+}
+
+.doctor-ai-vital-status {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.doctor-ai-vital-status.status-normal {
+  color: #10b981;
+}
+
+.doctor-ai-vital-status.status-high {
+  color: #ef4444;
+}
+
+.doctor-ai-vital-status.status-low {
+  color: #f59e0b;
+}
+
+.doctor-ai-vital-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 10px;
+}
+
+.doctor-ai-vital-meaning {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+/* Medications */
+.doctor-ai-medications {
+  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+  border-left-color: #a855f7;
+}
+
+.doctor-ai-medication-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  border-left: 4px solid #a855f7;
+}
+
+.doctor-ai-medication-card:last-child {
+  margin-bottom: 0;
+}
+
+.doctor-ai-medication-card h4 {
+  color: #7c3aed;
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.doctor-ai-medication-card p {
+  color: #475569;
+  margin: 8px 0;
+  line-height: 1.6;
+}
+
+/* Precautions */
+.doctor-ai-precautions {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-left-color: #ef4444;
+}
+
+.doctor-ai-precaution-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  border-left: 4px solid #64748b;
+}
+
+.doctor-ai-precaution-card:last-child {
+  margin-bottom: 0;
+}
+
+.doctor-ai-precaution-card.priority-high {
+  border-left-color: #ef4444;
+}
+
+.doctor-ai-precaution-card.priority-medium {
+  border-left-color: #f59e0b;
+}
+
+.doctor-ai-precaution-card.priority-low {
+  border-left-color: #10b981;
+}
+
+.doctor-ai-precaution-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.doctor-ai-precaution-icon {
+  font-size: 24px;
+}
+
+.doctor-ai-precaution-title {
+  flex: 1;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.doctor-ai-priority-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.doctor-ai-priority-badge.priority-high {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.doctor-ai-priority-badge.priority-medium {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.doctor-ai-priority-badge.priority-low {
+  background: #dcfce7;
+  color: #065f46;
+}
+
+.doctor-ai-precaution-card p {
+  color: #475569;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Questions */
+.doctor-ai-questions {
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border-left-color: #10b981;
+}
+
+.doctor-ai-questions ul {
+  list-style: none;
+  padding: 0;
+}
+
+.doctor-ai-questions li {
+  padding: 15px;
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  color: #334155;
+  font-size: 15px;
+  line-height: 1.6;
+  border-left: 3px solid #10b981;
+}
+
+.doctor-ai-questions li:last-child {
+  margin-bottom: 0;
+}
+
+/* Footer Disclaimer */
+.doctor-ai-footer-disclaimer {
+  margin-top: 30px;
+  padding: 20px;
+  background: #fef3c7;
+  border-radius: 12px;
+  border-left: 4px solid #f59e0b;
+}
+
+.doctor-ai-footer-disclaimer p {
+  color: #78350f;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .doctor-ai-modal-content {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .doctor-ai-interpretation-view {
+    padding: 20px;
+  }
+
+  .doctor-ai-consent-screen {
+    padding: 40px 20px 20px;
+  }
+
+  .doctor-ai-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .doctor-ai-vitals-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .doctor-ai-consent-actions {
+    flex-direction: column;
+  }
+
+  .doctor-ai-btn-proceed,
+  .doctor-ai-btn-cancel {
+    width: 100%;
+  }
+}

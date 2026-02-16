@@ -111,6 +111,7 @@ const getLastReportId = async () => {
 };
 
 module.exports = {
+  Report,
   getAllReports,
   createTable,
   countReport,

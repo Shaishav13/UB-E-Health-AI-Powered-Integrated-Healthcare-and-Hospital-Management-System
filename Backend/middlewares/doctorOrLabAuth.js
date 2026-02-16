@@ -1,5 +1,5 @@
 /*
- * UB E-Health - Doctor Authentication Middleware
+ * UB E-Health - Doctor or Lab Personnel Authentication Middleware
  * Copyright (c) 2025-2026 Shaishav
  * Licensed under MIT License
  */
@@ -29,23 +29,30 @@ const authenticate = (req, res, next) => {
       });
     }
     
-    // Check if userType is "doctor" (NOT laboratory)
-    if (decoded.userType !== "doctor") {
+    // Check if userType is "doctor" OR "laboratory"
+    if (decoded.userType !== "doctor" && decoded.userType !== "laboratory") {
       return res.status(403).send({
         error: "Access denied",
-        message: "Doctor only. You do not have permission to access this resource."
+        message: "Doctor or Lab personnel only. You do not have permission to access this resource."
       });
     }
     
-    // Attach user data to req.user
-    req.user = {
-      doctorID: decoded.doctorID,
-      email: decoded.email,
-      userType: decoded.userType
-    };
-    
-    // Also attach doctorID to req.body for backward compatibility
-    req.body.doctorID = decoded.doctorID;
+    // Attach user data to req.user based on userType
+    if (decoded.userType === "laboratory") {
+      req.user = {
+        labId: decoded.labId,
+        email: decoded.email,
+        userType: decoded.userType
+      };
+      req.body.labId = decoded.labId;
+    } else if (decoded.userType === "doctor") {
+      req.user = {
+        doctorID: decoded.doctorID,
+        email: decoded.email,
+        userType: decoded.userType
+      };
+      req.body.doctorID = decoded.doctorID;
+    }
     
     next();
   } catch (error) {

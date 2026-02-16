@@ -10,6 +10,8 @@
   "author": "Shaishav",
   "license": "MIT",
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "axios": "^1.13.5",
     "bcrypt": "^5.1.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
@@ -25,5 +27,8 @@
     "pg": "^8.11.3",
     "pg-pool": "^3.6.1",
     "validator": "^13.7.0"
+  },
+  "devDependencies": {
+    "fast-check": "^4.5.3"
   }
 }

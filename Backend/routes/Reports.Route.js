@@ -249,4 +249,48 @@ router.put("/update/:reportId", async (req, res) => {
   }
 });
 
+// AI Interpretation for Doctor Reports
+router.post("/:reportId/interpret-doctor-report", async (req, res) => {
+  try {
+    const { reportId } = req.params;
+    const { interpretDoctorReport } = require("../services/doctorReportAI");
+
+    if (!mongoose.Types.ObjectId.isValid(reportId)) {
+      return res.status(400).send({ 
+        message: "Invalid report ID" 
+      });
+    }
+
+    // Get the report
+    const Report = require("../models/Report.model").Report;
+    const report = await Report.findById(reportId)
+      .populate("patientid", "name age gender")
+      .populate("doctorid", "name specialization");
+
+    if (!report) {
+      return res.status(404).send({ 
+        message: "Report not found" 
+      });
+    }
+
+    console.log(`🤖 Generating AI interpretation for doctor report: ${reportId}`);
+
+    // Generate interpretation
+    const interpretation = await interpretDoctorReport(report);
+
+    console.log(`✅ Doctor report interpretation generated (AI: ${interpretation.aiPowered})`);
+
+    res.status(200).send({ 
+      message: "Interpretation generated successfully", 
+      interpretation 
+    });
+  } catch (error) {
+    console.error("Error interpreting doctor report:", error);
+    res.status(500).send({ 
+      message: "Error generating interpretation", 
+      error: error.message 
+    });
+  }
+});
+
 module.exports = router;

@@ -85,6 +85,9 @@ const labReportSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  payment_id: {
+    type: String
+  },
   paymentStatus: {
     type: String,
     enum: ["Pending", "Paid"],

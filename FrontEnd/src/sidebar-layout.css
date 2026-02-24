@@ -8,7 +8,8 @@
 .patient-dashboard-container,
 .admin-dashboard-container,
 .lab-dashboard-container,
-.payment-history-container {
+.payment-history-container,
+.payment-container {
   display: flex;
   min-height: 100vh;
 }
@@ -35,6 +36,7 @@
 .loading-content,
 .no-appointments-content,
 .payment-history-wrapper,
+.payment-wrapper,
 .book-page-container > div:not(.sidebar-container):not(.sidebar-modern),
 .profile-container,
 .report-container,
@@ -99,6 +101,7 @@
   .loading-content,
   .no-appointments-content,
   .payment-history-wrapper,
+  .payment-wrapper,
   .book-page-container > div:not(.sidebar-container):not(.sidebar-modern),
   .profile-container,
   .report-container,
@@ -140,6 +143,7 @@
   .loading-content,
   .no-appointments-content,
   .payment-history-wrapper,
+  .payment-wrapper,
   .book-page-container > div:not(.sidebar-container):not(.sidebar-modern),
   .profile-container,
   .report-container,

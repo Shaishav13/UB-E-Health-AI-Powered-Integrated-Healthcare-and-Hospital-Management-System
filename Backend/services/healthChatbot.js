@@ -1,0 +1,230 @@
+/*
+ * UB E-Health - AI Health Assistant Chatbot
+ * Copyright (c) 2025-2026 Shaishav
+ * Licensed under MIT License
+ * 
+ * Powered by Google Gemini 2.5 Flash
+ */
+
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// System prompt for health assistant
+const SYSTEM_PROMPT = `You are the AI Health Assistant for UB E-Health Management Hub. 
+
+PLATFORM FEATURES YOU CAN HELP WITH:
+1. APPOINTMENTS: Book appointments with doctors, view upcoming appointments in "My Appointments", reschedule or cancel bookings
+2. LAB TESTS: Book lab tests (with optional home service for +Rs. 50), view results in "My Reports" with AI interpretation
+3. MEDICAL REPORTS: Access lab reports and uploaded documents in "My Documents", get AI-powered report explanations
+4. PRESCRIPTIONS: View prescribed medications in "My Medications" section
+5. PAYMENTS: View payment history and download invoices in "Payment History"
+6. HEALTH TRENDS: Track health metrics over time in "Health Trends"
+7. NOTIFICATIONS: Manage appointment and test reminders in "Notification Settings"
+
+NAVIGATION HELP:
+- Dashboard: Main hub with quick access to all features
+- Book Appointment: Select doctor, date, time, and pay online
+- Book Lab Test: Choose test type, date, time, and optional home service
+- My Appointments: View all bookings with token numbers and status
+- My Reports: Lab test results with AI interpretation feature
+- My Documents: Uploaded medical documents and records
+- My Medications: Current prescriptions from doctors
+- Payment History: All transactions with downloadable invoices
+
+IMPORTANT GUIDELINES:
+- Be specific about UB E-Health features, not generic healthcare websites
+- Guide users to the correct dashboard section for their needs
+- Always recommend consulting doctors for medical diagnosis
+- For emergencies, advise calling 108/112 immediately
+- Keep responses concise and actionable
+
+CONTACT & SUPPORT:
+- Support Email: support@ubehealth.com
+- Support Phone: +91 1234567890
+- Available 24/7
+
+Remember: You help users navigate THIS platform, not provide general website advice.`;
+
+/**
+ * Generate chatbot response using Gemini AI
+ */
+const generateChatbotResponse = async (userMessage, chatHistory = []) => {
+  try {
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.5-flash"
+    });
+
+    // Build conversation history
+    const history = [];
+    
+    // Add actual chat history, ensuring it starts with 'user' role
+    chatHistory.forEach((msg, index) => {
+      // Skip if first message is not 'user' role
+      if (index === 0 && msg.role !== 'user') {
+        return;
+      }
+      
+      history.push({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.content }]
+      });
+    });
+
+    // Start chat with history (NO systemInstruction parameter)
+    const chat = model.startChat({
+      history: history,
+      generationConfig: {
+        maxOutputTokens: 500,
+        temperature: 0.7,
+      }
+    });
+
+    // Add strong platform-specific context to EVERY message to override chat history confusion
+    const platformContext = `[SYSTEM: You are UB E-Health's AI assistant. This is NOT a hypothetical platform - it's a real healthcare system with these features: Book Appointments, Book Lab Tests (with home service option), My Appointments (view bookings), My Reports (lab results with AI interpretation), My Medications (prescriptions), Payment History (download invoices), Health Trends (track metrics), My Documents (medical records). Always refer to these specific features, not generic website advice.]
+
+User: ${userMessage}`;
+
+    // Send message with context
+    const result = await chat.sendMessage(platformContext);
+    const response = result.response;
+    const text = response.text();
+
+    return {
+      success: true,
+      response: text,
+      timestamp: new Date()
+    };
+
+  } catch (error) {
+    console.error("Chatbot Gemini API error:", error);
+    console.error("Error details:", error.message);
+    
+    // Fallback response
+    return {
+      success: false,
+      response: "I apologize, but I'm having trouble processing your request right now. Please try again or contact our support team for assistance.",
+      error: error.message,
+      timestamp: new Date()
+    };
+  }
+};
+
+/**
+ * Get FAQ responses
+ */
+const getFAQResponse = (question) => {
+  const faqs = {
+    "how to book appointment": "To book an appointment:\n1. Go to 'Book Appointment' from your dashboard\n2. Select a doctor and department\n3. Choose date and time\n4. Fill in your symptoms/reason\n5. Complete payment\n6. You'll receive a confirmation with token number",
+    
+    "how to book lab test": "To book a lab test:\n1. Navigate to 'Book Lab Test'\n2. Select the test type\n3. Choose home service if needed (+Rs. 50)\n4. Pick your preferred date and time\n5. Submit the booking\n6. Payment record will be created automatically",
+    
+    "how to view reports": "You can view your reports in:\n- 'My Reports' section for lab reports\n- 'My Documents' for uploaded documents\n- Each report has an AI interpretation feature for easy understanding",
+    
+    "payment methods": "We accept:\n- Credit/Debit Cards\n- UPI\n- Net Banking\n- Digital Wallets\nAll payments are secure and encrypted.",
+    
+    "cancel appointment": "To cancel an appointment:\n1. Go to 'My Appointments'\n2. Find the appointment\n3. Click on the appointment details\n4. Select 'Cancel Appointment'\n5. Refund will be processed within 5-7 business days",
+    
+    "home service": "Home service is available for lab tests. Our trained technician will visit your location to collect samples. Additional charge: Rs. 50",
+    
+    "emergency": "🚨 FOR MEDICAL EMERGENCIES:\n- Call emergency services: 108/112\n- Visit nearest hospital immediately\n- Do not rely on online consultation for emergencies",
+    
+    "contact support": "Contact our support team:\n📧 Email: support@ubehealth.com\n📞 Phone: +91 1234567890\n⏰ Available: 24/7"
+  };
+
+  // Find matching FAQ
+  const lowerQuestion = question.toLowerCase();
+  for (const [key, answer] of Object.entries(faqs)) {
+    if (lowerQuestion.includes(key)) {
+      return answer;
+    }
+  }
+
+  return null;
+};
+
+/**
+ * Detect intent from user message
+ */
+const detectIntent = (message) => {
+  const lowerMessage = message.toLowerCase();
+
+  if (lowerMessage.includes('emergency') || lowerMessage.includes('urgent') || lowerMessage.includes('critical')) {
+    return 'emergency';
+  }
+  
+  if (lowerMessage.includes('book') && lowerMessage.includes('appointment')) {
+    return 'book_appointment';
+  }
+  
+  if (lowerMessage.includes('book') && (lowerMessage.includes('lab') || lowerMessage.includes('test'))) {
+    return 'book_lab_test';
+  }
+  
+  if (lowerMessage.includes('symptom') || lowerMessage.includes('feeling') || lowerMessage.includes('pain')) {
+    return 'symptom_check';
+  }
+  
+  if (lowerMessage.includes('report') || lowerMessage.includes('result')) {
+    return 'view_reports';
+  }
+  
+  if (lowerMessage.includes('cancel') || lowerMessage.includes('reschedule')) {
+    return 'manage_appointment';
+  }
+  
+  if (lowerMessage.includes('payment') || lowerMessage.includes('invoice') || lowerMessage.includes('bill')) {
+    return 'payment_query';
+  }
+
+  return 'general_query';
+};
+
+/**
+ * Get quick action suggestions based on intent
+ */
+const getQuickActions = (intent) => {
+  const actions = {
+    emergency: [
+      { label: "Call Emergency: 108", action: "call_emergency" },
+      { label: "Find Nearest Hospital", action: "find_hospital" }
+    ],
+    book_appointment: [
+      { label: "Book Appointment", action: "navigate_book_appointment" },
+      { label: "View Doctors", action: "navigate_doctors" }
+    ],
+    book_lab_test: [
+      { label: "Book Lab Test", action: "navigate_book_lab_test" },
+      { label: "View Test Prices", action: "show_test_prices" }
+    ],
+    symptom_check: [
+      { label: "Book Appointment", action: "navigate_book_appointment" },
+      { label: "Emergency Services", action: "show_emergency" }
+    ],
+    view_reports: [
+      { label: "My Reports", action: "navigate_reports" },
+      { label: "My Documents", action: "navigate_documents" }
+    ],
+    manage_appointment: [
+      { label: "My Appointments", action: "navigate_appointments" }
+    ],
+    payment_query: [
+      { label: "Payment History", action: "navigate_payment_history" },
+      { label: "Download Invoice", action: "show_invoices" }
+    ],
+    general_query: [
+      { label: "Book Appointment", action: "navigate_book_appointment" },
+      { label: "Book Lab Test", action: "navigate_book_lab_test" },
+      { label: "View FAQs", action: "show_faqs" }
+    ]
+  };
+
+  return actions[intent] || actions.general_query;
+};
+
+module.exports = {
+  generateChatbotResponse,
+  getFAQResponse,
+  detectIntent,
+  getQuickActions
+};

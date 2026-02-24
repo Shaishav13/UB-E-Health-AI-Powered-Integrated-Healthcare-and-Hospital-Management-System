@@ -35,7 +35,9 @@ router.post("/request", async (req, res) => {
       address, 
       preferredDate, 
       preferredTime,
-      cost 
+      cost,
+      payment_id,
+      paymentStatus
     } = req.body;
 
     if (!patientId || !testType || !testName || !preferredDate || !preferredTime || !cost) {
@@ -64,7 +66,9 @@ router.post("/request", async (req, res) => {
       address: homeService ? address : undefined,
       preferredDate,
       preferredTime,
-      cost
+      cost,
+      payment_id: payment_id || null,
+      paymentStatus: paymentStatus || "Pending"
     });
 
     console.log(`✅ Lab test requested: ${testName} for patient ${patientId}`);

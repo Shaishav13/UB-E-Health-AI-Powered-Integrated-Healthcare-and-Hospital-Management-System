@@ -175,6 +175,67 @@ router.post("/create", async (req, res) => {
       const result = await createAppointment(appointment);
       console.log("Appointment created successfully:", result._id);
       
+      // Create payment record if payment was made
+      if (payload.payment_id && payload.amount) {
+        console.log("💳 Creating payment record...");
+        console.log("Payment ID:", payload.payment_id);
+        console.log("Amount:", payload.amount);
+        
+        try {
+          const { Payment } = require("../models/Payment.model");
+          console.log("✓ Payment model loaded");
+          
+          const PatientModel = mongoose.model('Patient');
+          const patient = await PatientModel.findById(payload.patientId);
+          console.log("✓ Patient found:", patient ? patient.email : "NOT FOUND");
+          
+          if (patient) {
+            // Generate invoice number
+            const invoiceNumber = await Payment.generateInvoiceNumber();
+            console.log("✓ Invoice number generated:", invoiceNumber);
+            
+            const paymentRecord = new Payment({
+              paymentId: payload.payment_id,
+              razorpayOrderId: `order_${Date.now()}`,
+              razorpayPaymentId: `pay_${Date.now()}`,
+              razorpaySignature: "mock_signature",
+              amount: payload.amount,
+              currency: "INR",
+              status: "completed",
+              patientId: payload.patientId,
+              patientEmail: patient.email,
+              patientPhone: patient.phonenum || patient.phone || "N/A",
+              paymentType: "appointment",
+              referenceId: result._id,
+              referenceModel: "Appointment",
+              paymentMethod: "card",
+              transactionDate: new Date(),
+              description: `Appointment with ${appointment.docname} - ${appointment.department}`,
+              invoiceNumber: invoiceNumber,
+              invoiceGenerated: true,
+              invoiceDate: new Date()
+            });
+            
+            console.log("✓ Payment record object created");
+            await paymentRecord.save();
+            console.log("✅ Payment record saved successfully:", paymentRecord.paymentId);
+            console.log("   Invoice:", paymentRecord.invoiceNumber);
+            console.log("   Amount: ₹", paymentRecord.amount);
+          } else {
+            console.error("❌ Patient not found, cannot create payment record");
+          }
+        } catch (paymentError) {
+          console.error("❌ Error creating payment record:");
+          console.error("   Error message:", paymentError.message);
+          console.error("   Error stack:", paymentError.stack);
+          // Don't fail the appointment if payment record creation fails
+        }
+      } else {
+        console.log("⚠️  No payment info provided (payment_id or amount missing)");
+        console.log("   payment_id:", payload.payment_id);
+        console.log("   amount:", payload.amount);
+      }
+      
       // Automatically assign patient to doctor if not already assigned
       try {
         const PatientModel = mongoose.model('Patient');

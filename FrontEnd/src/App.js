@@ -9,9 +9,15 @@ import "./responsive.css";
 import "./modern-theme.css";
 import "./sidebar-layout.css";
 import AllRoutes from "./Routes/AllRoutes";
+import HealthChatbot from "./Components/HealthChatbot";
 
 function App() {
-  return <AllRoutes />;
+  return (
+    <>
+      <AllRoutes />
+      <HealthChatbot />
+    </>
+  );
 }
 
 export default App;

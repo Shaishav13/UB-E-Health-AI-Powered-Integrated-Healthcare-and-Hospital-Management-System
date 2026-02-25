@@ -5,14 +5,153 @@ import Sidebar from "../../GlobalFiles/Sidebar";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import Footer from "../../../../../Components/Footer";
 
 const notify = (text) => toast(text);
+
+// Temporary inline component - will move to separate file later
+const PrescriptionViewer = ({ prescription, onRefillRequest, onClose, interactions }) => {
+  if (!prescription) return null;
+  
+  // Debug: log the prescription to see the structure
+  console.log('Prescription in viewer:', prescription);
+  console.log('Doctor object:', prescription.doctor);
+  
+  return (
+    <div 
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'rgba(0,0,0,0.7)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 10000,
+        padding: '2rem'
+      }}
+      onClick={onClose}
+    >
+      <div 
+        style={{
+          background: 'white',
+          borderRadius: '20px',
+          maxWidth: '800px',
+          width: '100%',
+          maxHeight: '90vh',
+          overflow: 'auto',
+          padding: '2rem',
+          position: 'relative'
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: '1rem',
+            right: '1rem',
+            background: '#ef4444',
+            color: 'white',
+            border: 'none',
+            borderRadius: '50%',
+            width: '40px',
+            height: '40px',
+            fontSize: '1.5rem',
+            cursor: 'pointer'
+          }}
+        >
+          ×
+        </button>
+        
+        <h2 style={{ marginBottom: '1rem' }}>💊 Prescription Details</h2>
+        <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>
+          #{prescription.prescriptionNumber || prescription.id}
+        </p>
+        
+        <div style={{ marginBottom: '1.5rem' }}>
+          <p><strong>Doctor:</strong> {
+            prescription.doctor?.name || 
+            prescription.doctor || 
+            'Not specified'
+          }</p>
+          {prescription.doctor?.specialization && (
+            <p><strong>Specialization:</strong> {prescription.doctor.specialization}</p>
+          )}
+          <p><strong>Date:</strong> {prescription.date || 'N/A'}</p>
+          <p><strong>Diagnosis:</strong> {prescription.disease || prescription.diagnosis || 'N/A'}</p>
+        </div>
+        
+        {interactions && interactions.length > 0 && (
+          <div style={{ 
+            background: 'rgba(239, 68, 68, 0.1)', 
+            border: '2px solid #ef4444',
+            borderRadius: '12px',
+            padding: '1rem',
+            marginBottom: '1.5rem'
+          }}>
+            <h3 style={{ color: '#ef4444', marginBottom: '0.5rem' }}>⚠️ Drug Interaction Warnings</h3>
+            {interactions.map((interaction, idx) => (
+              <div key={idx} style={{ marginBottom: '0.5rem' }}>
+                <p><strong>{interaction.medication1} ⚠️ {interaction.medication2}</strong></p>
+                <p style={{ fontSize: '0.9rem' }}>{interaction.warning}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        <h3 style={{ marginBottom: '1rem' }}>Medications</h3>
+        {prescription.medications && prescription.medications.length > 0 ? (
+          prescription.medications.map((med, index) => (
+            <div key={index} style={{ 
+              background: '#f8fafc',
+              padding: '1rem',
+              borderRadius: '12px',
+              marginBottom: '1rem'
+            }}>
+              <h4>{med.name}</h4>
+              <p><strong>Dosage:</strong> {med.dosage}</p>
+              <p><strong>Frequency:</strong> {med.frequency}</p>
+              <p><strong>Duration:</strong> {med.duration}</p>
+              {med.instructions && <p><strong>Instructions:</strong> {med.instructions}</p>}
+              {med.refillsRemaining > 0 && (
+                <p style={{ color: '#10b981' }}>✓ {med.refillsRemaining} refills remaining</p>
+              )}
+            </div>
+          ))
+        ) : (
+          <div style={{ 
+            background: '#f8fafc',
+            padding: '1rem',
+            borderRadius: '12px'
+          }}>
+            <h4>{prescription.name}</h4>
+            <p><strong>Dosage:</strong> {prescription.dosage}</p>
+            <p><strong>Frequency:</strong> {prescription.frequency}</p>
+            <p><strong>Duration:</strong> {prescription.duration}</p>
+          </div>
+        )}
+        
+        {prescription.qrCode && (
+          <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
+            <img src={prescription.qrCode} alt="QR Code" style={{ width: '200px', height: '200px' }} />
+            <p style={{ color: '#64748b', marginTop: '0.5rem' }}>Show this QR code at the pharmacy</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const My_Medications = () => {
   const { data } = useSelector((store) => store.auth);
   const [medications, setMedications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all"); // all, active, completed
+  const [selectedPrescription, setSelectedPrescription] = useState(null);
+  const [interactions, setInteractions] = useState(null);
 
   useEffect(() => {
     if (data?.user?._id) {
@@ -23,16 +162,16 @@ const My_Medications = () => {
   const fetchMedications = async () => {
     try {
       setLoading(true);
-      const response = await axios.post(
-        `http://127.0.0.1:3001/prescriptions/${data.user._id}`
+      const response = await axios.get(
+        `http://127.0.0.1:3001/prescriptions/patient/${data.user._id}`
       );
       console.log("Medications response:", response.data);
-      setMedications(response.data);
+      setMedications(response.data.prescriptions || []);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching medications:", error);
       console.error("Error response:", error.response?.data);
-      const errorMsg = error.response?.data?.details || error.response?.data?.error || "Failed to load medications";
+      const errorMsg = error.response?.data?.message || "Failed to load medications";
       notify(`❌ ${errorMsg}`);
       setLoading(false);
     }
@@ -41,7 +180,8 @@ const My_Medications = () => {
   const markAsCompleted = async (medicineId) => {
     try {
       const response = await axios.patch(
-        `http://127.0.0.1:3001/prescriptions/complete/${medicineId}`
+        `http://127.0.0.1:3001/prescriptions/${medicineId}/status`,
+        { status: 'completed' }
       );
       console.log("Mark completed response:", response.data);
       notify("✅ Medication marked as completed");
@@ -49,15 +189,55 @@ const My_Medications = () => {
     } catch (error) {
       console.error("Error marking medication:", error);
       console.error("Error response:", error.response?.data);
-      const errorMsg = error.response?.data?.details || error.response?.data?.error || "Failed to update medication";
+      const errorMsg = error.response?.data?.message || "Failed to update medication";
       notify(`❌ ${errorMsg}`);
     }
+  };
+
+  const handleRefillRequest = async (prescriptionId, medicationIndex) => {
+    try {
+      const response = await axios.post(
+        `http://127.0.0.1:3001/prescriptions/${prescriptionId}/refill`,
+        { medicationIndex }
+      );
+      notify("✅ Refill request submitted successfully");
+      fetchMedications();
+      setSelectedPrescription(null);
+    } catch (error) {
+      console.error("Error requesting refill:", error);
+      const errorMsg = error.response?.data?.message || "Failed to request refill";
+      notify(`❌ ${errorMsg}`);
+    }
+  };
+
+  const checkInteractions = async (medications) => {
+    try {
+      const response = await axios.post(
+        `http://127.0.0.1:3001/prescriptions/check-interactions`,
+        { medications }
+      );
+      return response.data.interactions || [];
+    } catch (error) {
+      console.error("Error checking interactions:", error);
+      return [];
+    }
+  };
+
+  const handleViewPrescription = async (prescription) => {
+    // Check for drug interactions if multiple medications
+    if (prescription.medications && prescription.medications.length > 1) {
+      const drugInteractions = await checkInteractions(prescription.medications);
+      setInteractions(drugInteractions);
+    } else {
+      setInteractions(null);
+    }
+    setSelectedPrescription(prescription);
   };
 
   const clearCompleted = async () => {
     try {
       await axios.delete(
-        `http://127.0.0.1:3001/prescriptions/clear-completed/${data.user._id}`
+        `http://127.0.0.1:3001/prescriptions/clearcompleted/${data.user._id}`
       );
       notify("🗑️ Completed medications cleared");
       fetchMedications();
@@ -68,13 +248,13 @@ const My_Medications = () => {
   };
 
   const filteredMedications = medications.filter((med) => {
-    if (filter === "active") return !med.completed;
-    if (filter === "completed") return med.completed;
+    if (filter === "active") return med.status === 'active';
+    if (filter === "completed") return med.status === 'completed';
     return true;
   });
 
-  const activeMedsCount = medications.filter((m) => !m.completed).length;
-  const completedMedsCount = medications.filter((m) => m.completed).length;
+  const activeMedsCount = medications.filter((m) => m.status === 'active').length;
+  const completedMedsCount = medications.filter((m) => m.status === 'completed').length;
 
   if (!data?.isAuthenticated) return <Navigate to="/" />;
   if (data?.user.userType !== "patient") return <Navigate to="/dashboard" />;
@@ -82,6 +262,15 @@ const My_Medications = () => {
   return (
     <>
       <ToastContainer />
+      
+      {selectedPrescription && (
+        <PrescriptionViewer
+          prescription={selectedPrescription}
+          interactions={interactions}
+          onRefillRequest={handleRefillRequest}
+          onClose={() => setSelectedPrescription(null)}
+        />
+      )}
 
       <style>{`
         .medications-container {
@@ -746,17 +935,30 @@ const My_Medications = () => {
                   filteredMedications.map((med) => (
                     <div
                       key={med.id}
-                      className={`medication-card ${med.completed ? "completed" : ""}`}
+                      className={`medication-card ${med.status === 'completed' ? "completed" : ""}`}
                     >
                       <div className="medication-header">
                         <div>
-                          <div className="medication-name">💊 {med.name}</div>
+                          <div className="medication-name">
+                            💊 {med.name}
+                            {med.prescriptionNumber && (
+                              <span style={{ fontSize: '0.85rem', color: '#64748b', marginLeft: '0.5rem' }}>
+                                #{med.prescriptionNumber}
+                              </span>
+                            )}
+                          </div>
                           <div className="report-info">
-                            📋 From Report: <strong>{med.disease || "N/A"}</strong> 
+                            📋 Diagnosis: <strong>{med.disease || "N/A"}</strong> 
                             {med.date && ` (${med.date})`}
                           </div>
+                          {med.doctor && (
+                            <div className="report-info" style={{ marginTop: '0.5rem' }}>
+                              👨‍⚕️ Doctor: <strong>{med.doctor.name}</strong>
+                              {med.doctor.specialization && ` - ${med.doctor.specialization}`}
+                            </div>
+                          )}
                         </div>
-                        {med.completed && (
+                        {med.status === 'completed' && (
                           <div className="completed-badge">
                             ✅ Completed
                           </div>
@@ -774,20 +976,33 @@ const My_Medications = () => {
                         </div>
                         <div className="detail-item">
                           <div className="detail-label">📅 Duration</div>
-                          <div className="detail-value">{med.duration} days</div>
+                          <div className="detail-value">{med.duration}</div>
                         </div>
                       </div>
 
-                      {!med.completed && (
-                        <div className="medication-actions">
+                      {med.medications && med.medications.length > 1 && (
+                        <div className="report-info" style={{ marginTop: '1rem', background: 'rgba(52, 211, 153, 0.1)', borderLeft: '3px solid #34d399' }}>
+                          📦 Contains {med.medications.length} medications
+                        </div>
+                      )}
+
+                      <div className="medication-actions">
+                        <button
+                          className="action-btn complete-btn"
+                          onClick={() => handleViewPrescription(med)}
+                          style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+                        >
+                          📋 View Full Prescription
+                        </button>
+                        {med.status === 'active' && (
                           <button
                             className="action-btn complete-btn"
                             onClick={() => markAsCompleted(med.id)}
                           >
                             ✅ Mark as Completed
                           </button>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   ))
                 )}
@@ -796,8 +1011,10 @@ const My_Medications = () => {
           )}
         </div>
       </div>
+      <Footer />
     </>
   );
 };
 
 export default My_Medications;
+

@@ -70,10 +70,21 @@ const Payment_Gateway = () => {
 
   const handlePayment = async (e) => {
     e.preventDefault();
+    
+    console.log("🔘 Pay button clicked!");
+    console.log("Form event:", e);
+    
     setLoading(true);
+
+    console.log("💳 Payment initiated");
+    console.log("Appointment Data:", appointmentData);
+    console.log("Doctor Fees:", doctorFees);
+    console.log("Payment Details:", paymentDetails);
 
     // Simulate payment processing
     setTimeout(async () => {
+      console.log("⏰ Starting payment processing after 2 second delay");
+      
       try {
         // Generate payment ID
         const paymentId = `PAY${Date.now()}${Math.floor(Math.random() * 1000)}`;
@@ -94,11 +105,15 @@ const Payment_Gateway = () => {
           receiptGenerated: new Date(),
         };
 
-        console.log("Payment Gateway - Sending appointment data:", JSON.stringify(payload, null, 2));
+        console.log("📤 Payment Gateway - Sending appointment data:", JSON.stringify(payload, null, 2));
+        console.log("📤 About to call CreateBooking dispatch...");
+        
         const res = await dispatch(CreateBooking(payload));
-        console.log("Payment Gateway - CreateBooking response:", res);
+        
+        console.log("📥 Payment Gateway - CreateBooking response:", res);
 
         if (res && res.message === "Successful") {
+          console.log("✅ Payment successful!");
           setPaymentSuccess(true);
           setCompletedAppointment({
             ...payload,
@@ -109,12 +124,14 @@ const Payment_Gateway = () => {
           
           // Don't auto-redirect, let user download receipt first
         } else {
-          console.error("Payment failed - Response:", res);
+          console.error("❌ Payment failed - Response:", res);
           notify(`Payment failed: ${res?.message || "Unknown error"}. Please try again.`);
           setLoading(false);
         }
       } catch (error) {
-        notify("An error occurred. Please try again.");
+        console.error("❌ Payment error:", error);
+        console.error("Error details:", error.response?.data || error.message);
+        notify(`An error occurred: ${error.response?.data?.message || error.message}`);
         setLoading(false);
       }
     }, 2000);
@@ -131,7 +148,6 @@ const Payment_Gateway = () => {
       <style>{`
         .payment-container {
           display: flex;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           min-height: 100vh;
           width: 100%;
           position: relative;
@@ -144,8 +160,20 @@ const Payment_Gateway = () => {
           left: 0;
           right: 0;
           bottom: 0;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          z-index: 0;
+        }
+
+        .payment-container::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
           background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.05)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.05)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.03)"/><circle cx="20" cy="80" r="0.5" fill="rgba(255,255,255,0.03)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
           pointer-events: none;
+          z-index: 0;
         }
 
         .payment-wrapper {
@@ -156,6 +184,8 @@ const Payment_Gateway = () => {
           justify-content: center;
           position: relative;
           z-index: 1;
+          margin-left: 80px;
+          transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .payment-content {
@@ -167,9 +197,20 @@ const Payment_Gateway = () => {
         }
 
         @media (max-width: 968px) {
+          .payment-wrapper {
+            margin-left: 0;
+            padding: 1rem;
+          }
+
           .payment-content {
             grid-template-columns: 1fr;
             gap: 2rem;
+          }
+        }
+
+        @media (max-width: 991px) and (min-width: 769px) {
+          .payment-wrapper {
+            margin-left: 70px;
           }
         }
 

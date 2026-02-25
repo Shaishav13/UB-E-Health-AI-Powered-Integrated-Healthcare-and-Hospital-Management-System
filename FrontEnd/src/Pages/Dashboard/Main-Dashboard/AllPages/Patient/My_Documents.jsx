@@ -5,6 +5,7 @@ import Sidebar from "../../GlobalFiles/Sidebar";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import Footer from "../../../../../Components/Footer";
 
 const notify = (text) => toast(text);
 
@@ -967,3 +968,4 @@ const My_Documents = () => {
 };
 
 export default My_Documents;
+

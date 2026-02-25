@@ -8,6 +8,7 @@ import {
   FaClock, FaChartLine, FaRobot, FaSearch,
   FaUserMd, FaStethoscope, FaHeartbeat
 } from "react-icons/fa";
+import Footer from "../../../../../Components/Footer";
 
 const Doctor_Dashboard = () => {
   const { data } = useSelector((store) => store.auth);
@@ -782,6 +783,7 @@ const Doctor_Dashboard = () => {
           )}
         </div>
       </div>
+      <Footer />
     </>
   );
 };

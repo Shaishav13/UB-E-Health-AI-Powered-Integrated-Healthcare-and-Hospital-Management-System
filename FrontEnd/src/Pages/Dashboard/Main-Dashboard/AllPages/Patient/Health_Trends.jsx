@@ -17,6 +17,7 @@ import {
   Filler
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import Footer from "../../../../../Components/Footer";
 
 // Register ChartJS components
 ChartJS.register(
@@ -695,8 +696,10 @@ const Health_Trends = () => {
           )}
         </div>
       </div>
+      <Footer />
     </>
   );
 };
 
 export default Health_Trends;
+

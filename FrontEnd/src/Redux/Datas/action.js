@@ -218,7 +218,15 @@ export const GetAllReports = (userType, id) => async (dispatch) => {
       `http://127.0.0.1:3001/reports/${userType}/${id}`
     );
     console.log("res", res.data);
-    const reports = { reports: res.data.data };
+    
+    // Sort reports by date (newest first)
+    const sortedReports = res.data.data.sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return dateB - dateA; // Descending order (newest first)
+    });
+    
+    const reports = { reports: sortedReports };
     dispatch({
       type: types.GET_REPORTS_SUCCESS,
       payload: reports,
@@ -240,6 +248,7 @@ export const GetPatientsByDoctor = () => async (dispatch) => {
   try {
     dispatch({ type: types.GET_PATIENTS_BY_DOCTOR_REQUEST });
     const token = localStorage.getItem("token");
+    console.log("Token being sent:", token ? token.substring(0, 20) + "..." : "NO TOKEN");
     const res = await axios.get("http://127.0.0.1:3001/doctors/patients", {
       headers: {
         Authorization: token,
@@ -252,10 +261,11 @@ export const GetPatientsByDoctor = () => async (dispatch) => {
       payload: patients,
     });
   } catch (error) {
+    console.error("GetPatientsByDoctor error:", error.response?.data || error.message);
     dispatch({
       type: types.GET_PATIENTS_BY_DOCTOR_ERROR,
       payload: {
-        message: error,
+        message: error.response?.data || error.message,
       },
     });
   }

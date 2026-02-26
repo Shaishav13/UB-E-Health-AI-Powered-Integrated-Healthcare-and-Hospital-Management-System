@@ -1,6 +1,17 @@
 import * as types from "./types";
 import axios from "axios";
 
+// Helper function to get token from localStorage
+const getAuthToken = () => {
+  return localStorage.getItem("token");
+};
+
+// Helper function to get user data from localStorage
+const getUserData = () => {
+  const userData = localStorage.getItem("userData");
+  return userData ? JSON.parse(userData) : null;
+};
+
 //login user
 export const patientLogin = (data) => async (dispatch) => {
   try {
@@ -80,17 +91,23 @@ export const PatientSignup = (data) => async (dispatch) => {
   }
 };
 
-//login user
+//login user - handles both doctors and lab personnel
+// Token structure:
+// - For doctors: { doctorID, doctorId, userType: "doctor" }
+// - For lab personnel: { labId, email, userType: "laboratory" }
+// Both tokens are stored in localStorage and sent in Authorization header
 export const DoctorLogin = (data) => async (dispatch) => {
   try {
     dispatch({ type: types.LOGIN_DOCTOR_REQUEST });
     const res = await axios.post("http://127.0.0.1:3001/doctors/login", data);
-    console.log("doctor", res.data);
+    console.log("doctor/lab login response", res.data);
+    
+    // Backend returns userType in user object ("doctor" or "laboratory")
     dispatch({
       type: types.LOGIN_DOCTOR_SUCCESS,
       payload: {
         message: res.data.message,
-        user: res.data.user,
+        user: res.data.user, // Contains userType field
         token: res.data.token,
       },
     });

@@ -20,10 +20,15 @@ const analyticsRouter = require("./routes/Analytics.Route");
 const documentsRouter = require("./routes/Documents.Route");
 const labReportsRouter = require("./routes/LabReports.Route");
 const labPersonnelRouter = require("./routes/LabPersonnel.Route");
+const paymentsRouter = require("./routes/Payments.Route");
+const chatbotRouter = require("./routes/Chatbot.Route");
 
 const app = express();
 const { connectDB } = require("./configs/db");
-app.use(express.json());
+
+// Increase payload limit for profile picture uploads (base64 images)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(cors());
 
 // Serve uploaded files
@@ -46,6 +51,8 @@ app.use("/analytics", analyticsRouter);
 app.use("/documents", documentsRouter);
 app.use("/lab-reports", labReportsRouter);
 app.use("/lab-personnel", labPersonnelRouter);
+app.use("/payments", paymentsRouter);
+app.use("/chatbot", chatbotRouter);
 
 // Models will be imported as needed in routes
 

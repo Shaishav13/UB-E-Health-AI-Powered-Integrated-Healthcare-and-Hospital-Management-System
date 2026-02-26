@@ -107,11 +107,11 @@ router.post("/check", async (req, res) => {
 
 router.patch("/:patientId", async (req, res) => {
   const id = req.params.patientId;
-  const { password, oldPassword } = req.body;
+  const { password, oldPassword, name, phonenum, address, profilePicture } = req.body;
   
   try {
     // If changing password, verify old password first
-    if (oldPassword) {
+    if (password && oldPassword) {
       const patient = await findCred(id);
       
       if (!patient) {
@@ -124,19 +124,62 @@ router.patch("/:patientId", async (req, res) => {
       if (!isOldPasswordValid) {
         return res.status(400).send({ message: "Incorrect old password" });
       }
+      
+      // Update password
+      await updatePass(password, id);
     }
     
-    // Update password
-    await updatePass(password, id);
+    // Update profile fields if provided
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (phonenum) updateData.phonenum = phonenum;
+    if (address) updateData.address = address;
+    if (profilePicture !== undefined) updateData.profilePicture = profilePicture;
+    
+    if (Object.keys(updateData).length > 0) {
+      const { updatePatient } = require("../models/Patient.model");
+      await updatePatient({ id, ...updateData });
+    }
+    
     const updatedPatient = await findCred(id);
     
     return res.status(200).send({
-      message: "password updated",
+      message: password ? "password updated" : "profile updated",
       user: { ...updatedPatient.toObject(), userType: "patient" },
     });
   } catch (error) {
-    console.log("Password update error:", error);
+    console.log("Patient update error:", error);
     res.status(400).send({ error: "Something went wrong" });
+  }
+});
+
+// Get patient activity history
+router.get("/:patientId/activity", async (req, res) => {
+  const patientId = req.params.patientId;
+  
+  try {
+    const Appointment = require("../models/Appointment.model");
+    const { getPatientReports } = require("../models/Report.model");
+    const { getPatientLabReports } = require("../models/LabReport.model");
+    const { Prescription } = require("../models/Prescription.model");
+    
+    // Get all activity data
+    const [appointments, reports, labReports, prescriptions] = await Promise.all([
+      Appointment.find({ patientid: patientId }).populate('doctorid').sort({ date: -1 }).limit(10),
+      getPatientReports(patientId),
+      getPatientLabReports(patientId),
+      Prescription.find({ patientid: patientId }).populate('doctorid').sort({ createdAt: -1 }).limit(10)
+    ]);
+    
+    res.status(200).send({
+      appointments: appointments || [],
+      reports: reports || [],
+      labReports: labReports || [],
+      prescriptions: prescriptions || []
+    });
+  } catch (error) {
+    console.log("Activity fetch error:", error);
+    res.status(500).send({ error: "Failed to fetch activity history" });
   }
 });
 

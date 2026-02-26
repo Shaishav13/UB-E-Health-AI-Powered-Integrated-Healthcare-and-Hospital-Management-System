@@ -11,6 +11,7 @@ const patientSchema = new mongoose.Schema({
   bloodgroup: { type: String, required: true },
   dob: { type: Date, required: true },
   address: { type: String, required: true },
+  profilePicture: { type: String, default: null }, // URL or base64 string
   docID: { type: Number, ref: 'Doctor', default: null },
   status: { 
     type: String, 

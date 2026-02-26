@@ -6,6 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Navigate } from "react-router-dom";
 import axios from "axios";
+import Footer from "../../../../../Components/Footer";
 
 const notify = (text) => toast(text);
 
@@ -422,7 +423,8 @@ const AddLabPersonnel = () => {
           </div>
         </div>
       </div>
-    </>
+    <Footer />
+      </>
   );
 };
 

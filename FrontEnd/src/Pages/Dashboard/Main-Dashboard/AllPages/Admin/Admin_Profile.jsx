@@ -11,6 +11,7 @@ import { UpdateAdmin } from "../../../../../Redux/auth/action";
 import { GetAdminDetails } from "../../../../../Redux/Datas/action";
 import { Navigate } from "react-router-dom";
 import adminImage from "../../../../../img/profile.png";
+import Footer from "../../../../../Components/Footer";
 
 const Admin_Profile = () => {
   const { data } = useSelector((store) => store.auth);
@@ -474,7 +475,8 @@ const Admin_Profile = () => {
           </div>
         </div>
       </Modal>
-    </>
+    <Footer />
+      </>
   );
 };
 

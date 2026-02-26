@@ -6,6 +6,7 @@ import Sidebar from "../../GlobalFiles/Sidebar";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Navigate } from "react-router-dom";
+import Footer from "../../../../../Components/Footer";
 
 const notify = (text) => toast(text);
 
@@ -364,7 +365,8 @@ const AddDoctor = () => {
           </div>
         </div>
       </div>
-    </>
+    <Footer />
+      </>
   );
 };
 

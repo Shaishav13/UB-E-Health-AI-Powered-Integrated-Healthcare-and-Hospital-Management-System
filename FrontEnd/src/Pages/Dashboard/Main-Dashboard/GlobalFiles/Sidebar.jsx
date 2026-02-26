@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { AiOutlineUserAdd } from "react-icons/ai";
-import { FaAmbulance, FaUsers, FaPills, FaBell, FaChartLine, FaFolder } from "react-icons/fa";
+import { FaAmbulance, FaUsers, FaPills, FaBell, FaChartLine, FaFolder, FaFlask, FaUserMd, FaHome, FaFileAlt, FaCreditCard } from "react-icons/fa";
 import { BsBookmarkPlus, BsFillBookmarkCheckFill } from "react-icons/bs";
 import { CgProfile } from "react-icons/cg";
 import { TbReportMedical } from "react-icons/tb";
@@ -55,8 +55,10 @@ const Sidebar = () => {
       <style>{`
         .sidebar-container {
           height: 100vh;
-          position: sticky;
+          position: fixed;
           top: 0;
+          left: 0;
+          z-index: 100;
           display: flex;
           flex-direction: column;
         }
@@ -550,7 +552,7 @@ const Sidebar = () => {
           {/* HEADER */}
           <div className="sidebar-header">
             <span className="sidebar-logo">
-              {isOpen || hovered ? "🏥 HMS" : "HMS"}
+              {isOpen || hovered ? "🏥 UB E-Health" : "UB"}
             </span>
             <ImMenu className="menu-btn" onClick={toggleMenu} />
           </div>
@@ -559,12 +561,30 @@ const Sidebar = () => {
           <div className="sidebar-links">
             <div className="main-links">
 
+              {/* DASHBOARD & PROFILE - TOP FOR ALL USERS */}
               <Link
                 className="side-link"
-                to="/dashboard"
+                to={
+                  user?.userType === "patient" ? "/patient/dashboard" :
+                  user?.userType === "doctor" ? "/doctor/dashboard" :
+                  "/dashboard"
+                }
               >
                 <MdDashboardCustomize className="side-icon" />
                 {(isOpen || hovered) && <span>Dashboard</span>}
+              </Link>
+
+              <Link
+                className="side-link"
+                to={
+                  user?.userType === "patient" ? "/patientprofile" :
+                  user?.userType === "doctor" ? "/doctorprofile" :
+                  user?.userType === "admin" ? "/adminprofile" :
+                  "/profile"
+                }
+              >
+                <CgProfile className="side-icon" />
+                {(isOpen || hovered) && <span>Profile</span>}
               </Link>
 
               {/* PATIENT MENU */}
@@ -572,18 +592,18 @@ const Sidebar = () => {
                 <>
                   <Link
                     className="side-link"
-                    to="/patientprofile"
-                  >
-                    <CgProfile className="side-icon" />
-                    {(isOpen || hovered) && <span>Profile</span>}
-                  </Link>
-
-                  <Link
-                    className="side-link"
                     to="/bookappointment"
                   >
                     <BsBookmarkPlus className="side-icon" />
                     {(isOpen || hovered) && <span>Book Appointment</span>}
+                  </Link>
+
+                  <Link
+                    className="side-link"
+                    to="/checkappointment"
+                  >
+                    <BsFillBookmarkCheckFill className="side-icon" />
+                    {(isOpen || hovered) && <span>My Appointments</span>}
                   </Link>
 
                   <Link
@@ -596,10 +616,10 @@ const Sidebar = () => {
 
                   <Link
                     className="side-link"
-                    to="/notificationsettings"
+                    to="/reports"
                   >
-                    <FaBell className="side-icon" />
-                    {(isOpen || hovered) && <span>Notification Settings</span>}
+                    <TbReportMedical className="side-icon" />
+                    {(isOpen || hovered) && <span>My Reports</span>}
                   </Link>
 
                   <Link
@@ -617,12 +637,44 @@ const Sidebar = () => {
                     <FaFolder className="side-icon" />
                     {(isOpen || hovered) && <span>My Documents</span>}
                   </Link>
+
+                  <Link
+                    className="side-link"
+                    to="/notificationsettings"
+                  >
+                    <FaBell className="side-icon" />
+                    {(isOpen || hovered) && <span>Notifications</span>}
+                  </Link>
+
+                  <Link
+                    className="side-link"
+                    to="/patient/payment-history"
+                  >
+                    <FaCreditCard className="side-icon" />
+                    {(isOpen || hovered) && <span>Payment History</span>}
+                  </Link>
+
+                  {(isOpen || hovered) && (
+                    <div className="nav-section-title">Laboratory</div>
+                  )}
+
+                  <Link
+                    className="side-link"
+                    to="/booklabtest"
+                  >
+                    <FaFlask className="side-icon" />
+                    {(isOpen || hovered) && <span>Book Lab Test</span>}
+                  </Link>
                 </>
               )}
 
               {/* ADMIN MENU */}
               {user?.userType === "admin" && (
                 <>
+                  {(isOpen || hovered) && (
+                    <div className="nav-section-title">Doctors</div>
+                  )}
+
                   <Link
                     className="side-link"
                     to="/addoctor"
@@ -633,27 +685,15 @@ const Sidebar = () => {
 
                   <Link
                     className="side-link"
-                    to="/addadmin"
-                  >
-                    <RiAdminLine className="side-icon" />
-                    {(isOpen || hovered) && <span>Add Admin</span>}
-                  </Link>
-
-                  <Link
-                    className="side-link"
-                    to="/addambulance"
-                  >
-                    <FaAmbulance className="side-icon" />
-                    {(isOpen || hovered) && <span>Add Ambulance</span>}
-                  </Link>
-
-                  <Link
-                    className="side-link"
                     to="/managedoctors"
                   >
                     <HiUserGroup className="side-icon" />
                     {(isOpen || hovered) && <span>Manage Doctors</span>}
                   </Link>
+
+                  {(isOpen || hovered) && (
+                    <div className="nav-section-title">Patients</div>
+                  )}
 
                   <Link
                     className="side-link"
@@ -663,12 +703,48 @@ const Sidebar = () => {
                     {(isOpen || hovered) && <span>Manage Patients</span>}
                   </Link>
 
+                  {(isOpen || hovered) && (
+                    <div className="nav-section-title">Admin</div>
+                  )}
+
                   <Link
                     className="side-link"
-                    to="/adminprofile"
+                    to="/addadmin"
                   >
-                    <CgProfile className="side-icon" />
-                    {(isOpen || hovered) && <span>Profile</span>}
+                    <RiAdminLine className="side-icon" />
+                    {(isOpen || hovered) && <span>Add Admin</span>}
+                  </Link>
+
+                  {(isOpen || hovered) && (
+                    <div className="nav-section-title">Services</div>
+                  )}
+
+                  <Link
+                    className="side-link"
+                    to="/addambulance"
+                  >
+                    <FaAmbulance className="side-icon" />
+                    {(isOpen || hovered) && <span>Add Ambulance</span>}
+                  </Link>
+
+                  {(isOpen || hovered) && (
+                    <div className="nav-section-title">Laboratory</div>
+                  )}
+
+                  <Link
+                    className="side-link"
+                    to="/addlabpersonnel"
+                  >
+                    <FaUserMd className="side-icon" />
+                    {(isOpen || hovered) && <span>Add Lab Personnel</span>}
+                  </Link>
+
+                  <Link
+                    className="side-link"
+                    to="/viewlabpersonnel"
+                  >
+                    <FaFlask className="side-icon" />
+                    {(isOpen || hovered) && <span>View Lab Personnel</span>}
                   </Link>
                 </>
               )}
@@ -678,10 +754,10 @@ const Sidebar = () => {
                 <>
                   <Link
                     className="side-link"
-                    to="/doctorprofile"
+                    to="/checkappointment"
                   >
-                    <CgProfile className="side-icon" />
-                    {(isOpen || hovered) && <span>Profile</span>}
+                    <BsFillBookmarkCheckFill className="side-icon" />
+                    {(isOpen || hovered) && <span>Check Appointments</span>}
                   </Link>
 
                   <Link
@@ -689,7 +765,7 @@ const Sidebar = () => {
                     to="/patientdetails"
                   >
                     <FaUsers className="side-icon" />
-                    {(isOpen || hovered) && <span>Patients</span>}
+                    {(isOpen || hovered) && <span>Patient Details</span>}
                   </Link>
 
                   <Link
@@ -699,18 +775,13 @@ const Sidebar = () => {
                     <FaFolder className="side-icon" />
                     {(isOpen || hovered) && <span>Patient Documents</span>}
                   </Link>
-                </>
-              )}
 
-              {/* COMMON SECTIONS */}
-              {user?.userType !== "admin" && (
-                <>
                   <Link
                     className="side-link"
-                    to="/checkappointment"
+                    to="/createreport"
                   >
-                    <BsFillBookmarkCheckFill className="side-icon" />
-                    {(isOpen || hovered) && <span>My Appointments</span>}
+                    <FaFileAlt className="side-icon" />
+                    {(isOpen || hovered) && <span>Create Report</span>}
                   </Link>
 
                   <Link
@@ -718,7 +789,48 @@ const Sidebar = () => {
                     to="/reports"
                   >
                     <TbReportMedical className="side-icon" />
-                    {(isOpen || hovered) && <span>Reports</span>}
+                    {(isOpen || hovered) && <span>All Reports</span>}
+                  </Link>
+
+                  {(isOpen || hovered) && (
+                    <div className="nav-section-title">Laboratory</div>
+                  )}
+
+                  <Link
+                    className="side-link"
+                    to="/labtestrequests"
+                  >
+                    <FaFlask className="side-icon" />
+                    {(isOpen || hovered) && <span>Lab Test Requests</span>}
+                  </Link>
+                </>
+              )}
+
+              {/* LABORATORY MENU */}
+              {user?.userType === "laboratory" && (
+                <>
+                  <Link
+                    className="side-link"
+                    to="/labtestrequests"
+                  >
+                    <FaFlask className="side-icon" />
+                    {(isOpen || hovered) && <span>Lab Test Requests</span>}
+                  </Link>
+
+                  <Link
+                    className="side-link"
+                    to="/entertestresults"
+                  >
+                    <FaFileAlt className="side-icon" />
+                    {(isOpen || hovered) && <span>Enter Test Results</span>}
+                  </Link>
+
+                  <Link
+                    className="side-link"
+                    to="/homeservicerequests"
+                  >
+                    <FaHome className="side-icon" />
+                    {(isOpen || hovered) && <span>Home Service Requests</span>}
                   </Link>
                 </>
               )}

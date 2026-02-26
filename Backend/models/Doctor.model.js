@@ -16,6 +16,7 @@ const doctorSchema = new mongoose.Schema({
   department: { type: String, required: true },
   fees: { type: Number, required: true },
   availability: { type: String, default: "" },
+  profilePicture: { type: String, default: null }, // URL or base64 string
 }, { timestamps: true });
 
 const Doctor = mongoose.model("Doctor", doctorSchema);

@@ -2,6 +2,7 @@ import React from "react";
 import Sidebar from "../../GlobalFiles/Sidebar";
 import { Navigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import Footer from "../../../../../Components/Footer";
 
 const Add_Ambulance = () => {
   const { data } = useSelector((store) => store.auth);
@@ -139,7 +140,8 @@ const Add_Ambulance = () => {
           </div>
         </div>
       </div>
-    </>
+    <Footer />
+      </>
   );
 };
 

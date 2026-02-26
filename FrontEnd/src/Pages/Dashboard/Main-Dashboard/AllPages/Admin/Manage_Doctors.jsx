@@ -3,6 +3,7 @@ import { Table, Button, Modal, Form, Input, Select, message } from "antd";
 import axios from "axios";
 import Sidebar from "../../GlobalFiles/Sidebar";
 import "./CSS/Manage.css";
+import Footer from "../../../../../Components/Footer";
 
 const { Option } = Select;
 
@@ -215,7 +216,7 @@ const ManageDoctors = () => {
           font-size: 2.5rem;
           font-weight: 800;
           margin-bottom: 2rem;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -246,7 +247,7 @@ const ManageDoctors = () => {
           left: 0;
           right: 0;
           height: 4px;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%);
         }
 
         .table-wrapper:hover {
@@ -269,7 +270,7 @@ const ManageDoctors = () => {
         }
 
         .ant-table-thead > tr > th {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+          background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%) !important;
           color: white !important;
           font-weight: 700 !important;
           border: none !important;
@@ -294,13 +295,13 @@ const ManageDoctors = () => {
         }
 
         .ant-table-tbody > tr:hover {
-          background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(52, 211, 153, 0.08) 100%) !important;
+          background: linear-gradient(135deg, rgba(11, 107, 97, 0.08) 0%, rgba(19, 161, 137, 0.08) 100%) !important;
           transform: translateY(-2px) !important;
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15) !important;
+          box-shadow: 0 4px 12px rgba(11, 107, 97, 0.15) !important;
         }
 
         .ant-table-tbody > tr > td {
-          border-bottom: 1px solid rgba(102, 126, 234, 0.1) !important;
+          border-bottom: 1px solid rgba(11, 107, 97, 0.1) !important;
           font-weight: 500 !important;
           padding: 1rem !important;
           text-align: center !important;
@@ -332,15 +333,15 @@ const ManageDoctors = () => {
         }
 
         .ant-btn-primary {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+          background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%) !important;
           border: none !important;
           color: white !important;
         }
 
         .ant-btn-primary:hover {
-          background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%) !important;
+          background: linear-gradient(135deg, #095a52 0%, #0f8a75 100%) !important;
           transform: translateY(-2px) !important;
-          box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4) !important;
+          box-shadow: 0 8px 20px rgba(11, 107, 97, 0.4) !important;
         }
 
         .ant-btn-dangerous {
@@ -362,19 +363,19 @@ const ManageDoctors = () => {
         }
 
         .ant-pagination-item {
-          border: 2px solid rgba(102, 126, 234, 0.2) !important;
+          border: 2px solid rgba(11, 107, 97, 0.2) !important;
           border-radius: 8px !important;
           transition: all 0.3s ease !important;
         }
 
         .ant-pagination-item:hover {
-          border-color: #667eea !important;
+          border-color: #0b6b61 !important;
           transform: translateY(-2px) !important;
         }
 
         .ant-pagination-item-active {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-          border-color: #667eea !important;
+          background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%) !important;
+          border-color: #0b6b61 !important;
         }
 
         .ant-pagination-item-active a {
@@ -389,7 +390,7 @@ const ManageDoctors = () => {
         }
 
         .ant-modal-header {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+          background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%) !important;
           border-bottom: none !important;
           padding: 1.5rem 2rem !important;
         }
@@ -430,21 +431,21 @@ const ManageDoctors = () => {
         }
 
         .ant-modal-body::-webkit-scrollbar-track {
-          background: rgba(102, 126, 234, 0.1);
+          background: rgba(11, 107, 97, 0.1);
           border-radius: 10px;
         }
 
         .ant-modal-body::-webkit-scrollbar-thumb {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%);
           border-radius: 10px;
         }
 
         .ant-modal-body::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+          background: linear-gradient(135deg, #095a52 0%, #0f8a75 100%);
         }
 
         .ant-modal-footer {
-          border-top: 1px solid rgba(102, 126, 234, 0.1) !important;
+          border-top: 1px solid rgba(11, 107, 97, 0.1) !important;
           padding: 1.5rem 2rem !important;
           background: white !important;
         }
@@ -460,28 +461,28 @@ const ManageDoctors = () => {
         }
 
         .ant-modal-footer .ant-btn-default {
-          border: 2px solid rgba(102, 126, 234, 0.2) !important;
-          color: #667eea !important;
+          border: 2px solid rgba(11, 107, 97, 0.2) !important;
+          color: #0b6b61 !important;
           background: white !important;
         }
 
         .ant-modal-footer .ant-btn-default:hover {
-          border-color: #667eea !important;
-          color: #667eea !important;
+          border-color: #0b6b61 !important;
+          color: #0b6b61 !important;
           transform: translateY(-2px) !important;
-          box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2) !important;
+          box-shadow: 0 4px 12px rgba(11, 107, 97, 0.2) !important;
         }
 
         .ant-modal-footer .ant-btn-primary {
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+          background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%) !important;
           border: none !important;
           color: white !important;
         }
 
         .ant-modal-footer .ant-btn-primary:hover {
-          background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%) !important;
+          background: linear-gradient(135deg, #095a52 0%, #0f8a75 100%) !important;
           transform: translateY(-2px) !important;
-          box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4) !important;
+          box-shadow: 0 8px 20px rgba(11, 107, 97, 0.4) !important;
         }
 
         /* Enhanced Form Styling */
@@ -492,14 +493,14 @@ const ManageDoctors = () => {
 
         .ant-input, .ant-select-selector {
           border-radius: 12px !important;
-          border: 2px solid rgba(102, 126, 234, 0.2) !important;
+          border: 2px solid rgba(11, 107, 97, 0.2) !important;
           padding: 0.75rem 1rem !important;
           transition: all 0.3s ease !important;
         }
 
         .ant-input:focus, .ant-select-focused .ant-select-selector {
-          border-color: #667eea !important;
-          box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+          border-color: #0b6b61 !important;
+          box-shadow: 0 0 0 3px rgba(11, 107, 97, 0.1) !important;
         }
 
         .ant-select-dropdown {
@@ -601,7 +602,8 @@ const ManageDoctors = () => {
           </div>
         </div>
       </div>
-    </>
+    <Footer />
+      </>
   );
 };
 

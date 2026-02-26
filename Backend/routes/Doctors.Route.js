@@ -229,28 +229,70 @@ router.post("/availability", async (req, res) => {
 
 router.patch("/:doctorId", async (req, res) => {
   const doctorId = parseInt(req.params.doctorId);
-  const password = req.body.password;
+  const { password, oldPassword, name, phoneNum, address, education, fees, profilePicture } = req.body;
+  
+  console.log("PATCH /doctors/:doctorId called");
+  console.log("Doctor ID:", doctorId);
+  console.log("Request body:", JSON.stringify(req.body, null, 2));
+  
   try {
-    await updatePass(password, doctorId);
+    // Validate doctorId
+    if (isNaN(doctorId) || doctorId <= 0) {
+      console.log("Invalid doctor ID:", doctorId);
+      return res.status(400).send({ message: "Invalid doctor ID" });
+    }
+    
+    // Check if doctor exists
     const doctor = await findById(doctorId);
-    if (doctor && doctor.password) {
-      // Use bcrypt to compare the new password
-      const bcrypt = require("bcrypt");
-      const isPasswordMatch = await bcrypt.compare(password, doctor.password);
-      if (isPasswordMatch) {
-        return res.status(200).send({
-          message: "password updated",
-          user: { ...doctor.toObject(), userType: "doctor" },
-        });
-      } else {
-        return res.send({ message: `password not updated` });
-      }
-    } else {
+    if (!doctor) {
+      console.log("Doctor not found with ID:", doctorId);
       return res.status(404).send({ message: "Doctor not found" });
     }
+    
+    // If changing password, verify old password first
+    if (password && oldPassword) {
+      const bcrypt = require("bcrypt");
+      const isOldPasswordValid = await bcrypt.compare(oldPassword, doctor.password);
+      
+      if (!isOldPasswordValid) {
+        console.log("Incorrect old password for doctor:", doctorId);
+        return res.status(400).send({ message: "Incorrect old password" });
+      }
+      
+      // Update password
+      await updatePass(password, doctorId);
+      console.log("Password updated for doctor:", doctorId);
+    }
+    
+    // Update profile fields if provided
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (phoneNum) updateData.phoneNum = phoneNum;
+    if (address) updateData.address = address;
+    if (education) updateData.education = education;
+    if (fees !== undefined) updateData.fees = fees;
+    if (profilePicture !== undefined) updateData.profilePicture = profilePicture;
+    
+    if (Object.keys(updateData).length > 0) {
+      console.log("Updating doctor profile with data:", updateData);
+      const { updateDoctor } = require("../models/Doctor.model");
+      await updateDoctor({ doctorId, ...updateData });
+      console.log("Profile updated for doctor:", doctorId);
+    }
+    
+    const updatedDoctor = await findById(doctorId);
+    
+    return res.status(200).send({
+      message: password ? "password updated" : "profile updated",
+      user: { ...updatedDoctor.toObject(), userType: "doctor" },
+    });
   } catch (error) {
-    console.log(error);
-    res.status(400).send({ message: "error" });
+    console.error("Doctor update error:", error);
+    console.error("Error stack:", error.stack);
+    res.status(400).send({ 
+      error: "Something went wrong",
+      message: error.message 
+    });
   }
 });
 

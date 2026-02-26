@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import Footer from "../../../../../Components/Footer";
 
 const notify = (text) => toast(text);
 

@@ -7,6 +7,7 @@
  */
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { isOllamaAvailable, chatWithOllama } = require("./ollamaService");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -51,61 +52,46 @@ Remember: You help users navigate THIS platform, not provide general website adv
  */
 const generateChatbotResponse = async (userMessage, chatHistory = []) => {
   try {
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.5-flash"
-    });
+    const platformContext = `${SYSTEM_PROMPT}\n\nUser: ${userMessage}`;
 
-    // Build conversation history
-    const history = [];
-    
-    // Add actual chat history, ensuring it starts with 'user' role
-    chatHistory.forEach((msg, index) => {
-      // Skip if first message is not 'user' role
-      if (index === 0 && msg.role !== 'user') {
-        return;
+    // Try Gemini first
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const history = [];
+        chatHistory.forEach((msg, index) => {
+          if (index === 0 && msg.role !== "user") return;
+          history.push({ role: msg.role === "user" ? "user" : "model", parts: [{ text: msg.content }] });
+        });
+        const chat = model.startChat({ history, generationConfig: { maxOutputTokens: 500, temperature: 0.7 } });
+        const result = await chat.sendMessage(platformContext);
+        return { success: true, response: result.response.text(), timestamp: new Date() };
+      } catch (geminiError) {
+        console.warn("⚠️ Gemini chatbot failed, trying Ollama:", geminiError.message);
       }
-      
-      history.push({
-        role: msg.role === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.content }]
-      });
-    });
+    }
 
-    // Start chat with history (NO systemInstruction parameter)
-    const chat = model.startChat({
-      history: history,
-      generationConfig: {
-        maxOutputTokens: 500,
-        temperature: 0.7,
-      }
-    });
+    // Fall back to Ollama
+    const ollamaUp = await isOllamaAvailable();
+    if (ollamaUp) {
+      const messages = [
+        { role: "system", content: SYSTEM_PROMPT },
+        ...chatHistory.map((m) => ({ role: m.role === "user" ? "user" : "assistant", content: m.content })),
+        { role: "user", content: userMessage },
+      ];
+      const text = await chatWithOllama(messages, { maxTokens: 500 });
+      console.log("✅ Chatbot response via Ollama (offline)");
+      return { success: true, response: text, timestamp: new Date() };
+    }
 
-    // Add strong platform-specific context to EVERY message to override chat history confusion
-    const platformContext = `[SYSTEM: You are UB E-Health's AI assistant. This is NOT a hypothetical platform - it's a real healthcare system with these features: Book Appointments, Book Lab Tests (with home service option), My Appointments (view bookings), My Reports (lab results with AI interpretation), My Medications (prescriptions), Payment History (download invoices), Health Trends (track metrics), My Documents (medical records). Always refer to these specific features, not generic website advice.]
-
-User: ${userMessage}`;
-
-    // Send message with context
-    const result = await chat.sendMessage(platformContext);
-    const response = result.response;
-    const text = response.text();
-
-    return {
-      success: true,
-      response: text,
-      timestamp: new Date()
-    };
-
+    throw new Error("No AI service available");
   } catch (error) {
-    console.error("Chatbot Gemini API error:", error);
-    console.error("Error details:", error.message);
-    
-    // Fallback response
+    console.error("Chatbot AI error:", error);
     return {
       success: false,
       response: "I apologize, but I'm having trouble processing your request right now. Please try again or contact our support team for assistance.",
       error: error.message,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 };

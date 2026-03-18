@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { Table, Button, Modal, Form, Input, Select, message } from "antd";
+import { useEffect, useState, useMemo } from "react";
+import { Table, Button, Modal, Form, Input, Select, message, Card, Row, Col, Tag, Badge } from "antd";
+import { SearchOutlined, UserOutlined, FilterOutlined, CloseCircleOutlined } from "@ant-design/icons";
 import axios from "axios";
 import Sidebar from "../../GlobalFiles/Sidebar";
 import "./CSS/Manage.css";
@@ -13,6 +14,10 @@ const ManageDoctors = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState(null);
   const [form] = Form.useForm();
+  
+  // Filter states
+  const [searchText, setSearchText] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState(null);
 
   const fetchDoctors = async () => {
     setLoading(true);
@@ -45,6 +50,80 @@ const ManageDoctors = () => {
   useEffect(() => {
     fetchDoctors();
   }, []);
+
+  // Calculate stats
+  const stats = useMemo(() => {
+    const total = doctors.length;
+    const departments = [...new Set(doctors.map(d => d.department))].length;
+    
+    // Calculate average fee
+    const avgFee = doctors.length > 0 
+      ? Math.round(doctors.reduce((sum, d) => sum + (d.fees || 0), 0) / doctors.length)
+      : 0;
+    
+    // Calculate new doctors this week
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const newThisWeek = doctors.filter(d => {
+      const createdDate = new Date(d.createdAt || d.created_at);
+      return createdDate >= oneWeekAgo;
+    }).length;
+
+    return { total, departments, avgFee, newThisWeek };
+  }, [doctors]);
+
+  // Get unique departments for filter
+  const uniqueDepartments = useMemo(() => {
+    return [...new Set(doctors.map(d => d.department).filter(Boolean))].sort();
+  }, [doctors]);
+
+  // Filter doctors
+  const filteredDoctors = useMemo(() => {
+    return doctors.filter(doctor => {
+      const matchesSearch = searchText === "" || 
+        doctor.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+        doctor.email?.toLowerCase().includes(searchText.toLowerCase()) ||
+        doctor.phonenum?.includes(searchText) ||
+        doctor.department?.toLowerCase().includes(searchText.toLowerCase());
+      
+      const matchesDepartment = !departmentFilter || doctor.department === departmentFilter;
+
+      return matchesSearch && matchesDepartment;
+    });
+  }, [doctors, searchText, departmentFilter]);
+
+  const clearFilters = () => {
+    setSearchText("");
+    setDepartmentFilter(null);
+  };
+
+  const hasActiveFilters = searchText || departmentFilter;
+
+  // Generate avatar initials
+  const getInitials = (name) => {
+    if (!name) return "??";
+    const parts = name.split(" ");
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  // Get department color
+  const getDepartmentColor = (department) => {
+    const colors = {
+      'Cardiology': '#ef4444',
+      'Neurology': '#8b5cf6',
+      'Orthopedics': '#3b82f6',
+      'Pediatrics': '#ec4899',
+      'Dermatology': '#f59e0b',
+      'ENT': '#10b981',
+      'Ophthalmology': '#06b6d4',
+      'Psychiatry': '#6366f1',
+      'General': '#64748b'
+    };
+    return colors[department] || '#6b7280';
+  };
 
   const handleEdit = (doctor) => {
     setEditingDoctor(doctor);
@@ -127,48 +206,114 @@ const ManageDoctors = () => {
   };
 
   const columns = [
-    { 
-      title: "ID", 
-      dataIndex: "displayId", 
-      key: "displayId",
-      width: 80,
+    {
+      title: "Doctor",
+      key: "doctor",
+      width: 280,
+      render: (_, record) => (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div
+            style={{
+              width: '45px',
+              height: '45px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontWeight: '700',
+              fontSize: '16px',
+              flexShrink: 0,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+            }}
+          >
+            {getInitials(record.name)}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: '600', color: '#1f2937', fontSize: '15px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {record.name}
+            </div>
+            <div style={{ fontSize: '13px', color: '#6b7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {record.email}
+            </div>
+          </div>
+        </div>
+      ),
     },
-    { 
-      title: "Name", 
-      dataIndex: "name", 
-      key: "name",
-      width: 180,
-    },
-    { 
-      title: "Contact", 
-      dataIndex: "phonenum", 
+    {
+      title: "Contact",
+      dataIndex: "phonenum",
       key: "phonenum",
       width: 140,
+      render: (phone) => (
+        <span style={{ fontWeight: '500', color: '#374151' }}>
+          {phone || 'N/A'}
+        </span>
+      ),
     },
-    { 
-      title: "Department", 
-      dataIndex: "department", 
+    {
+      title: "Department",
+      dataIndex: "department",
       key: "department",
-      width: 150,
+      width: 160,
+      render: (department) => (
+        <Badge
+          count={department || 'N/A'}
+          style={{
+            backgroundColor: getDepartmentColor(department),
+            fontWeight: '700',
+            fontSize: '12px',
+            padding: '0 12px',
+            height: '26px',
+            lineHeight: '26px',
+            borderRadius: '13px',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+          }}
+        />
+      ),
     },
-    { 
-      title: "Fee", 
-      dataIndex: "fees", 
+    {
+      title: "Fee",
+      dataIndex: "fees",
       key: "fees",
-      width: 100,
-      render: (fee) => `₹${fee}`,
+      width: 120,
+      sorter: (a, b) => (a.fees || 0) - (b.fees || 0),
+      render: (fee) => (
+        <span style={{ fontWeight: '700', color: '#0b6b61', fontSize: '15px' }}>
+          ₹{fee || 0}
+        </span>
+      ),
     },
     {
       title: "Actions",
       key: "actions",
       width: 180,
+      fixed: 'right',
       render: (_, record) => (
-        <div style={{ display: "flex", gap: "10px" }}>
-          <Button type="primary" onClick={() => handleEdit(record)}>
+        <div style={{ display: "flex", gap: "8px", justifyContent: 'center' }}>
+          <Button
+            type="primary"
+            size="small"
+            onClick={() => handleEdit(record)}
+            style={{
+              borderRadius: '8px',
+              fontWeight: '600',
+              background: 'linear-gradient(135deg, #0b6b61 0%, #13a189 100%)',
+              border: 'none'
+            }}
+          >
             Edit
           </Button>
-
-          <Button danger onClick={() => handleDelete(record.actualId || record.doctorId)}>
+          <Button
+            danger
+            size="small"
+            onClick={() => handleDelete(record.actualId || record.doctorId)}
+            style={{
+              borderRadius: '8px',
+              fontWeight: '600'
+            }}
+          >
             Delete
           </Button>
         </div>
@@ -208,36 +353,134 @@ const ManageDoctors = () => {
         }
 
         .manage-container {
-          padding: 2.5rem 3rem;
-          animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+          padding: 2rem 1.5rem;
+          animation: fadeIn 0.5s ease;
+          max-width: 1400px;
+          margin: 0 auto;
         }
 
-        .manage-container h2 {
-          font-size: 2.5rem;
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-header {
+          text-align: center;
+          margin-bottom: 1.5rem;
+        }
+
+        .page-title {
+          font-size: 2.25rem;
           font-weight: 800;
-          margin-bottom: 2rem;
           background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
-          text-align: center;
+          margin: 0 0 0.5rem 0;
           letter-spacing: -0.02em;
+        }
+
+        .stats-row {
+          margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          border-radius: 18px;
+          padding: 1.75rem 1.5rem;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          position: relative;
+          overflow: hidden;
+          text-align: center;
+          height: 100%;
+          min-height: 140px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .stat-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
+          background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%);
+        }
+
+        .stat-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-icon {
+          font-size: 2rem;
+          margin-bottom: 0.5rem;
+          display: block;
+        }
+
+        .stat-value {
+          font-size: 1.75rem;
+          font-weight: 800;
+          color: #0b6b61;
+          margin: 0.25rem 0;
+          line-height: 1;
+        }
+
+        .stat-label {
+          font-size: 0.85rem;
+          color: #6b7280;
+          font-weight: 600;
+          margin: 0;
+        }
+
+        .filters-section {
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          padding: 1.5rem;
+          border-radius: 18px;
+          margin-bottom: 1.5rem;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .filters-row {
+          display: flex;
+          gap: 0.75rem;
+          align-items: center;
+          flex-wrap: wrap;
+        }
+
+        .search-input {
+          flex: 1;
+          min-width: 200px;
+        }
+
+        .filter-select {
+          min-width: 150px;
+        }
+
+        .active-filters {
+          display: flex;
+          gap: 0.5rem;
+          align-items: center;
+          margin-top: 1rem;
+          flex-wrap: wrap;
         }
 
         .table-wrapper {
           background: rgba(255, 255, 255, 0.95);
           backdrop-filter: blur(20px);
-          padding: 2.5rem;
-          border-radius: 24px;
-          box-shadow: 
-            0 20px 40px rgba(0, 0, 0, 0.1),
-            0 1px 0 rgba(255, 255, 255, 0.2) inset;
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          position: relative;
-          overflow: hidden;
-          max-width: 1400px;
-          margin: 0 auto;
+          padding: 1.75rem;
+          border-radius: 18px;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          overflow-x: auto;
         }
 
         .table-wrapper::before {
@@ -248,13 +491,6 @@ const ManageDoctors = () => {
           right: 0;
           height: 4px;
           background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%);
-        }
-
-        .table-wrapper:hover {
-          transform: translateY(-8px);
-          box-shadow: 
-            0 32px 64px rgba(0, 0, 0, 0.15),
-            0 1px 0 rgba(255, 255, 255, 0.3) inset;
         }
 
         /* Enhanced Table Styling */
@@ -274,10 +510,11 @@ const ManageDoctors = () => {
           color: white !important;
           font-weight: 700 !important;
           border: none !important;
-          font-size: 0.95rem !important;
-          padding: 1.2rem 1rem !important;
-          text-align: center !important;
-          position: relative !important;
+          padding: 1rem 5.4rem !important;
+          font-size: 0.875rem !important;
+          white-space: nowrap !important;
+          text-transform: uppercase !important;
+          letter-spacing: 0.5px !important;
         }
 
         .ant-table-thead > tr > th::before {
@@ -291,30 +528,23 @@ const ManageDoctors = () => {
         }
 
         .ant-table-tbody > tr {
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+          transition: all 0.3s ease !important;
         }
 
         .ant-table-tbody > tr:hover {
-          background: linear-gradient(135deg, rgba(11, 107, 97, 0.08) 0%, rgba(19, 161, 137, 0.08) 100%) !important;
-          transform: translateY(-2px) !important;
-          box-shadow: 0 4px 12px rgba(11, 107, 97, 0.15) !important;
+          background: rgba(11, 107, 97, 0.05) !important;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
         }
 
         .ant-table-tbody > tr > td {
           border-bottom: 1px solid rgba(11, 107, 97, 0.1) !important;
-          font-weight: 500 !important;
-          padding: 1rem !important;
-          text-align: center !important;
-          color: #374151 !important;
-          position: relative !important;
+          padding: 1rem 0.875rem !important;
+          vertical-align: middle !important;
+          background: white !important;
         }
 
         .ant-table-tbody > tr:nth-child(even) > td {
           background: rgba(248, 250, 252, 0.5) !important;
-        }
-
-        .ant-table-tbody > tr:nth-child(odd) > td {
-          background: rgba(255, 255, 255, 0.8) !important;
         }
 
         .ant-table-tbody > tr:last-child > td {
@@ -508,6 +738,264 @@ const ManageDoctors = () => {
           box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
         }
 
+        .ant-pagination {
+          margin-top: 1.5rem !important;
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
+        }
+
+        .ant-pagination-item {
+          border-radius: 8px !important;
+          border: 2px solid rgba(11, 107, 97, 0.2) !important;
+          transition: all 0.3s ease !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+        }
+
+        .ant-pagination-item:hover {
+          border-color: #0b6b61 !important;
+          transform: translateY(-2px) !important;
+        }
+
+        .ant-pagination-item-active {
+          background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%) !important;
+          border-color: #0b6b61 !important;
+        }
+
+        .ant-pagination-item-active a {
+          color: white !important;
+        }
+
+        .ant-pagination-options {
+          display: flex !important;
+          align-items: center !important;
+        }
+
+        .ant-pagination-options-size-changer {
+          display: flex !important;
+          align-items: center !important;
+        }
+
+        .ant-pagination-options-size-changer .ant-select {
+          display: flex !important;
+          align-items: center !important;
+        }
+
+        .ant-pagination-options-size-changer .ant-select-selector {
+          display: flex !important;
+          align-items: center !important;
+          height: 32px !important;
+          padding: 0 11px !important;
+        }
+
+        .ant-pagination-options-size-changer .ant-select-selection-item {
+          line-height: 30px !important;
+          display: flex !important;
+          align-items: center !important;
+        }
+
+        .ant-select-arrow {
+          display: flex !important;
+          align-items: center !important;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+          .manage-container {
+            padding: 1.25rem;
+          }
+
+          .page-title {
+            font-size: 1.75rem;
+          }
+
+          .stat-value {
+            font-size: 1.5rem;
+          }
+
+          .stat-icon {
+            font-size: 1.75rem;
+          }
+        }
+
+        @media (max-width: 992px) {
+          .manage-container {
+            padding: 1rem;
+          }
+
+          .page-title {
+            font-size: 1.5rem;
+          }
+
+          .stat-card {
+            padding: 1rem;
+          }
+
+          .stat-value {
+            font-size: 1.35rem;
+          }
+
+          .stat-label {
+            font-size: 0.8rem;
+          }
+
+          .filters-section {
+            padding: 1rem;
+          }
+
+          .table-wrapper {
+            padding: 1rem;
+          }
+
+          .ant-table-thead > tr > th {
+            padding: 0.75rem 0.5rem !important;
+            font-size: 0.8rem !important;
+          }
+
+          .ant-table-tbody > tr > td {
+            padding: 0.75rem 0.5rem !important;
+            font-size: 0.875rem !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .admin-page {
+            flex-direction: column;
+          }
+
+          .manage-container {
+            padding: 0.875rem;
+          }
+
+          .page-title {
+            font-size: 1.35rem;
+          }
+
+          .stats-row {
+            margin-bottom: 1rem;
+          }
+
+          .stat-card {
+            padding: 0.875rem;
+          }
+
+          .stat-icon {
+            font-size: 1.5rem;
+          }
+
+          .stat-value {
+            font-size: 1.25rem;
+          }
+
+          .stat-label {
+            font-size: 0.75rem;
+          }
+
+          .filters-section {
+            padding: 0.875rem;
+          }
+
+          .filters-row {
+            gap: 0.5rem;
+          }
+
+          .search-input {
+            min-width: 100%;
+            width: 100%;
+          }
+
+          .filter-select {
+            min-width: 100%;
+            width: 100%;
+          }
+
+          .table-wrapper {
+            padding: 0.75rem;
+            border-radius: 12px;
+          }
+
+          .ant-table-thead > tr > th {
+            padding: 0.625rem 0.375rem !important;
+            font-size: 0.75rem !important;
+          }
+
+          .ant-table-tbody > tr > td {
+            padding: 0.625rem 0.375rem !important;
+            font-size: 0.8rem !important;
+          }
+
+          .ant-btn {
+            font-size: 0.8rem !important;
+            padding: 0.375rem 0.75rem !important;
+          }
+
+          .ant-modal {
+            max-width: calc(100vw - 32px) !important;
+            margin: 16px auto !important;
+          }
+
+          .ant-modal-body {
+            padding: 1rem !important;
+          }
+        }
+
+        @media (max-width: 576px) {
+          .manage-container {
+            padding: 0.75rem;
+          }
+
+          .page-title {
+            font-size: 1.25rem;
+          }
+
+          .stat-card {
+            padding: 0.75rem;
+          }
+
+          .stat-icon {
+            font-size: 1.35rem;
+            margin-bottom: 0.25rem;
+          }
+
+          .stat-value {
+            font-size: 1.15rem;
+          }
+
+          .stat-label {
+            font-size: 0.7rem;
+          }
+
+          .filters-section {
+            padding: 0.75rem;
+          }
+
+          .table-wrapper {
+            padding: 0.5rem;
+          }
+
+          .ant-table-thead > tr > th {
+            padding: 0.5rem 0.25rem !important;
+            font-size: 0.7rem !important;
+          }
+
+          .ant-table-tbody > tr > td {
+            padding: 0.5rem 0.25rem !important;
+            font-size: 0.75rem !important;
+          }
+
+          .ant-pagination {
+            font-size: 0.8rem !important;
+          }
+
+          .ant-pagination-item {
+            min-width: 28px !important;
+            height: 28px !important;
+            line-height: 26px !important;
+          }
+        }
+
         @keyframes fadeIn {
           from { 
             opacity: 0; 
@@ -527,14 +1015,112 @@ const ManageDoctors = () => {
         <div className="admin-content">
           <div className="manage-container">
 
-            <h2>👨‍⚕️ Manage Doctors</h2>
+            {/* Page Header */}
+            <div className="page-header">
+              <h1 className="page-title">👨‍⚕️ Manage Doctors</h1>
+            </div>
 
+            {/* Stats Cards */}
+            <Row gutter={[16, 16]} className="stats-row">
+              <Col xs={24} sm={12} lg={6}>
+                <Card className="stat-card" bordered={false}>
+                  <div className="stat-icon">👨‍⚕️</div>
+                  <h2 className="stat-value">{stats.total}</h2>
+                  <p className="stat-label">Total Doctors</p>
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} lg={6}>
+                <Card className="stat-card" bordered={false}>
+                  <div className="stat-icon">🏥</div>
+                  <h2 className="stat-value">{stats.departments}</h2>
+                  <p className="stat-label">Departments</p>
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} lg={6}>
+                <Card className="stat-card" bordered={false}>
+                  <div className="stat-icon">💰</div>
+                  <h2 className="stat-value">₹{stats.avgFee}</h2>
+                  <p className="stat-label">Average Fee</p>
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} lg={6}>
+                <Card className="stat-card" bordered={false}>
+                  <div className="stat-icon">📈</div>
+                  <h2 className="stat-value">+{stats.newThisWeek}</h2>
+                  <p className="stat-label">New This Week</p>
+                </Card>
+              </Col>
+            </Row>
+
+            {/* Filters Section */}
+            <div className="filters-section">
+              <div className="filters-row">
+                <Input
+                  className="search-input"
+                  placeholder="Search by name, email, phone, or department..."
+                  prefix={<SearchOutlined style={{ color: '#0b6b61' }} />}
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  allowClear
+                  size="large"
+                />
+                
+                <Select
+                  className="filter-select"
+                  placeholder="Department"
+                  value={departmentFilter}
+                  onChange={setDepartmentFilter}
+                  allowClear
+                  size="large"
+                  suffixIcon={<FilterOutlined />}
+                >
+                  {uniqueDepartments.map(dept => (
+                    <Option key={dept} value={dept}>{dept}</Option>
+                  ))}
+                </Select>
+
+                {hasActiveFilters && (
+                  <Button
+                    icon={<CloseCircleOutlined />}
+                    onClick={clearFilters}
+                    size="large"
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+
+              {hasActiveFilters && (
+                <div className="active-filters">
+                  <span style={{ fontWeight: '600', color: '#6b7280' }}>Active Filters:</span>
+                  {searchText && (
+                    <Tag closable onClose={() => setSearchText("")} color="blue">
+                      Search: {searchText}
+                    </Tag>
+                  )}
+                  {departmentFilter && (
+                    <Tag closable onClose={() => setDepartmentFilter(null)} color="blue">
+                      Department: {departmentFilter}
+                    </Tag>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Table */}
             <div className="table-wrapper">
               <Table
                 columns={columns}
-                dataSource={doctors}
+                dataSource={filteredDoctors}
                 loading={loading}
                 rowKey={(record) => record.key || record.id || record._id}
+                pagination={{
+                  pageSize: 10,
+                  showSizeChanger: true,
+                  showTotal: (total) => `Total ${total} doctors`,
+                  pageSizeOptions: ['10', '20', '50', '100']
+                }}
+                scroll={{ x: 1000 }}
               />
             </div>
 

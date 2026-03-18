@@ -164,28 +164,53 @@ const ViewLabPersonnel = () => {
         {`
           .view-lab-page {
             display: flex;
+            align-items: flex-start !important;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             min-height: 100vh;
-            background: #f5f7f8;
+            position: relative;
+          }
+
+          .view-lab-page::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="lab-manage-pattern" width="60" height="60" patternUnits="userSpaceOnUse"><circle cx="30" cy="30" r="2" fill="rgba(11,107,97,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23lab-manage-pattern)"/></svg>');
+            pointer-events: none;
           }
 
           .view-lab-content {
+            margin: 0 !important;
+            padding: 2rem 1.5rem !important;
             flex: 1;
-            padding: 2.5rem 3rem;
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto !important;
           }
 
           .view-lab-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #0b6b61;
-            margin-bottom: 1.5rem;
+            font-size: 2.25rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 1.5rem 0;
+            letter-spacing: -0.02em;
+            text-align: center;
           }
 
           .filters-section {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
             padding: 1.5rem;
-            border-radius: 16px;
+            border-radius: 18px;
             margin-bottom: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             display: flex;
             gap: 1rem;
             flex-wrap: wrap;
@@ -195,10 +220,10 @@ const ViewLabPersonnel = () => {
           .search-input,
           .filter-select {
             padding: 0.75rem 1rem;
-            border: 2px solid #d0dada;
-            border-radius: 10px;
+            border: 2px solid rgba(11, 107, 97, 0.2);
+            border-radius: 12px;
             font-size: 1rem;
-            transition: 0.25s ease;
+            transition: all 0.3s ease;
             background: white;
           }
 
@@ -215,14 +240,27 @@ const ViewLabPersonnel = () => {
           .filter-select:focus {
             outline: none;
             border-color: #0b6b61;
-            box-shadow: 0 0 0 3px rgba(11,107,97,0.15);
+            box-shadow: 0 0 0 3px rgba(11,107,97,0.1);
           }
 
           .table-card {
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 18px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             overflow: hidden;
+            position: relative;
+          }
+
+          .table-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%);
           }
 
           .personnel-table {
@@ -238,76 +276,94 @@ const ViewLabPersonnel = () => {
           .personnel-table th {
             padding: 1rem;
             text-align: left;
-            font-weight: 600;
-            font-size: 0.95rem;
+            font-weight: 700;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
           }
 
           .personnel-table td {
-            padding: 1rem;
-            border-bottom: 1px solid #e8e8e8;
+            padding: 1rem ;
+            border-bottom: 1px solid rgba(11, 107, 97, 0.1);
+            vertical-align: middle;
           }
 
           .personnel-table tbody tr {
-            transition: 0.2s ease;
+            transition: all 0.3s ease;
           }
 
           .personnel-table tbody tr:hover {
-            background: #f8fffe;
+            background: rgba(11, 107, 97, 0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+          }
+
+          .personnel-table tbody tr:nth-child(even) {
+            background: rgba(248, 250, 252, 0.5);
+          }
+
+          .personnel-table tbody tr:nth-child(even):hover {
+            background: rgba(11, 107, 97, 0.05);
           }
 
           .action-btn {
             padding: 0.5rem 1rem;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-weight: 600;
             cursor: pointer;
-            transition: 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             margin-right: 0.5rem;
             font-size: 0.875rem;
           }
 
           .edit-btn {
-            background: #17a2b8;
+            background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%);
             color: white;
           }
 
           .edit-btn:hover {
-            background: #138496;
+            background: linear-gradient(135deg, #095a52 0%, #0f8a75 100%);
             transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(11, 107, 97, 0.4);
           }
 
           .delete-btn {
-            background: #dc3545;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: white;
           }
 
           .delete-btn:hover {
-            background: #c82333;
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
             transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
           }
 
           .pagination {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
             padding: 1.5rem;
           }
 
           .page-btn {
-            padding: 0.5rem 1rem;
-            border: 2px solid #0b6b61;
+            padding: 0.6rem 1.2rem;
+            border: 2px solid rgba(11, 107, 97, 0.2);
             background: white;
             color: #0b6b61;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             font-weight: 600;
-            transition: 0.2s ease;
+            transition: all 0.3s ease;
           }
 
           .page-btn:hover:not(:disabled) {
-            background: #0b6b61;
+            background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%);
             color: white;
+            border-color: #0b6b61;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(11, 107, 97, 0.3);
           }
 
           .page-btn:disabled {
@@ -316,13 +372,15 @@ const ViewLabPersonnel = () => {
           }
 
           .page-btn.active {
-            background: #0b6b61;
+            background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%);
             color: white;
+            border-color: #0b6b61;
           }
 
           .page-info {
-            color: #555;
+            color: #374151;
             font-weight: 600;
+            padding: 0 0.5rem;
           }
 
           .loading-state,

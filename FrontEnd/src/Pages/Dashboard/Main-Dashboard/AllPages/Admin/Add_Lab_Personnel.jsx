@@ -109,34 +109,64 @@ const AddLabPersonnel = () => {
         {`
           .add-lab-page {
             display: flex;
+            align-items: flex-start !important;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             min-height: 100vh;
-            background: #f5f7f8;
+            position: relative;
+          }
+
+          .add-lab-page::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="lab-pattern" width="60" height="60" patternUnits="userSpaceOnUse"><circle cx="30" cy="30" r="2" fill="rgba(11,107,97,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23lab-pattern)"/></svg>');
+            pointer-events: none;
           }
 
           .add-lab-content {
+            margin: 0 !important;
+            padding: 2rem 1.5rem !important;
             flex: 1;
-            padding: 2.5rem 3rem;
+            position: relative;
+            z-index: 1;
           }
 
           .add-lab-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #0b6b61;
-            margin-bottom: 1.5rem;
+            font-size: 2.25rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 1.5rem 0;
+            letter-spacing: -0.02em;
+            text-align: center;
           }
 
           .add-lab-card {
-            background: white;
-            padding: 2rem;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 2.5rem;
             border-radius: 22px;
             max-width: 800px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.12);
-            transition: .25s ease;
+            margin: 0 auto;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           }
 
-          .add-lab-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 26px rgba(0,0,0,0.15);
+          .add-lab-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%);
+            border-radius: 22px 22px 0 0;
           }
 
           .lab-avatar {

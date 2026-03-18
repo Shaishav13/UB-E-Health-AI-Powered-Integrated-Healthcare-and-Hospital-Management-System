@@ -6,6 +6,7 @@
  */
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { isOllamaAvailable, generateWithOllama } = require("./ollamaService");
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
@@ -42,32 +43,48 @@ async function interpretDoctorReport(report) {
   if (GEMINI_API_KEY && GEMINI_API_KEY !== 'your_gemini_api_key_here') {
     try {
       const aiInterpretation = await generateWithGemini(report);
-      return {
-        ...aiInterpretation,
-        aiPowered: true
-      };
+      return { ...aiInterpretation, aiPowered: true };
     } catch (error) {
-      console.error("Gemini AI failed, falling back to rule-based:", error.message);
+      console.warn("Gemini AI failed, trying Ollama:", error.message);
     }
   }
 
-  // Fallback to rule-based interpretation
+  // Try Ollama as offline fallback
+  const ollamaUp = await isOllamaAvailable();
+  if (ollamaUp) {
+    try {
+      const aiInterpretation = await generateWithOllamaLocal(report);
+      return { ...aiInterpretation, aiPowered: true };
+    } catch (error) {
+      console.warn("Ollama failed, using rule-based:", error.message);
+    }
+  }
+
+  // Final fallback: rule-based interpretation
   const ruleBasedInterpretation = generateRuleBasedInterpretation(report);
-  return {
-    ...ruleBasedInterpretation,
-    aiPowered: false
-  };
+  return { ...ruleBasedInterpretation, aiPowered: false };
 }
 
 /**
- * Generate interpretation using Gemini AI
+ * Generate interpretation using Ollama (local/offline)
  */
-async function generateWithGemini(report) {
-  if (!model) {
-    await initializeGeminiAI();
-  }
+async function generateWithOllamaLocal(report) {
+  const prompt = buildDoctorReportPrompt(report);
+  const text = await generateWithOllama(prompt, { maxTokens: 1024 });
+  console.log("✅ Doctor report interpreted via Ollama (offline)");
 
-  const prompt = `You are a compassionate medical interpreter helping patients understand their doctor's report. Your goal is to simplify medical terminology and provide actionable guidance.
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    return JSON.parse(jsonMatch[0]);
+  }
+  throw new Error("Failed to parse Ollama response as JSON");
+}
+
+/**
+ * Build the shared prompt for doctor report interpretation
+ */
+function buildDoctorReportPrompt(report) {
+  return `You are a compassionate medical interpreter helping patients understand their doctor's report. Your goal is to simplify medical terminology and provide actionable guidance.
 
 DOCTOR'S REPORT:
 - Patient Name: ${report.patientid?.name || 'Patient'}
@@ -104,50 +121,37 @@ OUTPUT FORMAT (JSON):
     "weight": {"value": "X kg", "status": "Normal/High/Low", "meaning": "What this means"}
   },
   "medications": [
-    {
-      "name": "Medication name",
-      "purpose": "Why you're taking this",
-      "howToTake": "Instructions in simple terms"
-    }
+    {"name": "Medication name", "purpose": "Why you're taking this", "howToTake": "Instructions in simple terms"}
   ],
   "precautions": [
-    {
-      "category": "Diet/Exercise/Lifestyle/Medication",
-      "icon": "🍎/💪/🏃/💊",
-      "title": "Short title",
-      "description": "Detailed advice",
-      "priority": "HIGH/MEDIUM/LOW"
-    }
+    {"category": "Diet/Exercise/Lifestyle/Medication", "icon": "🍎/💪/🏃/💊", "title": "Short title", "description": "Detailed advice", "priority": "HIGH/MEDIUM/LOW"}
   ],
-  "questionsForDoctor": [
-    "Question 1?",
-    "Question 2?",
-    "Question 3?"
-  ],
+  "questionsForDoctor": ["Question 1?", "Question 2?", "Question 3?"],
   "disclaimer": "This is an AI-generated interpretation for educational purposes only. Always follow your doctor's advice and consult them for any concerns."
 }
 
-IMPORTANT:
-- Use simple, everyday language
-- Be empathetic and reassuring
-- Focus on actionable advice
-- Avoid medical jargon
-- If something is concerning, encourage doctor follow-up
-- Be honest about what you don't know`;
+IMPORTANT: Respond ONLY with valid JSON. No extra text before or after the JSON.`;
+}
 
-  const result = await model.generateContent(prompt);
-  const response = result.response;
-  const text = response.text();
-
-  // Parse JSON from response
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  if (jsonMatch) {
-    const interpretation = JSON.parse(jsonMatch[0]);
-    return interpretation;
+/**
+ * Generate interpretation using Gemini AI
+ */
+async function generateWithGemini(report) {
+  if (!model) {
+    await initializeGeminiAI();
   }
 
+  const prompt = buildDoctorReportPrompt(report);
+  const result = await model.generateContent(prompt);
+  const text = result.response.text();
+
+  const jsonMatch = text.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    return JSON.parse(jsonMatch[0]);
+  }
   throw new Error("Failed to parse AI response");
 }
+
 
 /**
  * Generate rule-based interpretation (fallback)

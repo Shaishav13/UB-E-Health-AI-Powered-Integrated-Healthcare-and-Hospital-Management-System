@@ -5,6 +5,7 @@
  */
 
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { isOllamaAvailable, generateWithOllama } = require("./ollamaService");
 
 // Initialize Gemini AI
 let genAI = null;
@@ -54,19 +55,38 @@ async function generateAIInterpretation(labReport) {
   const prompt = buildInterpretationPrompt(labReport);
 
   try {
-    // Generate content using Gemini
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    let text;
+
+    // Try Gemini first, fall back to Ollama if unavailable
+    if (model) {
+      try {
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        text = response.text();
+        console.log("✅ Lab report interpreted via Gemini");
+      } catch (geminiError) {
+        console.warn("⚠️ Gemini failed, trying Ollama:", geminiError.message);
+        const ollamaUp = await isOllamaAvailable();
+        if (!ollamaUp) throw geminiError;
+        text = await generateWithOllama(prompt);
+        console.log("✅ Lab report interpreted via Ollama (offline)");
+      }
+    } else {
+      // No Gemini configured — try Ollama directly
+      const ollamaUp = await isOllamaAvailable();
+      if (!ollamaUp) {
+        throw new Error("No AI service available. Configure GEMINI_API_KEY or start Ollama.");
+      }
+      text = await generateWithOllama(prompt);
+      console.log("✅ Lab report interpreted via Ollama (offline)");
+    }
 
     // Parse the AI response
     const interpretation = parseAIResponse(text, labReport);
-    
     return interpretation;
   } catch (error) {
     console.error("Error generating AI interpretation:", error);
     
-    // Check for specific error types
     if (error.message.includes("quota")) {
       throw new Error("AI service quota exceeded. Please try again later.");
     } else if (error.message.includes("API key")) {

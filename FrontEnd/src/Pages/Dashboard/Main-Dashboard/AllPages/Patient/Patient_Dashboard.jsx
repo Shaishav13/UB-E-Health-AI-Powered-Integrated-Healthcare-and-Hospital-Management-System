@@ -5,6 +5,7 @@ import Sidebar from "../../GlobalFiles/Sidebar";
 import axios from "axios";
 import { FaCalendarAlt, FaPills, FaFlask, FaFileAlt, FaChartLine, FaAmbulance, FaUserMd, FaHeart } from "react-icons/fa";
 import Footer from "../../../../../Components/Footer";
+import { calculateHealthScore, getHealthScoreGradient, getHealthScoreColor } from "../../../../../utils/healthScore";
 
 const Patient_Dashboard = () => {
   const { data } = useSelector((store) => store.auth);
@@ -20,6 +21,8 @@ const Patient_Dashboard = () => {
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
   const [nextAppointment, setNextAppointment] = useState(null);
+  const [healthScore, setHealthScore] = useState(100);
+  const [healthStats, setHealthStats] = useState(null);
 
   useEffect(() => {
     if (data?.user?._id) {
@@ -52,6 +55,24 @@ const Patient_Dashboard = () => {
       );
       const medications = medsRes.data.prescriptions || [];
       const active = medications.filter(med => med.status === 'active');
+      
+      // Fetch health trends for health score
+      try {
+        const healthRes = await axios.get(
+          `http://127.0.0.1:3001/analytics/health-trends/${data.user._id}`
+        );
+        if (healthRes.data.stats) {
+          setHealthStats(healthRes.data.stats);
+          const score = calculateHealthScore(healthRes.data.stats);
+          setHealthScore(score);
+        } else {
+          // No health data, default to 100
+          setHealthScore(100);
+        }
+      } catch (healthError) {
+        console.log("No health trends data available, using default score");
+        setHealthScore(100);
+      }
       
       setStats({
         upcomingAppointments: upcoming.length,
@@ -486,7 +507,15 @@ const Patient_Dashboard = () => {
                 <FaHeart className="health-score-icon" />
                 <div className="health-score-text">
                   <span className="health-score-label">Health Score</span>
-                  <span className="health-score-value">85/100</span>
+                  <span 
+                    className="health-score-value" 
+                    style={{ 
+                      color: getHealthScoreColor(healthScore),
+                      fontWeight: '800'
+                    }}
+                  >
+                    {healthScore}
+                  </span>
                 </div>
               </div>
             </div>

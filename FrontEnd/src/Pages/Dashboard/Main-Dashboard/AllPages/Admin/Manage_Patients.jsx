@@ -583,6 +583,9 @@ const ManagePatients = () => {
           border-radius: 8px !important;
           border: 2px solid rgba(11, 107, 97, 0.2) !important;
           transition: all 0.3s ease !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
         }
 
         .ant-pagination-item:hover {
@@ -597,6 +600,39 @@ const ManagePatients = () => {
 
         .ant-pagination-item-active a {
           color: white !important;
+        }
+
+        .ant-pagination-options {
+          display: flex !important;
+          align-items: center !important;
+        }
+
+        .ant-pagination-options-size-changer {
+          display: flex !important;
+          align-items: center !important;
+        }
+
+        .ant-pagination-options-size-changer .ant-select {
+          display: flex !important;
+          align-items: center !important;
+        }
+
+        .ant-pagination-options-size-changer .ant-select-selector {
+          display: flex !important;
+          align-items: center !important;
+          height: 32px !important;
+          padding: 0 11px !important;
+        }
+
+        .ant-pagination-options-size-changer .ant-select-selection-item {
+          line-height: 30px !important;
+          display: flex !important;
+          align-items: center !important;
+        }
+
+        .ant-select-arrow {
+          display: flex !important;
+          align-items: center !important;
         }
 
         /* Responsive Design */

@@ -18,6 +18,8 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import Footer from "../../../../../Components/Footer";
+import { calculateHealthScore, getHealthScoreGradient, getHealthScoreStatus, getHealthScoreColor } from "../../../../../utils/healthScore";
+import { FaHeart } from "react-icons/fa";
 
 // Register ChartJS components
 ChartJS.register(
@@ -39,6 +41,7 @@ const Health_Trends = () => {
   const [healthData, setHealthData] = useState(null);
   const [stats, setStats] = useState(null);
   const [selectedMetric, setSelectedMetric] = useState('all');
+  const [healthScore, setHealthScore] = useState(100);
 
   useEffect(() => {
     if (data?.user?._id) {
@@ -55,10 +58,17 @@ const Health_Trends = () => {
       console.log("Health trends response:", response.data);
       setHealthData(response.data.data);
       setStats(response.data.stats);
+      
+      // Calculate health score
+      const score = calculateHealthScore(response.data.stats);
+      setHealthScore(score);
+      
       setLoading(false);
     } catch (error) {
       console.error("Error fetching health trends:", error);
       notify("❌ Failed to load health trends");
+      // Default to perfect score if no data
+      setHealthScore(100);
       setLoading(false);
     }
   };
@@ -266,8 +276,56 @@ const Health_Trends = () => {
         }
 
         .trends-header {
-          text-align: center;
           margin-bottom: 2.5rem;
+        }
+
+        .health-score-card {
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+          background: rgba(255, 255, 255, 0.95);
+          backdrop-filter: blur(20px);
+          padding: 1.25rem 1.75rem;
+          border-radius: 20px;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .health-score-icon-trends {
+          font-size: 2.5rem;
+          color: #ef4444;
+          animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        @keyframes heartbeat {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.1); }
+        }
+
+        .health-score-text-trends {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+        }
+
+        .health-score-label-trends {
+          font-size: 0.85rem;
+          color: #64748b;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .health-score-value-trends {
+          font-size: 2rem;
+          font-weight: 800;
+          line-height: 1;
+        }
+
+        .health-score-status-trends {
+          font-size: 0.9rem;
+          color: #374151;
+          font-weight: 600;
         }
 
         .trends-title {
@@ -530,10 +588,30 @@ const Health_Trends = () => {
 
         <div className="trends-content">
           <div className="trends-header">
-            <h1 className="trends-title">📊 Health Trends</h1>
-            <p className="trends-subtitle">
-              Track your vital signs over time
-            </p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <h1 className="trends-title">📊 Health Trends</h1>
+                <p className="trends-subtitle">
+                  Track your vital signs over time
+                </p>
+              </div>
+              <div className="health-score-card">
+                <FaHeart className="health-score-icon-trends" />
+                <div className="health-score-text-trends">
+                  <span className="health-score-label-trends">Overall Health Score</span>
+                  <span 
+                    className="health-score-value-trends" 
+                    style={{ 
+                      color: getHealthScoreColor(healthScore),
+                      fontWeight: '800'
+                    }}
+                  >
+                    {healthScore}
+                  </span>
+                  <span className="health-score-status-trends">{getHealthScoreStatus(healthScore)}</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {loading ? (

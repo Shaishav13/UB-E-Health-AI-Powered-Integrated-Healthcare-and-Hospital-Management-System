@@ -331,12 +331,12 @@ const Admin_Profile = () => {
               </div>
 
               <div className="info-item">
-                <FaRegHospital /> <p>IGMC Shimla</p>
+                <FaRegHospital /> <p>UBHospital</p>
               </div>
 
               <div className="info-item">
                 <FaMapMarkedAlt />
-                <p>Shimla, Himachal Pradesh, India</p>
+                <p>123, ABC</p>
               </div>
             </div>
           </div>

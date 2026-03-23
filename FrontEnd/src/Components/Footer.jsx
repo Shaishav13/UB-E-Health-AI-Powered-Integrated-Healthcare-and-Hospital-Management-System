@@ -27,7 +27,7 @@ const Footer = () => {
             <div className="footer-contact">
               <div className="contact-item">
                 <FaMapMarkerAlt />
-                <span>IGMC Shimla, Himachal Pradesh</span>
+                <span>UBHospital, 123, ABC</span>
               </div>
               <div className="contact-item">
                 <FaPhone />

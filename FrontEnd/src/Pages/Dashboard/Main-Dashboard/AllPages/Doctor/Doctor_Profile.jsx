@@ -767,12 +767,12 @@ const Doctor_Profile = () => {
 
                 <div className="info-line">
                   <FaRegHospital className="info-icon" />
-                  <p>IGMC Shimla</p>
+                  <p>UBHospital</p>
                 </div>
 
                 <div className="info-line">
                   <FaMapMarkedAlt className="info-icon" />
-                  <p>Shimla, Himachal Pradesh, India</p>
+                  <p>123, ABC</p>
                 </div>
 
                 <div className="stats-grid">

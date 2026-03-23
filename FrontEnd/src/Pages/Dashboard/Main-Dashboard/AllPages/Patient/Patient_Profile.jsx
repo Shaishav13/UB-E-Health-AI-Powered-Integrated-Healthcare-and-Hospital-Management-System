@@ -770,12 +770,12 @@ const Patient_Profile = () => {
 
                 <div className="info-row">
                   <FaRegHospital className="info-icon" />
-                  <p className="info-text">IGMC Shimla</p>
+                  <p className="info-text">UBHospital</p>
                 </div>
 
                 <div className="info-row">
                   <FaMapMarkedAlt className="info-icon" />
-                  <p className="info-text">Shimla, Himachal Pradesh</p>
+                  <p className="info-text">123, ABC</p>
                 </div>
 
                 <div className="stats-grid">

@@ -1,0 +1,282 @@
+/**
+ * File Storage Service
+ *
+ * Handles file uploads, secure URL generation, and file deletion
+ * for the Doctor-Patient Chat System.
+ *
+ * Requirements: 4.6, 4.7, 21.4
+ */
+
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const crypto = require('crypto');
+const { sanitizeFilename } = require('../utils/sanitizer');
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+const CHAT_UPLOADS_DIR = path.resolve(
+  process.env.CHAT_FILE_STORAGE_PATH || './uploads/chat-files'
+);
+
+const MAX_FILE_SIZE = parseInt(process.env.CHAT_FILE_MAX_SIZE, 10) || 10485760; // 10 MB
+
+const ALLOWED_MIME_TYPES = (
+  process.env.CHAT_FILE_ALLOWED_TYPES ||
+  'image/jpeg,image/png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+)
+  .split(',')
+  .map((t) => t.trim());
+
+// Map MIME type → file extension
+const MIME_TO_EXT = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'application/pdf': 'pdf',
+  'application/msword': 'doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+};
+
+// Signed-URL secret – use a dedicated env var or fall back to the JWT key
+const SIGNED_URL_SECRET = process.env.SIGNED_URL_SECRET || process.env.KEY || 'signed-url-secret';
+
+// Signed URL validity window (1 hour in seconds)
+const SIGNED_URL_TTL_SECONDS = 3600;
+
+// ---------------------------------------------------------------------------
+// Directory bootstrap
+// ---------------------------------------------------------------------------
+
+if (!fs.existsSync(CHAT_UPLOADS_DIR)) {
+  fs.mkdirSync(CHAT_UPLOADS_DIR, { recursive: true });
+}
+
+// ---------------------------------------------------------------------------
+// Multer configuration
+// ---------------------------------------------------------------------------
+
+/**
+ * Disk storage engine for chat file uploads.
+ * Files are stored under CHAT_UPLOADS_DIR with a unique, sanitized name.
+ */
+const chatStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    cb(null, CHAT_UPLOADS_DIR);
+  },
+
+  filename: (_req, file, cb) => {
+    const sanitized = sanitizeFilename(file.originalname);
+    const ext = path.extname(sanitized) || `.${MIME_TO_EXT[file.mimetype] || 'bin'}`;
+    const nameWithoutExt = path.basename(sanitized, ext);
+    const uniqueSuffix = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}`;
+    cb(null, `${nameWithoutExt}-${uniqueSuffix}${ext}`);
+  },
+});
+
+/**
+ * Multer file filter – only allow the configured MIME types.
+ */
+const chatFileFilter = (_req, file, cb) => {
+  if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(
+      new Error(
+        `Invalid file type "${file.mimetype}". Allowed types: ${ALLOWED_MIME_TYPES.join(', ')}`
+      ),
+      false
+    );
+  }
+};
+
+/**
+ * Pre-configured multer instance for chat file uploads.
+ * Use as middleware: `chatUpload.single('file')` or `chatUpload.array('files', 5)`.
+ */
+const chatUpload = multer({
+  storage: chatStorage,
+  fileFilter: chatFileFilter,
+  limits: { fileSize: MAX_FILE_SIZE },
+});
+
+// ---------------------------------------------------------------------------
+// uploadFile
+// ---------------------------------------------------------------------------
+
+/**
+ * Persist an already-validated file to disk and return its metadata.
+ *
+ * This function is called **after** multer has written the file to disk
+ * (i.e. inside a route handler that used `chatUpload` middleware).
+ * It builds the public URL and returns a structured result that callers
+ * can use to create a ChatFile document.
+ *
+ * @param {Express.Multer.File} file   - The file object provided by multer.
+ * @param {object}              meta   - Additional metadata.
+ * @param {string}              meta.conversationId
+ * @param {string}              meta.uploadedBy
+ * @param {string}              meta.uploaderModel  - 'Doctor' | 'Patient'
+ * @param {string}              [meta.baseUrl]      - Server base URL (e.g. http://localhost:3001)
+ * @returns {{ fileName, originalName, fileType, mimeType, fileSize, filePath, fileUrl }}
+ */
+function uploadFile(file, meta = {}) {
+  if (!file) {
+    throw new Error('No file provided to uploadFile()');
+  }
+
+  const baseUrl = meta.baseUrl || `http://localhost:${process.env.port || 3001}`;
+  const fileUrl = `${baseUrl}/uploads/chat-files/${file.filename}`;
+  const ext = path.extname(file.filename).replace('.', '').toLowerCase();
+
+  return {
+    fileName: file.filename,
+    originalName: sanitizeFilename(file.originalname),
+    fileType: MIME_TO_EXT[file.mimetype] || ext,
+    mimeType: file.mimetype,
+    fileSize: file.size,
+    filePath: file.path,
+    fileUrl,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// getSignedUrl
+// ---------------------------------------------------------------------------
+
+/**
+ * Generate a time-limited signed URL for secure file access.
+ *
+ * The URL embeds an HMAC-SHA256 signature and an expiry timestamp so that
+ * the backend can verify authenticity without a database lookup.
+ *
+ * URL format:
+ *   <baseUrl>/uploads/chat-files/<fileName>?expires=<ts>&sig=<hmac>
+ *
+ * @param {string} fileName  - The stored file name (not the full path).
+ * @param {object} [options]
+ * @param {string} [options.baseUrl]  - Override the server base URL.
+ * @param {number} [options.ttl]      - Validity in seconds (default: 3600).
+ * @returns {string} Signed URL valid for `ttl` seconds.
+ */
+function getSignedUrl(fileName, options = {}) {
+  if (!fileName || typeof fileName !== 'string') {
+    throw new Error('fileName is required to generate a signed URL');
+  }
+
+  const baseUrl = options.baseUrl || `http://localhost:${process.env.port || 3001}`;
+  const ttl = options.ttl || SIGNED_URL_TTL_SECONDS;
+  const expires = Math.floor(Date.now() / 1000) + ttl;
+
+  // Payload to sign: fileName + expiry
+  const payload = `${fileName}:${expires}`;
+  const signature = crypto
+    .createHmac('sha256', SIGNED_URL_SECRET)
+    .update(payload)
+    .digest('hex');
+
+  return `${baseUrl}/uploads/chat-files/${encodeURIComponent(fileName)}?expires=${expires}&sig=${signature}`;
+}
+
+// ---------------------------------------------------------------------------
+// verifySignedUrl
+// ---------------------------------------------------------------------------
+
+/**
+ * Verify a signed URL generated by `getSignedUrl`.
+ *
+ * @param {string} fileName  - The file name extracted from the URL path.
+ * @param {string} expires   - The `expires` query parameter value.
+ * @param {string} sig       - The `sig` query parameter value.
+ * @returns {boolean} `true` if the URL is valid and not expired.
+ */
+function verifySignedUrl(fileName, expires, sig) {
+  if (!fileName || !expires || !sig) return false;
+
+  const now = Math.floor(Date.now() / 1000);
+  if (parseInt(expires, 10) < now) return false; // expired
+
+  const payload = `${fileName}:${expires}`;
+  const expected = crypto
+    .createHmac('sha256', SIGNED_URL_SECRET)
+    .update(payload)
+    .digest('hex');
+
+  // Constant-time comparison to prevent timing attacks
+  try {
+    return crypto.timingSafeEqual(Buffer.from(sig, 'hex'), Buffer.from(expected, 'hex'));
+  } catch {
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// deleteFile
+// ---------------------------------------------------------------------------
+
+/**
+ * Delete a file from disk.
+ *
+ * Silently succeeds if the file does not exist (idempotent).
+ *
+ * @param {string} filePath - Absolute or relative path to the file.
+ * @returns {Promise<void>}
+ */
+async function deleteFile(filePath) {
+  if (!filePath || typeof filePath !== 'string') {
+    throw new Error('filePath is required to delete a file');
+  }
+
+  // Resolve to absolute path if relative
+  const absolutePath = path.isAbsolute(filePath)
+    ? filePath
+    : path.resolve(filePath);
+
+  // Safety check: ensure the file is inside the uploads directory
+  const resolvedUploads = path.resolve(CHAT_UPLOADS_DIR);
+  if (!absolutePath.startsWith(resolvedUploads)) {
+    throw new Error('Attempted to delete a file outside the uploads directory');
+  }
+
+  return new Promise((resolve, reject) => {
+    fs.unlink(absolutePath, (err) => {
+      if (err && err.code !== 'ENOENT') {
+        // ENOENT = file not found – treat as success (idempotent)
+        return reject(new Error(`Failed to delete file: ${err.message}`));
+      }
+      resolve();
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
+// deleteFileByName
+// ---------------------------------------------------------------------------
+
+/**
+ * Convenience wrapper – delete a chat file by its stored file name.
+ *
+ * @param {string} fileName - The stored file name (not the full path).
+ * @returns {Promise<void>}
+ */
+async function deleteFileByName(fileName) {
+  const filePath = path.join(CHAT_UPLOADS_DIR, fileName);
+  return deleteFile(filePath);
+}
+
+// ---------------------------------------------------------------------------
+// Exports
+// ---------------------------------------------------------------------------
+
+module.exports = {
+  chatUpload,
+  uploadFile,
+  getSignedUrl,
+  verifySignedUrl,
+  deleteFile,
+  deleteFileByName,
+  CHAT_UPLOADS_DIR,
+  ALLOWED_MIME_TYPES,
+  MAX_FILE_SIZE,
+};

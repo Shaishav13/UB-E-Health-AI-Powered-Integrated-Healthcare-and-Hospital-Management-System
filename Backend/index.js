@@ -4,6 +4,7 @@
  * Licensed under MIT License - see LICENSE file for details
  */
 
+const http = require("http");
 const express = require("express");
 require("dotenv").config();
 const cors = require("cors");
@@ -22,8 +23,10 @@ const labReportsRouter = require("./routes/LabReports.Route");
 const labPersonnelRouter = require("./routes/LabPersonnel.Route");
 const paymentsRouter = require("./routes/Payments.Route");
 const chatbotRouter = require("./routes/Chatbot.Route");
+const chatRouter = require("./routes/Chat.Route");
 
 const app = express();
+const httpServer = http.createServer(app);
 const { connectDB } = require("./configs/db");
 
 // Increase payload limit for profile picture uploads (base64 images)
@@ -53,10 +56,11 @@ app.use("/lab-reports", labReportsRouter);
 app.use("/lab-personnel", labPersonnelRouter);
 app.use("/payments", paymentsRouter);
 app.use("/chatbot", chatbotRouter);
+app.use("/api/chat", chatRouter);
 
 // Models will be imported as needed in routes
 
-app.listen(process.env.port, async () => {
+httpServer.listen(process.env.port, async () => {
   try {
     // Connect to MongoDB
     await connectDB();
@@ -66,6 +70,10 @@ app.listen(process.env.port, async () => {
     // Initialize notification scheduler
     const { initializeNotificationScheduler } = require("./services/notificationService");
     initializeNotificationScheduler();
+
+    // Initialize Socket.io server for real-time chat (Req 2.1, 20.7)
+    const { createSocketServer } = require("./socket/socketServer");
+    createSocketServer(httpServer);
 
     console.log(`Listening at port ${process.env.port}`);
   } catch (err) {

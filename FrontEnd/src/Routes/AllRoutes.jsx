@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Route, Routes } from "react-router-dom";
 import ProtectedRoute from "../Components/ProtectedRoute";
 import DLogin from "../Pages/Dashboard/Dashboard-Login/DLogin";
@@ -36,6 +36,7 @@ import Admin_Profile from "../Pages/Dashboard/Main-Dashboard/AllPages/Admin/Admi
 import ManageDoctors from "../Pages/Dashboard/Main-Dashboard/AllPages/Admin/Manage_Doctors";
 import ManagePatients from "../Pages/Dashboard/Main-Dashboard/AllPages/Admin/Manage_Patients";
 import SignupDetails from "../Pages/Dashboard/Dashboard-Login/Signup/SignupDetails";
+import Chat from "../Pages/Dashboard/Main-Dashboard/AllPages/Chat/Chat";
 const AllRoutes = () => {
   return (
     <>
@@ -89,9 +90,14 @@ const AllRoutes = () => {
         <Route path="/healthtrends" element={<Health_Trends />} />
         <Route path="/mydocuments" element={<My_Documents />} />
         <Route path="/patientdocuments" element={<Patient_Documents />} />
+        {/* ******************** Chat Part ************************* */}
+        <Route path="/patient/chat" element={<ProtectedRoute element={<Chat />} allowedRoles={["patient"]} />} />
+        <Route path="/doctor/chat" element={<ProtectedRoute element={<Chat />} allowedRoles={["doctor"]} />} />
+        <Route path="/chat" element={<Chat />} />
       </Routes>
     </>
   );
 };
 
 export default AllRoutes;
+

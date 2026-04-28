@@ -4,6 +4,7 @@ import dataReducer from "./Datas/reducer";
 import { labReportsReducer } from "./LabReports/reducer";
 import labPersonnelReducer from "./LabPersonnel/reducer";
 import paymentReducer from "./Payments/reducer";
+import chatReducer from "./Chat/reducer";
 
 export const rootReducer = combineReducers({
   auth: authReducer,
@@ -11,4 +12,5 @@ export const rootReducer = combineReducers({
   labReports: labReportsReducer,
   labPersonnel: labPersonnelReducer,
   payments: paymentReducer,
+  chat: chatReducer,
 });

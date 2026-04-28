@@ -500,7 +500,7 @@ const Patient_Dashboard = () => {
           <div className="welcome-section">
             <div className="welcome-header">
               <div>
-                <h1 className="welcome-title">Welcome back, {data.user.name}! 👋</h1>
+                <h1 className="welcome-title">Welcome back, {data.user.name}!</h1>
                 <p className="welcome-subtitle">Here's your health overview for today</p>
               </div>
               <div className="health-score">

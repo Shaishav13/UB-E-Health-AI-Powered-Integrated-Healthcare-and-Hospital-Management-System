@@ -405,3 +405,61 @@ form h3 {
     font-size: 1.8rem;
   }
 }
+
+/* ---- Single-form additions ---- */
+
+.usertype-badge {
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.45rem 1.2rem;
+  border-radius: 999px;
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 1.4rem;
+  transition: all 0.3s ease;
+}
+
+.usertype-badge[data-type="patient"] {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.usertype-badge[data-type="doctor"] {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.usertype-badge[data-type="admin"] {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.login-hint {
+  margin-top: 1.8rem;
+  padding: 1rem 1.2rem;
+  background: #f8fafc;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+}
+
+.login-hint p {
+  margin: 0.3rem 0 !important;
+  font-size: 0.82rem !important;
+  color: #64748b !important;
+  text-align: left !important;
+}
+
+.login-hint p strong {
+  color: #334155;
+}
+
+.login-hint p em {
+  font-style: normal;
+  font-family: monospace;
+  background: #e2e8f0;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}

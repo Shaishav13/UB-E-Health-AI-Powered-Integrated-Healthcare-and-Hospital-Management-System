@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { AiOutlineUserAdd } from "react-icons/ai";
-import { FaAmbulance, FaUsers, FaPills, FaBell, FaChartLine, FaFolder, FaFlask, FaUserMd, FaHome, FaFileAlt, FaCreditCard } from "react-icons/fa";
+import { FaAmbulance, FaUsers, FaPills, FaBell, FaChartLine, FaFolder, FaFlask, FaUserMd, FaHome, FaFileAlt, FaCreditCard, FaComments } from "react-icons/fa";
 import { BsBookmarkPlus, BsFillBookmarkCheckFill } from "react-icons/bs";
 import { CgProfile } from "react-icons/cg";
 import { TbReportMedical } from "react-icons/tb";
@@ -552,7 +552,7 @@ const Sidebar = () => {
           {/* HEADER */}
           <div className="sidebar-header">
             <span className="sidebar-logo">
-              {isOpen || hovered ? "🏥 UB E-Health" : "UB"}
+              {isOpen || hovered ? " UB E-Health" : "UB"}
             </span>
             <ImMenu className="menu-btn" onClick={toggleMenu} />
           </div>
@@ -664,6 +664,18 @@ const Sidebar = () => {
                   >
                     <FaFlask className="side-icon" />
                     {(isOpen || hovered) && <span>Book Lab Test</span>}
+                  </Link>
+
+                  {(isOpen || hovered) && (
+                    <div className="nav-section-title">Messages</div>
+                  )}
+
+                  <Link
+                    className="side-link"
+                    to="/patient/chat"
+                  >
+                    <FaComments className="side-icon" />
+                    {(isOpen || hovered) && <span>Messages</span>}
                   </Link>
                 </>
               )}
@@ -803,6 +815,18 @@ const Sidebar = () => {
                     <FaFlask className="side-icon" />
                     {(isOpen || hovered) && <span>Lab Test Requests</span>}
                   </Link>
+
+                  {(isOpen || hovered) && (
+                    <div className="nav-section-title">Messages</div>
+                  )}
+
+                  <Link
+                    className="side-link"
+                    to="/doctor/chat"
+                  >
+                    <FaComments className="side-icon" />
+                    {(isOpen || hovered) && <span>Messages</span>}
+                  </Link>
                 </>
               )}
 
@@ -858,3 +882,6 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+
+
+

@@ -9,7 +9,7 @@
 
 **Project Title:** UB E-Health: AI-Powered Integrated Healthcare and Hospital Management System  
 **Type:** Copyright  
-**Institution:** University of Bolton
+
 
 ---
 <div align="center">
@@ -254,7 +254,7 @@ REDIS_URL=redis://localhost:6379
 
 
 ---
-
+```
 ## 🔑 Default Login Credentials
 
 The system uses a **single smart login form** — it auto-detects the account type based on what you enter:

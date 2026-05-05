@@ -48,7 +48,3 @@ UB E-Health 2211985046_2211985045/
 ├── Source Code/                ← Link / zip of the project source code
 └── README.md                   ← This file
 ```
-
-## Source Code
-The full source code is hosted on GitHub:
-🔗 https://github.com/Shaishav13/E-Health-Management-Hub-main

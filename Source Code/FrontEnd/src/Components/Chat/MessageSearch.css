@@ -1,0 +1,192 @@
+/* ============================================================
+   MessageSearch
+   Requirements: 8.1, 8.2, 8.4, 8.8
+   Palette: primary #0ea5e9, teal #14b8a6, dark #1e293b
+   ============================================================ */
+
+/* ── Panel ──────────────────────────────────────────────────── */
+.msg-search-panel {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+/* ── Input row ──────────────────────────────────────────────── */
+.msg-search-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.msg-search-icon {
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.msg-search-input {
+  flex: 1;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 0.4rem 0.875rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: #1e293b;
+  background: #f8fafc;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  min-width: 0;
+}
+
+.msg-search-input::placeholder {
+  color: #94a3b8;
+}
+
+.msg-search-input:focus {
+  border-color: #0ea5e9;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
+  background: #ffffff;
+}
+
+/* Spinner */
+.msg-search-spinner {
+  color: #0ea5e9;
+  flex-shrink: 0;
+  animation: msg-search-spin 0.7s linear infinite;
+}
+
+@keyframes msg-search-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Clear / close button */
+.msg-search-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s, color 0.2s;
+}
+
+.msg-search-clear-btn:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+/* ── Validation error ───────────────────────────────────────── */
+.msg-search-validation-error {
+  margin: 0;
+  padding: 0 1rem 0.5rem;
+  font-size: 0.78rem;
+  color: #ef4444;
+}
+
+/* ── Results list ───────────────────────────────────────────── */
+.msg-search-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+/* Scrollbar — matches .chat-window-messages */
+.msg-search-results::-webkit-scrollbar { width: 4px; }
+.msg-search-results::-webkit-scrollbar-track { background: transparent; }
+.msg-search-results::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 2px; }
+.msg-search-results::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+
+/* ── Result item ────────────────────────────────────────────── */
+.msg-search-result-item {
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background 0.15s;
+  outline: none;
+}
+
+.msg-search-result-item:last-child {
+  border-bottom: none;
+}
+
+.msg-search-result-item:hover,
+.msg-search-result-item:focus {
+  background: #f8fafc;
+}
+
+/* Meta row: sender name + role badge + timestamp */
+.msg-search-result-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 3px;
+  flex-wrap: wrap;
+}
+
+.msg-search-sender-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+/* Role badge — mirrors .chat-window-role-badge */
+.msg-search-role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.msg-search-role-badge.role-doctor  { background: #eff6ff; color: #2563eb; }
+.msg-search-role-badge.role-patient { background: #f0fdf4; color: #16a34a; }
+
+.msg-search-timestamp {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+/* Message preview */
+.msg-search-result-preview {
+  font-size: 0.82rem;
+  color: #475569;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.45;
+}
+
+.msg-search-attachment-hint {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* ── Highlight mark ─────────────────────────────────────────── */
+mark.search-highlight {
+  background: #fef08a;
+  color: #1e293b;
+  border-radius: 2px;
+  padding: 0 2px;
+  font-style: inherit;
+  font-weight: inherit;
+}
+
+/* ── Empty state ────────────────────────────────────────────── */
+.msg-search-empty {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  padding: 1.5rem 1rem;
+}

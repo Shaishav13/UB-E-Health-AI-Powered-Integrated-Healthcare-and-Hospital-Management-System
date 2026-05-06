@@ -32,6 +32,7 @@ NAVIGATION HELP:
 - My Documents: Uploaded medical documents and records
 - My Medications: Current prescriptions from doctors
 - Payment History: All transactions with downloadable invoices
+- Messages: Chat with your assigned doctor
 
 IMPORTANT GUIDELINES:
 - Be specific about UB E-Health features, not generic healthcare websites
@@ -45,7 +46,18 @@ CONTACT & SUPPORT:
 - Support Phone: +91 1234567890
 - Available 24/7
 
-Remember: You help users navigate THIS platform, not provide general website advice.`;
+Remember: You help users navigate THIS platform, not provide general website advice.
+
+
+DIAGNOSTIC PROTOCOL:
+1. TRIAGE FIRST: If the user mentions "chest pain," "difficulty breathing," or "severe bleeding," skip diagnosis and ask to contact Doctor for Emergency or trigger Emergency Protocol.
+2. SYMPTOM GATHERING: Ask follow-up questions about:
+   - Onset (When did it start?)
+   - Character (Is it sharp, dull, burning?)
+   - Alleviating/Aggravating factors (What makes it better or worse?)
+   - Associated symptoms (Fever, nausea, etc.?)
+3. PROVIDE DIFFERENTIALS: Suggest 2-3 possible conditions but clarify they are "possibilities to discuss with a doctor."
+4. NEXT STEPS: Always link the diagnosis to a platform action (e.g., "Based on your symptoms, you might want to book a General Physician appointment or a CBC Lab Test").`;
 
 /**
  * Generate chatbot response using Gemini AI
@@ -115,6 +127,11 @@ const getFAQResponse = (question) => {
     
     "emergency": "🚨 FOR MEDICAL EMERGENCIES:\n- Call emergency services: 108/112\n- Visit nearest hospital immediately\n- Do not rely on online consultation for emergencies",
     
+    "contact doctor": "To message your assigned doctor:\n1. Go to 'Messages' from your Sidebar\n2. Select your assigned doctor to chat with\n3. Click on chat\n4. Ask your query with your doctor in real-time",
+    
+    "message doctor": "To message your assigned doctor:\n1. Go to 'Messages' from your Sidebar\n2. Select your assigned doctor to chat with\n3. Click on chat\n4. Ask your query with your doctor in real-time",
+    
+    
     "contact support": "Contact our support team:\n📧 Email: support@ubehealth.com\n📞 Phone: +91 1234567890\n⏰ Available: 24/7"
   };
 
@@ -166,6 +183,25 @@ const detectIntent = (message) => {
   return 'general_query';
 };
 
+// diagnoses
+/**
+ * Specifically handles diagnostic queries to ensure medical structure
+ */
+const generateDiagnosticResponse = async (symptoms, chatHistory) => {
+    const diagnosticContext = `
+        The user is reporting the following symptoms: ${symptoms}.
+        Perform a clinical triage. 
+        1. Rate urgency (Low/Medium/High).
+        2. List 3 potential causes.
+        3. Recommend specific lab tests available on UB E-Health.
+        4. Recommend the type of specialist to see.
+        
+        Disclaimer: This is an AI-powered assessment, not a final diagnosis.
+    `;
+    
+    return await generateChatbotResponse(diagnosticContext, chatHistory);
+};
+
 /**
  * Get quick action suggestions based on intent
  */
@@ -202,7 +238,13 @@ const getQuickActions = (intent) => {
       { label: "Book Appointment", action: "navigate_book_appointment" },
       { label: "Book Lab Test", action: "navigate_book_lab_test" },
       { label: "View FAQs", action: "show_faqs" }
-    ]
+    ],
+    symptom_check: [
+    { label: "Analyze My Symptoms", action: "start_diagnostic_flow" },
+    { label: "Common Causes", action: "show_common_conditions" },
+    { label: "Book Specialist", action: "navigate_book_appointment" },
+    { label: "Related Lab Tests", action: "navigate_book_lab_test" }
+],
   };
 
   return actions[intent] || actions.general_query;

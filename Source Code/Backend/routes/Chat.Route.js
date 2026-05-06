@@ -1,47 +1,12 @@
-'use strict';
-
-/**
- * Chat REST API Routes
- *
- * Provides all HTTP endpoints for the Doctor-Patient Chat System:
- *
- *   Conversations
- *     GET    /api/chat/conversations              – list user's conversations
- *     GET    /api/chat/conversations/:id          – get conversation + messages
- *     POST   /api/chat/conversations              – create new conversation
- *     PUT    /api/chat/conversations/:id/archive  – archive conversation
- *     PUT    /api/chat/conversations/:id/unarchive– unarchive conversation
- *     GET    /api/chat/conversations/:id/search   – search messages
- *
- *   Messages
- *     GET    /api/chat/messages/:id               – get specific message
- *     DELETE /api/chat/messages/:id               – soft-delete message
- *     PUT    /api/chat/messages/:id/read          – mark message as read
- *     POST   /api/chat/messages/:id/emergency     – flag as emergency (patient only)
- *
- *   Files
- *     POST   /api/chat/upload                     – upload file
- *     GET    /api/chat/files/:id                  – get file + signed URL
- *     DELETE /api/chat/files/:id                  – delete file
- *
- *   Statistics
- *     GET    /api/chat/stats                      – chat statistics for user
- *     GET    /api/chat/unread-count               – total unread count
- *
- * Requirements: 3.1, 3.3, 4.1-4.3, 4.6-4.7, 4.10, 6.3, 8.1, 8.8,
- *               9.1, 9.4, 10.1, 10.6, 11.6, 11.7, 12.1-12.3, 13.1, 14.1, 15.1
- */
 
 const express = require('express');
 const mongoose = require('mongoose');
 
 const router = express.Router();
 
-// ── Middleware ────────────────────────────────────────────────────────────────
 const { authenticate, patientOnly } = require('../middlewares/chatAuth');
 const { requireConsent } = require('../middlewares/chatConsentCheck');
 
-// ── Consent model ─────────────────────────────────────────────────────────────
 const {
   getActiveConsent,
   recordConsent,
@@ -49,7 +14,6 @@ const {
   getConsentHistory,
 } = require('../models/ChatConsent.model');
 
-// ── Services ───────────────────────────────────────────────────────────────────
 const chatService = require('../services/chatService');
 const {
   chatUpload,
@@ -64,7 +28,6 @@ const {
   compressImage,
 } = require('../services/thumbnailService');
 
-// ── Models ────────────────────────────────────────────────────────────────────
 const {
   Conversation,
   createConversation,
@@ -92,45 +55,26 @@ try {
   // Redis unavailable – rate limiting will be skipped gracefully
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Validate that a string is a valid MongoDB ObjectId.
- */
+// Validate that a string is a valid MongoDB ObjectId.
 function isValidObjectId(id) {
   return mongoose.Types.ObjectId.isValid(id);
 }
 
-/**
- * Send a consistent error response.
- */
+// Send a consistent error response.
 function sendError(res, statusCode, message) {
   return res.status(statusCode).json({ success: false, message });
 }
 
-/**
- * Send a consistent success response.
- */
+// Send a consistent success response.
 function sendSuccess(res, data, statusCode = 200) {
   return res.status(statusCode).json({ success: true, ...data });
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Apply authentication to ALL chat routes
-// ─────────────────────────────────────────────────────────────────────────────
 router.use(authenticate);
 
-// ═════════════════════════════════════════════════════════════════════════════
-// TASK 7.1 – Conversation Routes
-// ═════════════════════════════════════════════════════════════════════════════
-
-/**
- * GET /api/chat/conversations
- * List all conversations for the authenticated user with pagination.
- * Requirements: 3.1, 14.1, 14.2
- */
+// GET /api/chat/conversations
+// List all conversations for the authenticated user with pagination.
 router.get('/conversations', async (req, res) => {
   try {
     const { userId, userType } = req.user;
@@ -156,11 +100,8 @@ router.get('/conversations', async (req, res) => {
   }
 });
 
-/**
- * GET /api/chat/conversations/:id
- * Get a specific conversation with its paginated message history.
- * Requirements: 3.1, 13.1, 13.2
- */
+// GET /api/chat/conversations/:id
+// Get a specific conversation with its paginated message history.
 router.get('/conversations/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -186,12 +127,9 @@ router.get('/conversations/:id', async (req, res) => {
   }
 });
 
-/**
- * POST /api/chat/conversations
- * Create a new conversation between a doctor and patient.
- * Validates that an active doctor-patient assignment exists.
- * Requirements: 3.3, 3.4
- */
+// POST /api/chat/conversations
+// Create a new conversation between a doctor and patient.
+// Validates that an active doctor-patient assignment exists.
 router.post('/conversations', async (req, res) => {
   try {
     const { userId, userType } = req.user;
@@ -261,7 +199,7 @@ router.post('/conversations', async (req, res) => {
     // Create new conversation
     const conversation = await createConversation(doctorId, patientId);
 
-    // Audit log: conversation created (Req 19.3)
+    // Audit log: conversation created
     auditLogger.logConversationCreated({
       conversationId: conversation._id.toString(),
       creatorId: userId,
@@ -285,11 +223,8 @@ router.post('/conversations', async (req, res) => {
   }
 });
 
-/**
- * PUT /api/chat/conversations/:id/archive
- * Archive a conversation for the authenticated user only.
- * Requirements: 9.1, 9.2
- */
+// PUT /api/chat/conversations/:id/archive
+// Archive a conversation for the authenticated user only.
 router.put('/conversations/:id/archive', async (req, res) => {
   try {
     const { id } = req.params;
@@ -308,11 +243,8 @@ router.put('/conversations/:id/archive', async (req, res) => {
   }
 });
 
-/**
- * PUT /api/chat/conversations/:id/unarchive
- * Unarchive a conversation for the authenticated user only.
- * Requirements: 9.4
- */
+// PUT /api/chat/conversations/:id/unarchive
+// Unarchive a conversation for the authenticated user only.
 router.put('/conversations/:id/unarchive', async (req, res) => {
   try {
     const { id } = req.params;
@@ -331,11 +263,8 @@ router.put('/conversations/:id/unarchive', async (req, res) => {
   }
 });
 
-/**
- * GET /api/chat/conversations/:id/search
- * Search messages within a conversation.
- * Requirements: 8.1, 8.8
- */
+// GET /api/chat/conversations/:id/search
+// Search messages within a conversation.
 router.get('/conversations/:id/search', async (req, res) => {
   try {
     const { id } = req.params;
@@ -367,15 +296,8 @@ router.get('/conversations/:id/search', async (req, res) => {
   }
 });
 
-// ═════════════════════════════════════════════════════════════════════════════
-// TASK 7.2 – Message Routes
-// ═════════════════════════════════════════════════════════════════════════════
-
-/**
- * GET /api/chat/messages/:id
- * Get a specific message by ID.
- * Requirements: 6.3
- */
+// GET /api/chat/messages/:id
+// Get a specific message by ID.
 router.get('/messages/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -403,11 +325,8 @@ router.get('/messages/:id', async (req, res) => {
   }
 });
 
-/**
- * DELETE /api/chat/messages/:id
- * Soft-delete a message (sender only).
- * Requirements: 15.1
- */
+// DELETE /api/chat/messages/:id
+// Soft-delete a message (sender only).
 router.delete('/messages/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -426,11 +345,8 @@ router.delete('/messages/:id', async (req, res) => {
   }
 });
 
-/**
- * PUT /api/chat/messages/:id/read
- * Mark a message as read (recipient only).
- * Requirements: 6.3
- */
+// PUT /api/chat/messages/:id/read
+// Mark a message as read (recipient only).
 router.put('/messages/:id/read', async (req, res) => {
   try {
     const { id } = req.params;
@@ -449,11 +365,8 @@ router.put('/messages/:id/read', async (req, res) => {
   }
 });
 
-/**
- * POST /api/chat/messages/:id/emergency
- * Flag a message as emergency. Patients only.
- * Requirements: 10.1, 10.6
- */
+// POST /api/chat/messages/:id/emergency
+// Flag a message as emergency. Patients only.
 router.post('/messages/:id/emergency', patientOnly, async (req, res) => {
   try {
     const { id } = req.params;
@@ -475,27 +388,13 @@ router.post('/messages/:id/emergency', patientOnly, async (req, res) => {
   }
 });
 
-// ═════════════════════════════════════════════════════════════════════════════
-// TASK 7.3 – File Upload Routes
-// ═════════════════════════════════════════════════════════════════════════════
-
-/**
- * POST /api/chat/upload
- * Upload a file attachment for a chat conversation.
- *
- * Multipart form fields:
- *   file          – the file (required)
- *   conversationId – target conversation ObjectId (required)
- *
- * Requirements: 4.1, 4.2, 4.3, 4.6, 4.7, 4.10
- */
+// POST /api/chat/upload
+// Upload a file attachment for a chat conversation.
+// Multipart form fields: file (required), conversationId (required)
 router.post(
   '/upload',
   chatUpload.single('file'),
   async (req, res) => {
-    // Multer error handler (file type / size rejections)
-    // Note: multer errors are passed as the first argument to the next middleware,
-    // but since we're using a single handler we catch them via the error event.
     try {
       const { userId, userType } = req.user;
 
@@ -518,13 +417,13 @@ router.post(
         return sendError(res, 403, 'Access denied: you are not a participant in this conversation');
       }
 
-      // ── File rate limiting: 10 files per hour (Req 4.10) ─────────────────
+      // File rate limiting: 10 files per hour
       if (redisHelpers && redis) {
         try {
           const fileRateCheck = await redisHelpers.checkRateLimit(redis, userId, 'file_hourly');
           if (!fileRateCheck.allowed) {
             try { await deleteFileByName(req.file.filename); } catch (_) {}
-            // Audit log: file rate limit violation (Req 12.8)
+            // Audit log: file rate limit violation
             auditLogger.logRateLimitViolation({
               userId,
               limitType: 'file_hourly',
@@ -544,14 +443,14 @@ router.post(
         }
       }
 
-      // ── Deep file validation (type + size + magic bytes) ─────────────────
+      // Deep file validation (type + size + magic bytes)
       const validationResult = validateFile(req.file);
       if (!validationResult.valid) {
         try { await deleteFileByName(req.file.filename); } catch (_) {}
         return sendError(res, 400, validationResult.error);
       }
 
-      // ── Malware scan ──────────────────────────────────────────────────────
+      // Malware scan
       const scanResult = await scanForMalware(req.file);
       if (!scanResult.clean) {
         try { await deleteFileByName(req.file.filename); } catch (_) {}
@@ -562,11 +461,10 @@ router.post(
         );
       }
 
-      // ── Build file metadata ───────────────────────────────────────────────
+      // Build file metadata
       const baseUrl = `${req.protocol}://${req.get('host')}`;
 
-      // ── Compress image before storage (Req 20.4) ──────────────────────────
-      // Compress in-place; non-images are skipped automatically.
+      // Compress image before storage; non-images are skipped automatically.
       try {
         await compressImage(req.file);
         // Update file size after compression (file.size may have changed)
@@ -587,9 +485,7 @@ router.post(
         baseUrl,
       });
 
-      // ── Persist ChatFile record (thumbnail generated asynchronously) ──────
-      // We create the record first with no thumbnail, then update it once the
-      // thumbnail is ready. This keeps the upload response fast (Req 20.4).
+      // Persist ChatFile record; thumbnail is generated asynchronously to keep the upload response fast.
       const uploaderModel = userType === 'doctor' ? 'Doctor' : 'Patient';
       const chatFile = await createChatFile({
         conversationId,
@@ -612,8 +508,7 @@ router.post(
         },
       });
 
-      // ── Generate thumbnail asynchronously (Req 20.4) ──────────────────────
-      // Fire-and-forget: thumbnail is generated in the background.
+      // Generate thumbnail asynchronously (fire-and-forget).
       // The ChatFile record is updated once the thumbnail is ready.
       const { ChatFile: ChatFileModel } = require('../models/ChatFile.model');
       generateThumbnailAsync(req.file, async (thumbErr, thumbResult) => {
@@ -633,8 +528,7 @@ router.post(
         }
       });
 
-      // ── Increment file rate-limit counter ─────────────────────────────────
-      // Audit log: file uploaded (Req 19.2)
+      // Audit log: file uploaded
       auditLogger.logFileUploaded({
         fileId: chatFile._id.toString(),
         conversationId: conversationId.toString(),
@@ -693,11 +587,8 @@ router.use('/upload', (err, req, res, _next) => {
   }
 });
 
-/**
- * GET /api/chat/files/:id
- * Get file metadata and a signed download URL (valid 1 hour).
- * Requirements: 4.7
- */
+// GET /api/chat/files/:id
+// Get file metadata and a signed download URL (valid 1 hour).
 router.get('/files/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -718,7 +609,7 @@ router.get('/files/:id', async (req, res) => {
       return sendError(res, 403, 'Access denied: you do not have permission to access this file');
     }
 
-    // Audit log: file accessed (Req 19.2)
+    // Audit log: file accessed
     auditLogger.logFileAccessed({
       fileId: id,
       conversationId: file.conversationId.toString(),
@@ -751,11 +642,8 @@ router.get('/files/:id', async (req, res) => {
   }
 });
 
-/**
- * DELETE /api/chat/files/:id
- * Delete an uploaded file (uploader only).
- * Requirements: 4.10
- */
+// DELETE /api/chat/files/:id
+// Delete an uploaded file (uploader only).
 router.delete('/files/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -768,7 +656,7 @@ router.delete('/files/:id', async (req, res) => {
     // deleteFileRecord verifies ownership (uploader only)
     const file = await deleteFileRecord(id, userId);
 
-    // Audit log: file deleted (Req 19.2)
+    // Audit log: file deleted
     auditLogger.logFileDeleted({
       fileId: id,
       conversationId: file.conversationId ? file.conversationId.toString() : 'unknown',
@@ -791,15 +679,8 @@ router.delete('/files/:id', async (req, res) => {
   }
 });
 
-// ═════════════════════════════════════════════════════════════════════════════
-// TASK 7.4 – Statistics Routes
-// ═════════════════════════════════════════════════════════════════════════════
-
-/**
- * GET /api/chat/unread-count
- * Get the total unread message count across all conversations for the user.
- * Requirements: 11.6, 11.7
- */
+// GET /api/chat/unread-count
+// Get the total unread message count across all conversations for the user.
 router.get('/unread-count', async (req, res) => {
   try {
     const { userId, userType } = req.user;
@@ -813,15 +694,9 @@ router.get('/unread-count', async (req, res) => {
   }
 });
 
-/**
- * GET /api/chat/assigned-contacts
- * Returns the contacts a user is allowed to chat with based on doctor-patient assignment.
- *
- * - Patient  → returns their single assigned doctor (Patient.docID → Doctor)
- * - Doctor   → returns all patients assigned to them (Patient.docID === doctor.doctorId)
- *
- * Requirements: 3.3, 3.4, 22.4
- */
+// GET /api/chat/assigned-contacts
+// Returns the contacts a user is allowed to chat with based on doctor-patient assignment.
+// Patient → returns their single assigned doctor; Doctor → returns all assigned patients.
 router.get('/assigned-contacts', async (req, res) => {
   try {
     const { userId, userType } = req.user;
@@ -898,7 +773,7 @@ router.get('/assigned-contacts', async (req, res) => {
         return sendError(res, 404, 'Doctor not found');
       }
 
-      // Find patients via two sources (same logic as /doctors/patients):
+      // Find patients via two sources:
       //   a) Patients assigned via docID field
       //   b) Patients who have a report from this doctor (covers pre-fix data)
       const { Report } = require('../models/Report.model');
@@ -944,11 +819,6 @@ router.get('/assigned-contacts', async (req, res) => {
   }
 });
 
-/**
- * GET /api/chat/stats
- * Get chat statistics for the authenticated user.
- * Requirements: 11.6, 11.7
- */
 router.get('/stats', async (req, res) => {
   try {
     const { userId, userType } = req.user;
@@ -1002,14 +872,11 @@ router.get('/stats', async (req, res) => {
   }
 });
 
-// ═════════════════════════════════════════════════════════════════════════════
-// TASK 26.2 – Patient Consent Management
-// ═════════════════════════════════════════════════════════════════════════════
 
-/** Current consent agreement version. Bump this when the text changes. */
+// Current consent agreement version. Bump this when the text changes.
 const CONSENT_VERSION = '1.0';
 
-/** The canonical consent agreement text shown to patients. */
+// The canonical consent agreement text shown to patients.
 const CONSENT_TEXT =
   'I consent to the use of electronic communication (chat) for the transmission ' +
   'of my protected health information (PHI) within the E-Health Management Hub. ' +
@@ -1018,12 +885,6 @@ const CONSENT_TEXT =
   'protect my information; (3) I may revoke this consent at any time; and ' +
   '(4) revoking consent will disable the chat feature for my account.';
 
-/**
- * GET /api/chat/consent/status
- * Check whether the authenticated patient has given consent.
- * Returns { hasConsent: bool, consentVersion: string|null, givenAt: Date|null }
- * Requirements: 22.3
- */
 router.get('/consent/status', patientOnly, async (req, res) => {
   try {
     const consent = await getActiveConsent(req.user.userId);
@@ -1039,11 +900,6 @@ router.get('/consent/status', patientOnly, async (req, res) => {
   }
 });
 
-/**
- * GET /api/chat/consent/text
- * Return the current consent agreement text and version.
- * Requirements: 22.3
- */
 router.get('/consent/text', patientOnly, async (req, res) => {
   return sendSuccess(res, {
     version: CONSENT_VERSION,
@@ -1051,12 +907,6 @@ router.get('/consent/text', patientOnly, async (req, res) => {
   });
 });
 
-/**
- * POST /api/chat/consent
- * Record the patient's consent to electronic communication.
- * Body: { agreed: true }
- * Requirements: 22.3
- */
 router.post('/consent', patientOnly, async (req, res) => {
   try {
     const { agreed } = req.body;
@@ -1079,7 +929,7 @@ router.post('/consent', patientOnly, async (req, res) => {
       userAgent: req.headers['user-agent'] || '',
     });
 
-    // Audit log: consent given (Req 22.3)
+    // Audit log: consent given
     auditLogger.logSecurityEvent({
       action: 'CONSENT_GIVEN',
       actorId: req.user.userId,
@@ -1106,18 +956,12 @@ router.post('/consent', patientOnly, async (req, res) => {
   }
 });
 
-/**
- * DELETE /api/chat/consent
- * Revoke the patient's consent to electronic communication.
- * Body: { reason: string } (optional)
- * Requirements: 22.3, 22.8
- */
 router.delete('/consent', patientOnly, async (req, res) => {
   try {
     const { reason } = req.body;
     const count = await revokeConsent(req.user.userId, reason);
 
-    // Audit log: consent revoked (Req 22.3)
+    // Audit log: consent revoked
     auditLogger.logSecurityEvent({
       action: 'CONSENT_REVOKED',
       actorId: req.user.userId,
@@ -1138,11 +982,6 @@ router.delete('/consent', patientOnly, async (req, res) => {
   }
 });
 
-/**
- * GET /api/chat/consent/history
- * Return the full consent history for the authenticated patient (audit trail).
- * Requirements: 22.3
- */
 router.get('/consent/history', patientOnly, async (req, res) => {
   try {
     const history = await getConsentHistory(req.user.userId);
@@ -1152,31 +991,12 @@ router.get('/consent/history', patientOnly, async (req, res) => {
   }
 });
 
-// ═════════════════════════════════════════════════════════════════════════════
-// TASK 26.3 – Data Export Functionality
-// ═════════════════════════════════════════════════════════════════════════════
 
-/**
- * POST /api/chat/export
- * Export the authenticated user's full chat history as a JSON download.
- *
- * The export includes:
- *   - All conversations the user participates in
- *   - All messages in each conversation (including soft-deleted ones for audit)
- *   - File attachment metadata (not the files themselves)
- *
- * The response is a JSON file download with a 1-hour signed URL concept
- * implemented via a time-limited JWT embedded in the Content-Disposition
- * filename. For simplicity in this implementation the data is streamed
- * directly; a production system would generate a file and return a signed URL.
- *
- * Requirements: 22.8
- */
 router.post('/export', requireConsent, async (req, res) => {
   try {
     const { userId, userType } = req.user;
 
-    // Audit log: export requested (Req 19.3, 22.8)
+    // Audit log: export requested
     auditLogger.logConversationAccess({
       conversationId: 'all',
       accessorId: userId,
@@ -1261,20 +1081,7 @@ router.post('/export', requireConsent, async (req, res) => {
   }
 });
 
-// ═════════════════════════════════════════════════════════════════════════════
-// TASK 26.4 – Breach Notification Procedures
-// ═════════════════════════════════════════════════════════════════════════════
 
-/**
- * POST /api/chat/security/report-incident
- * Allow authorised users (doctors, patients) to report a suspected security
- * incident (e.g. unauthorised access, suspicious activity).
- *
- * The report is logged to the audit trail and triggers an automated alert
- * to the system administrator via the notification service.
- *
- * Requirements: 22.4
- */
 router.post('/security/report-incident', async (req, res) => {
   try {
     const { userId, userType } = req.user;
@@ -1295,7 +1102,7 @@ router.post('/security/report-incident', async (req, res) => {
     const incidentId = new mongoose.Types.ObjectId().toString();
     const reportedAt = new Date();
 
-    // Audit log: security incident reported (Req 22.4, 19.8)
+    // Audit log: security incident reported
     auditLogger.logSecurityEvent({
       action: 'SECURITY_INCIDENT_REPORTED',
       actorId: userId,
@@ -1349,24 +1156,7 @@ router.post('/security/report-incident', async (req, res) => {
   }
 });
 
-// ═════════════════════════════════════════════════════════════════════════════
-// TASK 27.4 – Health Check Endpoint
-// ═════════════════════════════════════════════════════════════════════════════
 
-/**
- * GET /api/chat/health
- * System health check for the chat subsystem.
- *
- * Checks:
- *   - MongoDB connectivity (ping)
- *   - Redis connectivity (ping)
- *   - Socket.io server status (via app.get('io'))
- *
- * Returns HTTP 200 with { status: 'healthy' } when all checks pass.
- * Returns HTTP 503 with { status: 'unhealthy', checks: {...} } on any failure.
- *
- * Requirements: 20.1
- */
 router.get('/health', async (req, res) => {
   const checks = {
     database: { status: 'unknown', latencyMs: null },
@@ -1430,23 +1220,7 @@ router.get('/health', async (req, res) => {
   });
 });
 
-// ═════════════════════════════════════════════════════════════════════════════
-// TASK 27.1–27.3 – Metrics Endpoint
-// ═════════════════════════════════════════════════════════════════════════════
 
-/**
- * GET /api/chat/metrics
- * Return a full metrics snapshot for the chat subsystem.
- *
- * Accepts optional query param ?format=prometheus to return Prometheus
- * exposition text instead of JSON.
- *
- * This endpoint is intentionally unauthenticated so monitoring agents can
- * scrape it without a user token.  In production, restrict access via a
- * reverse-proxy rule or a separate internal port.
- *
- * Requirements: 20.1, 20.2, 20.5, 20.6
- */
 router.get('/metrics', (req, res) => {
   try {
     const metricsService = require('../services/metricsService');

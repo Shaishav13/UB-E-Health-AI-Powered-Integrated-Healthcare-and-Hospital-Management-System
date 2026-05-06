@@ -60,7 +60,7 @@ const conversationSchema = new mongoose.Schema({
     type: Boolean, 
     default: false 
   },
-  // HIPAA data retention fields (Req 19.6, 22.2)
+  // HIPAA data retention fields
   retentionArchived: {
     type: Boolean,
     default: false,
@@ -119,9 +119,7 @@ conversationSchema.pre('save', async function(next) {
       }
 
       // Validate doctor-patient assignment relationship.
-      // patient.docID is the doctor's *numeric* doctorId field (not the ObjectId).
-      // doctor.doctorId is the numeric ID; this.doctorId is the Doctor ObjectId (_id).
-      // So we compare patient.docID (numeric) with doctor.doctorId (numeric).
+      // patient.docID is the doctor's numeric doctorId field (not the ObjectId).
       if (!patient.docID || Number(patient.docID) !== Number(doctor.doctorId)) {
         const err = new Error('No active doctor-patient assignment exists');
         err.statusCode = 400;
@@ -139,11 +137,7 @@ conversationSchema.pre('save', async function(next) {
 
 const Conversation = mongoose.model("Conversation", conversationSchema);
 
-// Helper functions for conversation management
-
-/**
- * Create a new conversation between a doctor and patient
- */
+// Create a new conversation between a doctor and patient
 const createConversation = async (doctorId, patientId) => {
   const conversation = new Conversation({
     doctorId,
@@ -152,9 +146,7 @@ const createConversation = async (doctorId, patientId) => {
   return await conversation.save();
 };
 
-/**
- * Find or create a conversation between a doctor and patient
- */
+// Find or create a conversation between a doctor and patient
 const findOrCreateConversation = async (doctorId, patientId) => {
   let conversation = await Conversation.findOne({ doctorId, patientId });
   
@@ -165,9 +157,7 @@ const findOrCreateConversation = async (doctorId, patientId) => {
   return conversation;
 };
 
-/**
- * Get all conversations for a user (doctor or patient)
- */
+// Get all conversations for a user (doctor or patient)
 const getUserConversations = async (userId, userType, options = {}) => {
   const {
     includeArchived = false,
@@ -221,18 +211,14 @@ const getUserConversations = async (userId, userType, options = {}) => {
   };
 };
 
-/**
- * Get a specific conversation by ID
- */
+// Get a specific conversation by ID
 const getConversationById = async (conversationId) => {
   return await Conversation.findById(conversationId)
     .populate('doctorId', 'name email profilePicture')
     .populate('patientId', 'name email profilePicture');
 };
 
-/**
- * Update conversation's last message
- */
+// Update conversation's last message
 const updateLastMessage = async (conversationId, messageData) => {
   const { content, senderId, senderModel, type } = messageData;
   
@@ -251,9 +237,7 @@ const updateLastMessage = async (conversationId, messageData) => {
   );
 };
 
-/**
- * Increment unread count for a user
- */
+// Increment unread count for a user
 const incrementUnreadCount = async (conversationId, userType) => {
   const field = userType === 'doctor' ? 'unreadCount.doctor' : 'unreadCount.patient';
   
@@ -264,9 +248,7 @@ const incrementUnreadCount = async (conversationId, userType) => {
   );
 };
 
-/**
- * Reset unread count for a user
- */
+// Reset unread count for a user
 const resetUnreadCount = async (conversationId, userType) => {
   const field = userType === 'doctor' ? 'unreadCount.doctor' : 'unreadCount.patient';
   
@@ -277,9 +259,7 @@ const resetUnreadCount = async (conversationId, userType) => {
   );
 };
 
-/**
- * Archive a conversation for a specific user
- */
+// Archive a conversation for a specific user
 const archiveConversation = async (conversationId, userType) => {
   const field = userType === 'doctor' ? 'isArchived.doctor' : 'isArchived.patient';
   
@@ -290,9 +270,7 @@ const archiveConversation = async (conversationId, userType) => {
   );
 };
 
-/**
- * Unarchive a conversation for a specific user
- */
+// Unarchive a conversation for a specific user
 const unarchiveConversation = async (conversationId, userType) => {
   const field = userType === 'doctor' ? 'isArchived.doctor' : 'isArchived.patient';
   
@@ -303,9 +281,7 @@ const unarchiveConversation = async (conversationId, userType) => {
   );
 };
 
-/**
- * Flag a conversation as emergency
- */
+// Flag a conversation as emergency
 const flagAsEmergency = async (conversationId) => {
   return await Conversation.findByIdAndUpdate(
     conversationId,
@@ -314,9 +290,7 @@ const flagAsEmergency = async (conversationId) => {
   );
 };
 
-/**
- * Clear emergency flag from a conversation
- */
+// Clear emergency flag from a conversation
 const clearEmergencyFlag = async (conversationId) => {
   return await Conversation.findByIdAndUpdate(
     conversationId,
@@ -325,9 +299,7 @@ const clearEmergencyFlag = async (conversationId) => {
   );
 };
 
-/**
- * Get total unread count for a user across all conversations
- */
+// Get total unread count for a user across all conversations
 const getTotalUnreadCount = async (userId, userType) => {
   const query = {};
   const unreadField = userType === 'doctor' ? 'unreadCount.doctor' : 'unreadCount.patient';
@@ -344,15 +316,13 @@ const getTotalUnreadCount = async (userId, userType) => {
 
   const result = await Conversation.aggregate([
     { $match: query },
-    { $group: { _id: null, total: { $sum: `$${unreadField}` } } }
+    { $group: { _id: null, total: { $sum: `${unreadField}` } } }
   ]);
 
   return result.length > 0 ? result[0].total : 0;
 };
 
-/**
- * Validate if a user has access to a conversation
- */
+// Validate if a user has access to a conversation
 const validateUserAccess = async (conversationId, userId) => {
   const conversation = await Conversation.findById(conversationId);
   
@@ -366,9 +336,7 @@ const validateUserAccess = async (conversationId, userId) => {
   );
 };
 
-/**
- * Set first message timestamp if not already set
- */
+// Set first message timestamp if not already set
 const setFirstMessageTimestamp = async (conversationId) => {
   const conversation = await Conversation.findById(conversationId);
   

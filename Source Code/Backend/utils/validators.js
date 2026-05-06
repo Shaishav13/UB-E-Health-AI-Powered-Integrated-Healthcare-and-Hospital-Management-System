@@ -1,26 +1,7 @@
-/**
- * Validation Utility
- * 
- * Provides validation functions to ensure data integrity and prevent invalid inputs
- * in the chat system.
- * 
- * Requirements: 17.6, 24.1, 24.2, 24.3
- */
 
 const mongoose = require('mongoose');
 
-/**
- * Validates if a string is a properly formatted MongoDB ObjectId
- * 
- * @param {string} id - The ObjectId string to validate
- * @returns {boolean} - True if valid ObjectId format, false otherwise
- * 
- * @example
- * validateObjectId('507f1f77bcf86cd799439011'); // Returns: true
- * validateObjectId('invalid-id'); // Returns: false
- * validateObjectId(''); // Returns: false
- * validateObjectId(null); // Returns: false
- */
+// Validates if a string is a properly formatted MongoDB ObjectId
 function validateObjectId(id) {
   if (!id || typeof id !== 'string') {
     return false;
@@ -37,27 +18,7 @@ function validateObjectId(id) {
   return mongoose.Types.ObjectId.isValid(id);
 }
 
-/**
- * Validates message content for length and emptiness
- * 
- * Checks that message content:
- * - Is not empty after trimming whitespace
- * - Does not exceed maximum character limit (5000 characters)
- * - Contains actual content (not just whitespace)
- * 
- * @param {string} content - The message content to validate
- * @returns {Object} - Validation result with isValid flag and error message
- * 
- * @example
- * validateMessageContent('Hello World');
- * // Returns: { isValid: true, error: null }
- * 
- * validateMessageContent('   ');
- * // Returns: { isValid: false, error: 'Message content cannot be empty' }
- * 
- * validateMessageContent('a'.repeat(6000));
- * // Returns: { isValid: false, error: 'Message content exceeds maximum length of 5000 characters' }
- */
+// Validates message content for length and emptiness
 function validateMessageContent(content) {
   const MAX_LENGTH = 5000;
 
@@ -93,24 +54,7 @@ function validateMessageContent(content) {
   };
 }
 
-/**
- * Validates file type against allowed MIME types
- * 
- * Allowed file types:
- * - Images: JPEG, PNG
- * - Documents: PDF, DOC, DOCX
- * 
- * @param {string} mimeType - The MIME type of the file
- * @param {string} fileExtension - The file extension (optional, for additional validation)
- * @returns {Object} - Validation result with isValid flag and error message
- * 
- * @example
- * validateFileType('image/jpeg', '.jpg');
- * // Returns: { isValid: true, error: null }
- * 
- * validateFileType('application/exe');
- * // Returns: { isValid: false, error: 'File type not allowed...' }
- */
+// Validates file type against allowed MIME types
 function validateFileType(mimeType, fileExtension = '') {
   const allowedMimeTypes = [
     'image/jpeg',
@@ -181,21 +125,7 @@ function validateFileType(mimeType, fileExtension = '') {
   };
 }
 
-/**
- * Validates file size against maximum allowed size
- * 
- * Maximum file size: 10MB (10485760 bytes)
- * 
- * @param {number} fileSize - The size of the file in bytes
- * @returns {Object} - Validation result with isValid flag and error message
- * 
- * @example
- * validateFileSize(1024 * 1024); // 1MB
- * // Returns: { isValid: true, error: null }
- * 
- * validateFileSize(15 * 1024 * 1024); // 15MB
- * // Returns: { isValid: false, error: 'File size exceeds maximum limit of 10MB' }
- */
+// Validates file size against maximum allowed size (10MB)
 function validateFileSize(fileSize) {
   const MAX_FILE_SIZE = 10485760; // 10MB in bytes
   const MAX_FILE_SIZE_MB = 10;
@@ -238,23 +168,7 @@ function validateFileSize(fileSize) {
   };
 }
 
-/**
- * Validates an array of attachment IDs
- * 
- * Checks that:
- * - Array does not exceed maximum number of attachments (5)
- * - All attachment IDs are valid ObjectIds
- * 
- * @param {Array<string>} attachmentIds - Array of attachment ObjectId strings
- * @returns {Object} - Validation result with isValid flag and error message
- * 
- * @example
- * validateAttachments(['507f1f77bcf86cd799439011']);
- * // Returns: { isValid: true, error: null }
- * 
- * validateAttachments(['invalid-id']);
- * // Returns: { isValid: false, error: 'Invalid attachment ID...' }
- */
+// Validates an array of attachment IDs
 function validateAttachments(attachmentIds) {
   const MAX_ATTACHMENTS = 5;
 
@@ -290,12 +204,7 @@ function validateAttachments(attachmentIds) {
   };
 }
 
-/**
- * Validates conversation ID format
- * 
- * @param {string} conversationId - The conversation ID to validate
- * @returns {Object} - Validation result with isValid flag and error message
- */
+// Validates conversation ID format
 function validateConversationId(conversationId) {
   if (!validateObjectId(conversationId)) {
     return {
@@ -310,13 +219,7 @@ function validateConversationId(conversationId) {
   };
 }
 
-/**
- * Validates pagination parameters
- * 
- * @param {number} page - Page number (must be >= 1)
- * @param {number} limit - Items per page (must be between 1 and 100)
- * @returns {Object} - Validation result with isValid flag and error message
- */
+// Validates pagination parameters
 function validatePagination(page, limit) {
   const MAX_LIMIT = 100;
   const MIN_LIMIT = 1;
@@ -354,12 +257,7 @@ function validatePagination(page, limit) {
   };
 }
 
-/**
- * Validates search query
- * 
- * @param {string} query - The search query string
- * @returns {Object} - Validation result with isValid flag and error message
- */
+// Validates search query
 function validateSearchQuery(query) {
   const MIN_LENGTH = 2;
   const MAX_LENGTH = 100;

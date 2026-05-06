@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { Navigate, useNavigate } from "react-router-dom";
 import Sidebar from "../../GlobalFiles/Sidebar";
 import axios from "axios";
-import { FaCalendarAlt, FaPills, FaFlask, FaFileAlt, FaChartLine, FaAmbulance, FaUserMd, FaHeart } from "react-icons/fa";
+import { FaCalendarAlt, FaPills, FaFlask, FaFileAlt, FaChartLine, FaAmbulance, FaUserMd, FaHeart, FaFacebookMessenger } from "react-icons/fa";
 import Footer from "../../../../../Components/Footer";
 import { calculateHealthScore, getHealthScoreGradient, getHealthScoreColor } from "../../../../../utils/healthScore";
 
@@ -123,6 +123,13 @@ const Patient_Dashboard = () => {
       color: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
       path: "/patient/health-trends",
       description: "Track your health metrics"
+    },
+    {
+      title: "Messages",
+      icon: <FaFacebookMessenger />,
+      color: "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+      path: "/Chat",
+      description: "Chat with assigned doctor"
     },
     {
       title: "Emergency",

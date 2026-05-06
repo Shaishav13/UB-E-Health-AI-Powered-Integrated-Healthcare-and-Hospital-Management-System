@@ -1,11 +1,3 @@
-/**
- * Input Sanitization Utility
- * 
- * Provides functions to sanitize user input and prevent security vulnerabilities
- * including XSS attacks and path traversal exploits.
- * 
- * Requirements: 1.5, 17.1, 17.2, 17.5
- */
 
 const DOMPurify = require('dompurify');
 const { JSDOM } = require('jsdom');
@@ -14,16 +6,7 @@ const { JSDOM } = require('jsdom');
 const window = new JSDOM('').window;
 const purify = DOMPurify(window);
 
-/**
- * Sanitizes HTML content to prevent XSS attacks
- * 
- * @param {string} content - The HTML content to sanitize
- * @returns {string} - Sanitized HTML content safe for display
- * 
- * @example
- * const userInput = '<script>alert("XSS")</script>Hello';
- * const safe = sanitizeHTML(userInput); // Returns: 'Hello'
- */
+// Sanitizes HTML content to prevent XSS attacks
 function sanitizeHTML(content) {
   if (!content || typeof content !== 'string') {
     return '';
@@ -45,22 +28,9 @@ function sanitizeHTML(content) {
   return sanitized;
 }
 
-/**
- * Sanitizes filename to prevent path traversal attacks
- * 
- * Removes or replaces dangerous characters that could be used to
- * navigate the file system or execute commands.
- * 
- * @param {string} filename - The filename to sanitize
- * @returns {string} - Sanitized filename safe for file system operations
- * 
- * @example
- * const malicious = '../../../etc/passwd';
- * const safe = sanitizeFilename(malicious); // Returns: 'etc_passwd'
- * 
- * const normal = 'my document.pdf';
- * const safe2 = sanitizeFilename(normal); // Returns: 'my_document.pdf'
- */
+// Sanitizes filename to prevent path traversal attacks.
+// Removes or replaces dangerous characters that could be used to
+// navigate the file system or execute commands.
 function sanitizeFilename(filename) {
   if (!filename || typeof filename !== 'string') {
     return 'unnamed_file';
@@ -97,19 +67,8 @@ function sanitizeFilename(filename) {
   return sanitized;
 }
 
-/**
- * Sanitizes message content for safe storage and display
- * 
- * Combines HTML sanitization with additional checks for message content.
- * Trims whitespace and ensures content is safe for database storage.
- * 
- * @param {string} content - The message content to sanitize
- * @returns {string} - Sanitized message content
- * 
- * @example
- * const message = '  <script>alert("XSS")</script>Hello World!  ';
- * const safe = sanitizeMessageContent(message); // Returns: 'Hello World!'
- */
+// Sanitizes message content for safe storage and display.
+// Combines HTML sanitization with additional checks for message content.
 function sanitizeMessageContent(content) {
   if (!content || typeof content !== 'string') {
     return '';
@@ -127,26 +86,16 @@ function sanitizeMessageContent(content) {
   return sanitized;
 }
 
-/**
- * Escapes special characters in a string for safe use in regular expressions
- * 
- * @param {string} string - The string to escape
- * @returns {string} - Escaped string safe for regex use
- */
+// Escapes special characters in a string for safe use in regular expressions
 function escapeRegex(string) {
   if (!string || typeof string !== 'string') {
     return '';
   }
 
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\b78fd85b-249a-4e8a-bcb0-5b4a175c660b');
 }
 
-/**
- * Validates and sanitizes ObjectId strings
- * 
- * @param {string} id - The ObjectId string to validate
- * @returns {string|null} - Sanitized ObjectId or null if invalid
- */
+// Validates and sanitizes ObjectId strings
 function sanitizeObjectId(id) {
   if (!id || typeof id !== 'string') {
     return null;

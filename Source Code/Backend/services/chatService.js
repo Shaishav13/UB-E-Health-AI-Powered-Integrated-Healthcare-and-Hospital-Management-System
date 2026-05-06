@@ -1,22 +1,3 @@
-'use strict';
-
-/**
- * Chat Service – Core Business Logic
- *
- * Orchestrates models, utilities, and Redis to implement all chat operations.
- * This is the single authoritative layer for:
- *   - Sending messages (validation, rate limiting, sanitization, persistence)
- *   - Retrieving conversations and message history
- *   - Message status updates (read, delivered, delete)
- *   - Conversation management (archive, emergency flag)
- *   - Unread count tracking
- *
- * Requirements: 1.1, 1.2, 1.5, 1.7, 3.1, 3.2, 6.3, 6.4, 6.6, 8.1, 8.2, 8.7,
- *               9.1, 9.2, 9.4, 10.1, 10.2, 10.6, 11.1, 11.6, 12.1, 12.2,
- *               13.1, 13.2, 14.1, 14.2, 15.1, 15.2, 15.4
- */
-
-// ─── Dependencies ─────────────────────────────────────────────────────────────
 
 const {
   Conversation,
@@ -62,50 +43,14 @@ const { redis } = require('../configs/redis');
 const auditLogger = require('./auditLogger');
 const chatCache = require('./chatCacheService');
 
-// ─── Error factory ────────────────────────────────────────────────────────────
-
-/**
- * Create a descriptive Error with an HTTP status code attached.
- * @param {string} message
- * @param {number} statusCode
- * @returns {Error}
- */
+// Create a descriptive Error with an HTTP status code attached.
 function createError(message, statusCode) {
   const err = new Error(message);
   err.statusCode = statusCode;
   return err;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SUBTASK 5.1 – Core send / retrieve operations
-// ═══════════════════════════════════════════════════════════════════════════════
-
-/**
- * Send a message in a conversation.
- *
- * Steps:
- *   1. Validate inputs (conversationId, content, attachments)
- *   2. Verify the sender has access to the conversation
- *   3. Check hourly and per-minute rate limits
- *   4. Sanitize message content
- *   5. Resolve attachment metadata from ChatFile records
- *   6. Persist the message
- *   7. Update conversation metadata (lastMessage, unreadCount, firstMessageAt)
- *   8. Increment rate-limit counters
- *   9. Clear typing indicator for the sender
- *
- * @param {object} data
- * @param {string} data.senderId       - MongoDB ObjectId of the sender
- * @param {string} data.senderModel    - 'Doctor' | 'Patient'
- * @param {string} data.senderName     - Display name of the sender
- * @param {string} data.conversationId - Target conversation ObjectId
- * @param {string} data.content        - Raw message text (will be sanitized)
- * @param {string[]} [data.attachmentIds] - Array of ChatFile ObjectIds (max 5)
- * @param {boolean} [data.isEmergency] - Emergency flag (patients only)
- * @returns {Promise<Message>} The saved message document
- *
- * Requirements: 1.1, 1.2, 1.5, 1.7, 12.1, 12.2
- */
+// Send a message in a conversation.
 async function sendMessage(data) {
   const {
     senderId,
@@ -117,7 +62,7 @@ async function sendMessage(data) {
     isEmergency = false,
   } = data;
 
-  // ── 1. Input validation ──────────────────────────────────────────────────
+  // Input validation
 
   if (!validateObjectId(senderId ? senderId.toString() : '')) {
     throw createError('Invalid sender ID', 400);
@@ -148,7 +93,7 @@ async function sendMessage(data) {
     }
   }
 
-  // ── 2. Access control ────────────────────────────────────────────────────
+  // Access control
 
   const conversation = await getConversationById(conversationId);
   if (!conversation) {
@@ -160,7 +105,7 @@ async function sendMessage(data) {
     throw createError('Access denied: you are not a participant in this conversation', 403);
   }
 
-  // ── 3. Rate limiting ─────────────────────────────────────────────────────
+  // Rate limiting
 
   const senderIdStr = senderId.toString();
 
@@ -194,14 +139,14 @@ async function sendMessage(data) {
     );
   }
 
-  // ── 4. Sanitize content ──────────────────────────────────────────────────
+  // Sanitize content
 
   const sanitizedContent = sanitizeMessageContent(content);
   if (!sanitizedContent || sanitizedContent.trim().length === 0) {
     throw createError('Message content is empty after sanitization', 400);
   }
 
-  // ── 5. Resolve attachments ───────────────────────────────────────────────
+  // Resolve attachments
 
   let attachments = [];
   if (attachmentIds.length > 0) {
@@ -229,7 +174,7 @@ async function sendMessage(data) {
     }));
   }
 
-  // ── 6. Determine message type ────────────────────────────────────────────
+  // Determine message type
 
   let messageType = 'text';
   if (attachments.length > 0) {
@@ -239,7 +184,7 @@ async function sendMessage(data) {
     messageType = hasImage ? 'image' : 'file';
   }
 
-  // ── 7. Persist message ───────────────────────────────────────────────────
+  // Persist message
 
   const message = await createMessage({
     conversationId,
@@ -252,7 +197,7 @@ async function sendMessage(data) {
     status: { sent: true, delivered: false, read: false },
   });
 
-  // ── 8. Update conversation metadata ─────────────────────────────────────
+  // Update conversation metadata
 
   // Determine the recipient's role to increment their unread count
   const recipientType =
@@ -269,14 +214,14 @@ async function sendMessage(data) {
     setFirstMessageTimestamp(conversationId),
   ]);
 
-  // ── 9. Increment rate-limit counters ─────────────────────────────────────
+  // Increment rate-limit counters
 
   await Promise.all([
     redisHelpers.incrementRateLimit(redis, senderIdStr, 'message_hourly'),
     redisHelpers.incrementRateLimit(redis, senderIdStr, 'message_minute'),
   ]);
 
-  // ── 10. Clear typing indicator ───────────────────────────────────────────
+  // Clear typing indicator
 
   try {
     await redisHelpers.clearTyping(redis, conversationId.toString(), senderIdStr);
@@ -284,8 +229,7 @@ async function sendMessage(data) {
     // Non-fatal – typing indicator cleanup should not block message delivery
   }
 
-  // ── 10b. Invalidate conversation caches (Req 20.6) ───────────────────────
-  // Invalidate after the message is saved so the next read gets fresh data.
+  // Invalidate conversation caches after the message is saved so the next read gets fresh data.
   try {
     await chatCache.invalidateConversationCaches(
       conversationId.toString(),
@@ -298,7 +242,7 @@ async function sendMessage(data) {
     // Non-fatal – cache invalidation should not block message delivery
   }
 
-  // ── 11. Audit log: message sent (Req 19.1) ───────────────────────────────
+  // Audit log: message sent
 
   const recipientId =
     conversation.doctorId.toString() === senderIdStr
@@ -320,20 +264,8 @@ async function sendMessage(data) {
   return message;
 }
 
-/**
- * Get messages for a conversation with pagination.
- *
- * Validates that the requesting user is a participant before returning data.
- *
- * @param {string} conversationId
- * @param {string} userId          - The requesting user's ID
- * @param {object} [pagination]
- * @param {number} [pagination.page=1]
- * @param {number} [pagination.limit=50]
- * @returns {Promise<{conversation: Conversation, messages: Message[], pagination: object}>}
- *
- * Requirements: 13.1, 13.2, 14.1, 14.2
- */
+// Get messages for a conversation with pagination.
+// Validates that the requesting user is a participant before returning data.
 async function getConversation(conversationId, userId, pagination = {}) {
   const convValidation = validateConversationId(
     conversationId ? conversationId.toString() : ''
@@ -352,7 +284,7 @@ async function getConversation(conversationId, userId, pagination = {}) {
     throw createError(pageValidation.error, 400);
   }
 
-  // Access control — try cache first, fall back to DB (Req 20.6)
+  // Access control — try cache first, fall back to DB
   let conversation = await chatCache.getCachedConversation(conversationId);
   if (!conversation) {
     conversation = await getConversationById(conversationId);
@@ -388,20 +320,7 @@ async function getConversation(conversationId, userId, pagination = {}) {
   };
 }
 
-/**
- * Get all conversations for a user, sorted by last activity.
- *
- * @param {string} userId
- * @param {'doctor'|'patient'} userType
- * @param {object} [options]
- * @param {number}  [options.page=1]
- * @param {number}  [options.limit=20]
- * @param {boolean} [options.includeArchived=false]
- * @param {boolean} [options.emergencyOnly=false]
- * @returns {Promise<{conversations: Conversation[], pagination: object}>}
- *
- * Requirements: 3.1, 3.2, 14.1, 14.2
- */
+// Get all conversations for a user, sorted by last activity.
 async function getUserConversations(userId, userType, options = {}) {
   if (!validateObjectId(userId ? userId.toString() : '')) {
     throw createError('Invalid user ID', 400);
@@ -426,15 +345,7 @@ async function getUserConversations(userId, userType, options = {}) {
   });
 }
 
-/**
- * Validate whether a user has access to a conversation.
- *
- * @param {string} conversationId
- * @param {string} userId
- * @returns {Promise<boolean>}
- *
- * Requirements: 3.1, 3.2
- */
+// Validate whether a user has access to a conversation.
 async function validateConversationAccess(conversationId, userId) {
   if (
     !validateObjectId(conversationId ? conversationId.toString() : '') ||
@@ -446,22 +357,9 @@ async function validateConversationAccess(conversationId, userId) {
   return await validateUserAccess(conversationId, userId);
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SUBTASK 5.2 – Message operations
-// ═══════════════════════════════════════════════════════════════════════════════
-
-/**
- * Mark a message as read.
- *
- * Only the recipient (not the sender) may mark a message as read.
- * Decrements the reader's unread count in the conversation (floor 0).
- *
- * @param {string} messageId
- * @param {string} userId    - The user marking the message as read
- * @returns {Promise<Message>} Updated message document
- *
- * Requirements: 6.3, 6.4, 11.1
- */
+// Mark a message as read.
+// Only the recipient (not the sender) may mark a message as read.
+// Decrements the reader's unread count in the conversation (floor 0).
 async function markAsRead(messageId, userId) {
   if (!validateObjectId(messageId ? messageId.toString() : '')) {
     throw createError('Invalid message ID', 400);
@@ -504,14 +402,14 @@ async function markAsRead(messageId, userId) {
       {
         $set: {
           [unreadField]: {
-            $max: [{ $subtract: [`$${unreadField}`, 1] }, 0],
+            $max: [{ $subtract: [`${unreadField}`, 1] }, 0],
           },
         },
       },
     ]);
   }
 
-  // Audit log: message read (Req 19.1)
+  // Audit log: message read
   auditLogger.logMessageRead({
     messageId: messageId.toString(),
     conversationId: message.conversationId.toString(),
@@ -524,17 +422,8 @@ async function markAsRead(messageId, userId) {
   return updatedMessage;
 }
 
-/**
- * Mark a message as delivered.
- *
- * The recipient calls this to acknowledge delivery.
- *
- * @param {string} messageId
- * @param {string} userId    - The user acknowledging delivery
- * @returns {Promise<Message>} Updated message document
- *
- * Requirements: 6.4, 6.6
- */
+// Mark a message as delivered.
+// The recipient calls this to acknowledge delivery.
 async function markAsDelivered(messageId, userId) {
   if (!validateObjectId(messageId ? messageId.toString() : '')) {
     throw createError('Invalid message ID', 400);
@@ -566,18 +455,9 @@ async function markAsDelivered(messageId, userId) {
   return await modelMarkAsDelivered(messageId);
 }
 
-/**
- * Soft-delete a message.
- *
- * Only the original sender may delete their own message.
- * The message record is retained with isDeleted=true.
- *
- * @param {string} messageId
- * @param {string} userId    - Must be the sender
- * @returns {Promise<Message>} Updated (soft-deleted) message document
- *
- * Requirements: 8.1, 8.2, 8.7, 15.1, 15.2, 15.4
- */
+// Soft-delete a message.
+// Only the original sender may delete their own message.
+// The message record is retained with isDeleted=true.
 async function deleteMessage(messageId, userId) {
   if (!validateObjectId(messageId ? messageId.toString() : '')) {
     throw createError('Invalid message ID', 400);
@@ -608,7 +488,7 @@ async function deleteMessage(messageId, userId) {
 
   const deletedMessage = await modelDeleteMessage(messageId, userId);
 
-  // Audit log: message deletion (Req 19.5)
+  // Audit log: message deletion
   auditLogger.logMessageDeleted({
     messageId: messageId.toString(),
     conversationId: message.conversationId.toString(),
@@ -619,20 +499,8 @@ async function deleteMessage(messageId, userId) {
   return deletedMessage;
 }
 
-/**
- * Search messages in a conversation.
- *
- * Excludes deleted messages. Case-insensitive. Max 100 results.
- *
- * @param {string} conversationId
- * @param {string} userId          - Must be a participant
- * @param {string} query           - Search text (min 2 chars)
- * @param {object} [options]
- * @param {number} [options.limit=100]
- * @returns {Promise<Message[]>}
- *
- * Requirements: 8.1, 8.2, 8.7
- */
+// Search messages in a conversation.
+// Excludes deleted messages. Case-insensitive. Max 100 results.
 async function searchMessages(conversationId, userId, query, options = {}) {
   const convValidation = validateConversationId(
     conversationId ? conversationId.toString() : ''
@@ -661,7 +529,7 @@ async function searchMessages(conversationId, userId, query, options = {}) {
 
   const results = await modelSearchMessages(conversationId, query, { limit: effectiveLimit });
 
-  // Audit log: conversation search access (Req 19.3)
+  // Audit log: conversation search access
   const searchConversation = await getConversationById(conversationId);
   auditLogger.logConversationAccess({
     conversationId: conversationId.toString(),
@@ -675,23 +543,8 @@ async function searchMessages(conversationId, userId, query, options = {}) {
   return results;
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// SUBTASK 5.3 – Conversation operations
-// ═══════════════════════════════════════════════════════════════════════════════
-
-/**
- * Archive a conversation for a specific user.
- *
- * Archiving is per-user: a doctor archiving a conversation does not affect
- * the patient's view, and vice versa.
- *
- * @param {string} conversationId
- * @param {string} userId
- * @param {'doctor'|'patient'} userType
- * @returns {Promise<Conversation>} Updated conversation document
- *
- * Requirements: 9.1, 9.2, 9.4
- */
+// Archive a conversation for a specific user.
+// Archiving is per-user: a doctor archiving a conversation does not affect the patient's view.
 async function archiveConversation(conversationId, userId, userType) {
   const convValidation = validateConversationId(
     conversationId ? conversationId.toString() : ''
@@ -721,7 +574,7 @@ async function archiveConversation(conversationId, userId, userType) {
 
   const archivedConv = await modelArchiveConversation(conversationId, userType);
 
-  // Audit log: conversation archived (Req 19.3)
+  // Audit log: conversation archived
   auditLogger.logConversationAccess({
     conversationId: conversationId.toString(),
     accessorId: userId.toString(),
@@ -732,16 +585,7 @@ async function archiveConversation(conversationId, userId, userType) {
   return archivedConv;
 }
 
-/**
- * Unarchive a conversation for a specific user.
- *
- * @param {string} conversationId
- * @param {string} userId
- * @param {'doctor'|'patient'} userType
- * @returns {Promise<Conversation>} Updated conversation document
- *
- * Requirements: 9.1, 9.2, 9.4
- */
+// Unarchive a conversation for a specific user.
 async function unarchiveConversation(conversationId, userId, userType) {
   const convValidation = validateConversationId(
     conversationId ? conversationId.toString() : ''
@@ -771,7 +615,7 @@ async function unarchiveConversation(conversationId, userId, userType) {
 
   const unarchivedConv = await modelUnarchiveConversation(conversationId, userType);
 
-  // Audit log: conversation unarchived (Req 19.3)
+  // Audit log: conversation unarchived
   auditLogger.logConversationAccess({
     conversationId: conversationId.toString(),
     accessorId: userId.toString(),
@@ -782,18 +626,8 @@ async function unarchiveConversation(conversationId, userId, userType) {
   return unarchivedConv;
 }
 
-/**
- * Flag a message (and its conversation) as an emergency.
- *
- * Only patients may flag messages as emergency (Req 10.1, 10.6).
- *
- * @param {string} messageId
- * @param {string} userId
- * @param {'doctor'|'patient'} userType
- * @returns {Promise<{message: Message, conversation: Conversation}>}
- *
- * Requirements: 10.1, 10.2, 10.6
- */
+// Flag a message (and its conversation) as an emergency.
+// Only patients may flag messages as emergency.
 async function flagEmergency(messageId, userId, userType) {
   if (!validateObjectId(messageId ? messageId.toString() : '')) {
     throw createError('Invalid message ID', 400);
@@ -839,7 +673,7 @@ async function flagEmergency(messageId, userId, userType) {
     conversationFlagAsEmergency(message.conversationId),
   ]);
 
-  // Audit log: emergency flagged (Req 10.7)
+  // Audit log: emergency flagged
   auditLogger.logEmergencyFlagged({
     messageId: messageId.toString(),
     conversationId: message.conversationId.toString(),
@@ -849,15 +683,7 @@ async function flagEmergency(messageId, userId, userType) {
   return { message: updatedMessage, conversation: updatedConversation };
 }
 
-/**
- * Get the total unread message count for a user across all conversations.
- *
- * @param {string} userId
- * @param {'doctor'|'patient'} userType
- * @returns {Promise<number>} Total unread count
- *
- * Requirements: 11.1, 11.6
- */
+// Get the total unread message count for a user across all conversations.
 async function getUnreadCount(userId, userType) {
   if (!validateObjectId(userId ? userId.toString() : '')) {
     throw createError('Invalid user ID', 400);
@@ -867,7 +693,7 @@ async function getUnreadCount(userId, userType) {
     throw createError('Invalid user type. Must be "doctor" or "patient"', 400);
   }
 
-  // Try cache first (Req 11.7)
+  // Try cache first
   const cached = await chatCache.getCachedTotalUnreadCount(userId.toString(), userType);
   if (cached !== null) {
     return cached;
@@ -880,8 +706,6 @@ async function getUnreadCount(userId, userType) {
 
   return count;
 }
-
-// ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = {
   sendMessage,

@@ -933,7 +933,7 @@ const FrontPage = () => {
               <div className="admin-welcome-section">
                 <div className="admin-welcome-header">
                   <div>
-                    <h1 className="admin-welcome-title">Welcome, Admin! 🎯</h1>
+                    <h1 className="admin-welcome-title">Welcome, Admin</h1>
                     <p className="admin-welcome-subtitle">System overview and management dashboard</p>
                   </div>
                   <div className="admin-badge">

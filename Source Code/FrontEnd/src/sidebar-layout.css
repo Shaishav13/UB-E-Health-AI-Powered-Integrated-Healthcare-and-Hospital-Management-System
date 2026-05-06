@@ -43,7 +43,8 @@
 .medication-container,
 .document-container,
 .lab-container,
-.admin-container {
+.admin-container,
+.view-lab-content {
   margin-left: 80px !important;
   transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -109,6 +110,7 @@
   .document-container,
   .lab-container,
   .admin-container,
+  .view-lab-content,
   .book-page-container > .appointment-wrapper,
   .profile-page-container > div:last-child,
   .report-page-container > div:last-child,
@@ -151,6 +153,7 @@
   .document-container,
   .lab-container,
   .admin-container,
+  .view-lab-content,
   .book-page-container > .appointment-wrapper,
   .profile-page-container > div:last-child,
   .report-page-container > div:last-child,

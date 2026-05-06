@@ -478,11 +478,10 @@ const Footer = () => {
 
         .footer-content {
           max-width: 1400px;
-          margin: 0 auto;
+          margin: 0 auto 2rem;
           display: grid;
           grid-template-columns: 2fr 1fr 1fr 1fr;
-          gap: 3rem;
-          margin-bottom: 2rem;
+          gap: 2.5rem;
         }
 
         @media (max-width: 1024px) {
@@ -490,12 +489,23 @@ const Footer = () => {
             grid-template-columns: repeat(2, 1fr);
             gap: 2rem;
           }
+          .brand-section {
+            grid-column: 1 / -1;
+            padding-right: 0 !important;
+          }
         }
 
         @media (max-width: 640px) {
+          .ub-footer {
+            padding: 2rem 1.25rem 1rem;
+          }
           .footer-content {
             grid-template-columns: 1fr;
-            gap: 2rem;
+            gap: 1.75rem;
+          }
+          .brand-section {
+            grid-column: 1;
+            padding-right: 0 !important;
           }
         }
 
@@ -505,7 +515,7 @@ const Footer = () => {
         }
 
         .brand-section {
-          padding-right: 2rem;
+          padding-right: 1rem;
         }
 
         .footer-logo {
@@ -515,9 +525,7 @@ const Footer = () => {
           margin-bottom: 1rem;
         }
 
-        .logo-icon {
-          font-size: 2rem;
-        }
+        .logo-icon { font-size: 2rem; }
 
         .logo-text {
           font-size: 1.5rem;
@@ -525,7 +533,7 @@ const Footer = () => {
         }
 
         .footer-tagline {
-          color: rgba(255, 255, 255, 0.9);
+          color: rgba(255,255,255,0.9);
           line-height: 1.6;
           margin-bottom: 1.5rem;
         }
@@ -540,19 +548,20 @@ const Footer = () => {
           display: flex;
           align-items: center;
           gap: 0.75rem;
-          color: rgba(255, 255, 255, 0.9);
+          color: rgba(255,255,255,0.9);
           font-size: 0.9rem;
         }
 
         .contact-item svg {
           font-size: 1rem;
-          color: rgba(255, 255, 255, 0.7);
+          color: rgba(255,255,255,0.7);
+          flex-shrink: 0;
         }
 
         .footer-title {
           font-size: 1.1rem;
           font-weight: 700;
-          margin-bottom: 1.5rem;
+          margin-bottom: 1.25rem;
           color: white;
         }
 
@@ -562,56 +571,58 @@ const Footer = () => {
           margin: 0;
           display: flex;
           flex-direction: column;
-          gap: 0.75rem;
+          gap: 0.5rem;
         }
 
         .footer-links li {
           display: flex;
           align-items: center;
           gap: 0.75rem;
-          color: rgba(255, 255, 255, 0.9);
+          color: rgba(255,255,255,0.9);
           cursor: pointer;
           transition: all 0.3s ease;
-          padding: 0.5rem;
+          padding: 0.45rem 0.5rem;
           border-radius: 6px;
+          font-size: 0.95rem;
         }
 
         .footer-links li:hover {
           color: white;
-          background: rgba(255, 255, 255, 0.1);
+          background: rgba(255,255,255,0.1);
           transform: translateX(5px);
         }
 
         .link-icon {
           font-size: 1rem;
-          color: rgba(255, 255, 255, 0.7);
+          color: rgba(255,255,255,0.7);
+          flex-shrink: 0;
         }
 
         .footer-bottom {
           max-width: 1400px;
           margin: 0 auto;
-          padding-top: 2rem;
-          border-top: 1px solid rgba(255, 255, 255, 0.2);
+          padding-top: 1.5rem;
+          border-top: 1px solid rgba(255,255,255,0.2);
           display: flex;
           justify-content: space-between;
           align-items: center;
           flex-wrap: wrap;
-          gap: 1rem;
+          gap: 0.75rem;
         }
 
         .footer-bottom p {
           margin: 0;
-          color: rgba(255, 255, 255, 0.8);
-          font-size: 0.9rem;
+          color: rgba(255,255,255,0.8);
+          font-size: 0.875rem;
         }
 
         .footer-credits {
           display: flex;
           align-items: center;
-          gap: 0.5rem;
+          gap: 0.4rem;
         }
 
-        @media (max-width: 640px) {
+        @media (max-width: 480px) {
           .footer-bottom {
             flex-direction: column;
             text-align: center;

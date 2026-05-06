@@ -97,7 +97,7 @@ const chatFileSchema = new mongoose.Schema({
   expiresAt: { 
     type: Date 
   },
-  // HIPAA data retention fields (Req 19.6, 22.2)
+  // HIPAA data retention fields
   retentionFlagged: {
     type: Boolean,
     default: false,
@@ -204,28 +204,20 @@ chatFileSchema.pre('save', async function(next) {
 
 const ChatFile = mongoose.model("ChatFile", chatFileSchema);
 
-// Helper functions for file management
-
-/**
- * Create a new chat file record
- */
+// Create a new chat file record
 const createChatFile = async (fileData) => {
   const chatFile = new ChatFile(fileData);
   return await chatFile.save();
 };
 
-/**
- * Get a file by ID
- */
+// Get a file by ID
 const getFileById = async (fileId) => {
   return await ChatFile.findById(fileId)
     .populate('uploadedBy', 'name profilePicture')
     .lean();
 };
 
-/**
- * Get all files for a conversation
- */
+// Get all files for a conversation
 const getConversationFiles = async (conversationId, options = {}) => {
   const {
     page = 1,
@@ -266,9 +258,7 @@ const getConversationFiles = async (conversationId, options = {}) => {
   };
 };
 
-/**
- * Get files uploaded by a specific user
- */
+// Get files uploaded by a specific user
 const getUserFiles = async (userId, options = {}) => {
   const {
     page = 1,
@@ -308,9 +298,7 @@ const getUserFiles = async (userId, options = {}) => {
   };
 };
 
-/**
- * Update scan result for a file
- */
+// Update scan result for a file
 const updateScanResult = async (fileId, scanResult) => {
   return await ChatFile.findByIdAndUpdate(
     fileId,
@@ -326,9 +314,7 @@ const updateScanResult = async (fileId, scanResult) => {
   );
 };
 
-/**
- * Delete a file
- */
+// Delete a file
 const deleteFile = async (fileId, userId) => {
   const file = await ChatFile.findById(fileId);
 
@@ -345,9 +331,7 @@ const deleteFile = async (fileId, userId) => {
   return file;
 };
 
-/**
- * Get files by message ID
- */
+// Get files by message ID
 const getMessageFiles = async (messageId) => {
   return await ChatFile.find({
     messageId,
@@ -358,9 +342,7 @@ const getMessageFiles = async (messageId) => {
     .lean();
 };
 
-/**
- * Validate if a user can access a file
- */
+// Validate if a user can access a file
 const validateFileAccess = async (fileId, userId) => {
   const file = await ChatFile.findById(fileId);
 
@@ -381,9 +363,7 @@ const validateFileAccess = async (fileId, userId) => {
   );
 };
 
-/**
- * Get file statistics for a conversation
- */
+// Get file statistics for a conversation
 const getFileStats = async (conversationId) => {
   const stats = await ChatFile.aggregate([
     {
@@ -431,9 +411,7 @@ const getFileStats = async (conversationId) => {
   };
 };
 
-/**
- * Clean up expired files
- */
+// Clean up expired files
 const cleanupExpiredFiles = async () => {
   const now = new Date();
   const expiredFiles = await ChatFile.find({
@@ -447,9 +425,7 @@ const cleanupExpiredFiles = async () => {
   return expiredFiles.length;
 };
 
-/**
- * Get unscanned files (for background processing)
- */
+// Get unscanned files (for background processing)
 const getUnscannedFiles = async (limit = 10) => {
   return await ChatFile.find({
     isScanned: false

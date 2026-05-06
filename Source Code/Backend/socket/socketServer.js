@@ -1,22 +1,5 @@
 'use strict';
 
-/**
- * Socket.io Server Initialization
- *
- * Bootstraps the Socket.io server on top of an existing HTTP server with:
- *   - CORS configuration aligned with the Express API
- *   - JWT authentication middleware (Req 2.1, 2.2)
- *   - Redis adapter for horizontal scaling (Req 20.7)
- *   - Connection timeout / heartbeat settings
- *   - Up to 5 concurrent socket connections per user (Req 2.8)
- *
- * Usage:
- *   const { createSocketServer } = require('./socket/socketServer');
- *   const io = createSocketServer(httpServer);
- *
- * Requirements: 2.1, 2.2, 2.8, 20.7
- */
-
 const { Server } = require('socket.io');
 const { createAdapter } = require('@socket.io/redis-adapter');
 const jwt = require('jsonwebtoken');
@@ -24,32 +7,15 @@ const { redis } = require('../configs/redis');
 const { registerSocketHandlers } = require('./socketHandlers');
 const auditLogger = require('../services/auditLogger');
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-/** Maximum concurrent socket connections allowed per user (Req 2.8) */
+// Maximum concurrent socket connections allowed per user
 const MAX_CONNECTIONS_PER_USER = 5;
 
-/**
- * In-memory map tracking how many active sockets each user has.
- * key: userId (string)  →  value: Set of socketIds
- *
- * This is intentionally process-local.  For multi-process deployments the
- * Redis adapter handles cross-process room routing; the per-process connection
- * count is still a useful guard against runaway clients on a single node.
- */
+// In-memory map tracking how many active sockets each user has.
+// key: userId (string)  →  value: Set of socketIds
 const userSocketMap = new Map();
 
-// ─── Factory ──────────────────────────────────────────────────────────────────
-
-/**
- * Create and configure the Socket.io server.
- *
- * @param {import('http').Server} httpServer - The Node.js HTTP server instance
- * @returns {import('socket.io').Server} Configured Socket.io server
- */
+// Create and configure the Socket.io server.
 function createSocketServer(httpServer) {
-  // ── 1. Instantiate Socket.io server ────────────────────────────────────────
-
   const io = new Server(httpServer, {
     // CORS – mirrors the Express CORS config; tighten in production via env var
     cors: {
@@ -75,32 +41,28 @@ function createSocketServer(httpServer) {
     allowEIO3: true,
 
     // Connection state recovery – buffer events for up to 2 minutes so
-    // reconnecting clients receive missed messages (Req 2.6)
+    // reconnecting clients receive missed messages
     connectionStateRecovery: {
       maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes
       skipMiddlewares: true,
     },
   });
 
-  // ── 2. Redis adapter for horizontal scaling (Req 20.7) ─────────────────────
-
+  // Redis adapter for horizontal scaling
   _attachRedisAdapter(io);
 
-  // ── 3. JWT authentication middleware (Req 2.1, 2.2) ───────────────────────
-
+  // JWT authentication middleware
   io.use(_authMiddleware);
 
-  // ── 4. Per-user connection-count guard (Req 2.8) ──────────────────────────
-
+  // Per-user connection-count guard
   io.use(_connectionLimitMiddleware);
 
-  // ── 5. Register domain event handlers ─────────────────────────────────────
-
+  // Register domain event handlers
   io.on('connection', (socket) => {
     _trackConnection(socket);
     registerSocketHandlers(io, socket);
 
-    // ── Metrics: track active connections (Req 20.1) ──────────────────────
+    // Track active connections
     try {
       const metricsService = require('../services/metricsService');
       metricsService.recordSocketConnect();
@@ -108,8 +70,7 @@ function createSocketServer(httpServer) {
     } catch (_) { /* metrics are non-fatal */ }
   });
 
-  // ── 6. Engine-level error logging ─────────────────────────────────────────
-
+  // Engine-level error logging
   io.engine.on('connection_error', (err) => {
     console.error('[SocketServer] Engine connection error:', {
       code: err.code,
@@ -121,17 +82,8 @@ function createSocketServer(httpServer) {
   return io;
 }
 
-// ─── Private helpers ──────────────────────────────────────────────────────────
-
-/**
- * Attach the Redis pub/sub adapter for multi-instance deployments.
- *
- * Creates a dedicated subscriber client (ioredis requires separate pub/sub
- * connections) and attaches the adapter.  Falls back gracefully if Redis is
- * unavailable so the server still starts in single-node mode.
- *
- * @param {import('socket.io').Server} io
- */
+// Attach the Redis pub/sub adapter for multi-instance deployments.
+// Falls back gracefully if Redis is unavailable so the server still starts in single-node mode.
 function _attachRedisAdapter(io) {
   try {
     // ioredis requires a separate client for subscribe mode
@@ -148,16 +100,9 @@ function _attachRedisAdapter(io) {
   }
 }
 
-/**
- * Socket.io authentication middleware.
- *
- * Reads the JWT from socket.handshake.auth.token (preferred) or the
- * Authorization header.  Attaches decoded user data to socket.data so
- * downstream handlers can trust it without re-verifying.
- *
- * @param {import('socket.io').Socket} socket
- * @param {Function} next
- */
+// Socket.io authentication middleware.
+// Reads the JWT from socket.handshake.auth.token or the Authorization header.
+// Attaches decoded user data to socket.data.
 async function _authMiddleware(socket, next) {
   try {
     const token =
@@ -195,13 +140,10 @@ async function _authMiddleware(socket, next) {
       return next(new Error('AUTH_FAILED: Token payload is empty'));
     }
 
-    // ── Normalise userId and userType from the existing JWT shapes ──────────
-    //
+    // Normalise userId and userType from the existing JWT shapes:
     // Doctor tokens:  { doctorID, userType: 'doctor', email, name, ... }
     // Patient tokens: { patientId, email, name, ... }  (no userType field)
-    //
-    // This mirrors the logic in Backend/middlewares/chatAuth.js so both the
-    // REST API and the WebSocket layer accept the same tokens.
+    // This mirrors the logic in chatAuth.js so both REST and WebSocket accept the same tokens.
 
     let userId, userType, userName;
 
@@ -253,15 +195,8 @@ async function _authMiddleware(socket, next) {
   }
 }
 
-/**
- * Enforce the per-user concurrent connection limit (Req 2.8).
- *
- * Rejects the connection if the user already has MAX_CONNECTIONS_PER_USER
- * active sockets on this server process.
- *
- * @param {import('socket.io').Socket} socket
- * @param {Function} next
- */
+// Enforce the per-user concurrent connection limit.
+// Rejects the connection if the user already has MAX_CONNECTIONS_PER_USER active sockets.
 function _connectionLimitMiddleware(socket, next) {
   const { userId } = socket.data;
 
@@ -284,12 +219,7 @@ function _connectionLimitMiddleware(socket, next) {
   next();
 }
 
-/**
- * Track a new socket connection in the in-memory map and clean up on
- * disconnect.
- *
- * @param {import('socket.io').Socket} socket
- */
+// Track a new socket connection in the in-memory map and clean up on disconnect.
 function _trackConnection(socket) {
   const { userId } = socket.data;
 
@@ -308,8 +238,6 @@ function _trackConnection(socket) {
     }
   });
 }
-
-// ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = {
   createSocketServer,

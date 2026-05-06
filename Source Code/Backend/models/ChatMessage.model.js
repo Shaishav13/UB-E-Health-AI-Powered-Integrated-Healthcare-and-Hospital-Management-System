@@ -1,7 +1,5 @@
 /*
  * UB E-Health - Chat Message Model
- * Copyright (c) 2025-2026 Shaishav
- * Licensed under MIT License
  */
 
 const mongoose = require("mongoose");

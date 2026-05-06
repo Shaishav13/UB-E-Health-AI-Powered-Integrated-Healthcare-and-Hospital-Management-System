@@ -1,21 +1,3 @@
-'use strict';
-
-/**
- * Chat Authentication Middleware
- *
- * Unified JWT authentication for the Doctor-Patient Chat REST API.
- * Supports both doctor and patient tokens, normalising the user identity
- * into a consistent `req.user` object consumed by all chat route handlers.
- *
- * Token shapes:
- *   Doctor  – { doctorID, email, userType: 'doctor', ... }
- *   Patient – { patientId, email, ... }          (no userType field)
- *
- * After successful authentication `req.user` is set to:
- *   { userId: string, userType: 'doctor'|'patient', email: string }
- *
- * Requirements: 2.1, 3.1, 12.1, 12.2, 12.3
- */
 
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
@@ -46,7 +28,7 @@ function getRedis() {
   return redis;
 }
 
-/** Track auth failures per IP in Redis; alert if threshold exceeded */
+// Track auth failures per IP in Redis; alert if threshold exceeded
 async function trackAuthFailure(ipAddress) {
   const r = getRedis();
   if (!r) return;
@@ -66,10 +48,8 @@ async function trackAuthFailure(ipAddress) {
   }
 }
 
-/**
- * Authenticate a request using the JWT in the Authorization header.
- * Sets `req.user` on success; returns 401/403 on failure.
- */
+// Authenticate a request using the JWT in the Authorization header.
+// Sets req.user on success; returns 401/403 on failure.
 const authenticate = async (req, res, next) => {
   const token = req.headers.authorization;
 
@@ -97,7 +77,7 @@ const authenticate = async (req, res, next) => {
       });
     }
 
-    // ── Determine user type and extract userId ──────────────────────────────
+    // Determine user type and extract userId
 
     if (decoded.userType === 'doctor' && decoded.doctorID) {
       // Doctor token carries a numeric doctorId — resolve it to the MongoDB _id
@@ -180,10 +160,7 @@ const authenticate = async (req, res, next) => {
   }
 };
 
-/**
- * Restrict a route to patients only.
- * Must be used AFTER `authenticate`.
- */
+// Restrict a route to patients only. Must be used AFTER authenticate.
 const patientOnly = (req, res, next) => {
   if (!req.user || req.user.userType !== 'patient') {
     return res.status(403).json({
@@ -194,10 +171,7 @@ const patientOnly = (req, res, next) => {
   next();
 };
 
-/**
- * Restrict a route to doctors only.
- * Must be used AFTER `authenticate`.
- */
+// Restrict a route to doctors only. Must be used AFTER authenticate.
 const doctorOnly = (req, res, next) => {
   if (!req.user || req.user.userType !== 'doctor') {
     return res.status(403).json({

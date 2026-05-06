@@ -162,9 +162,8 @@ const ViewLabPersonnel = () => {
       {/* ---------- INLINE MODERN CSS ---------- */}
       <style>
         {`
+          /* ---------- RESPONSIVE LAYOUT ---------- */
           .view-lab-page {
-            display: flex;
-            align-items: flex-start !important;
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             min-height: 100vh;
             position: relative;
@@ -173,22 +172,16 @@ const ViewLabPersonnel = () => {
           .view-lab-page::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="lab-manage-pattern" width="60" height="60" patternUnits="userSpaceOnUse"><circle cx="30" cy="30" r="2" fill="rgba(11,107,97,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23lab-manage-pattern)"/></svg>');
             pointer-events: none;
           }
 
           .view-lab-content {
-            margin: 0 !important;
-            padding: 2rem 1.5rem !important;
-            flex: 1;
+            padding: 2rem 1.5rem;
             position: relative;
             z-index: 1;
-            max-width: 1400px;
-            margin: 0 auto !important;
+            min-width: 0;
           }
 
           .view-lab-title {
@@ -203,14 +196,15 @@ const ViewLabPersonnel = () => {
             text-align: center;
           }
 
+          /* ---------- FILTERS ---------- */
           .filters-section {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255,255,255,0.95);
             backdrop-filter: blur(20px);
-            padding: 1.5rem;
+            padding: 1.25rem;
             border-radius: 18px;
             margin-bottom: 1.5rem;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            border: 1px solid rgba(255,255,255,0.3);
             display: flex;
             gap: 1rem;
             flex-wrap: wrap;
@@ -220,7 +214,7 @@ const ViewLabPersonnel = () => {
           .search-input,
           .filter-select {
             padding: 0.75rem 1rem;
-            border: 2px solid rgba(11, 107, 97, 0.2);
+            border: 2px solid rgba(11,107,97,0.2);
             border-radius: 12px;
             font-size: 1rem;
             transition: all 0.3s ease;
@@ -229,11 +223,11 @@ const ViewLabPersonnel = () => {
 
           .search-input {
             flex: 1;
-            min-width: 250px;
+            min-width: 200px;
           }
 
           .filter-select {
-            min-width: 200px;
+            min-width: 180px;
           }
 
           .search-input:focus,
@@ -243,12 +237,13 @@ const ViewLabPersonnel = () => {
             box-shadow: 0 0 0 3px rgba(11,107,97,0.1);
           }
 
+          /* ---------- TABLE CARD ---------- */
           .table-card {
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255,255,255,0.95);
             backdrop-filter: blur(20px);
             border-radius: 18px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+            border: 1px solid rgba(255,255,255,0.3);
             overflow: hidden;
             position: relative;
           }
@@ -256,16 +251,20 @@ const ViewLabPersonnel = () => {
           .table-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
+            top: 0; left: 0; right: 0;
             height: 4px;
             background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%);
+          }
+
+          .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
           }
 
           .personnel-table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 640px;
           }
 
           .personnel-table thead {
@@ -284,9 +283,10 @@ const ViewLabPersonnel = () => {
           }
 
           .personnel-table td {
-            padding: 1rem ;
-            border-bottom: 1px solid rgba(11, 107, 97, 0.1);
+            padding: 0.9rem 1rem;
+            border-bottom: 1px solid rgba(11,107,97,0.1);
             vertical-align: middle;
+            font-size: 0.95rem;
           }
 
           .personnel-table tbody tr {
@@ -294,27 +294,33 @@ const ViewLabPersonnel = () => {
           }
 
           .personnel-table tbody tr:hover {
-            background: rgba(11, 107, 97, 0.05);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            background: rgba(11,107,97,0.05);
           }
 
           .personnel-table tbody tr:nth-child(even) {
-            background: rgba(248, 250, 252, 0.5);
+            background: rgba(248,250,252,0.5);
           }
 
           .personnel-table tbody tr:nth-child(even):hover {
-            background: rgba(11, 107, 97, 0.05);
+            background: rgba(11,107,97,0.05);
+          }
+
+          /* ---------- ACTION BUTTONS ---------- */
+          .action-cell {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
           }
 
           .action-btn {
-            padding: 0.5rem 1rem;
+            padding: 0.45rem 0.9rem;
             border: none;
             border-radius: 10px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            margin-right: 0.5rem;
-            font-size: 0.875rem;
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+            font-size: 0.85rem;
+            white-space: nowrap;
           }
 
           .edit-btn {
@@ -323,9 +329,8 @@ const ViewLabPersonnel = () => {
           }
 
           .edit-btn:hover {
-            background: linear-gradient(135deg, #095a52 0%, #0f8a75 100%);
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(11, 107, 97, 0.4);
+            box-shadow: 0 8px 20px rgba(11,107,97,0.4);
           }
 
           .delete-btn {
@@ -334,28 +339,30 @@ const ViewLabPersonnel = () => {
           }
 
           .delete-btn:hover {
-            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
+            box-shadow: 0 8px 20px rgba(239,68,68,0.4);
           }
 
+          /* ---------- PAGINATION ---------- */
           .pagination {
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 0.75rem;
-            padding: 1.5rem;
+            padding: 1.25rem;
+            flex-wrap: wrap;
           }
 
           .page-btn {
-            padding: 0.6rem 1.2rem;
-            border: 2px solid rgba(11, 107, 97, 0.2);
+            padding: 0.55rem 1.1rem;
+            border: 2px solid rgba(11,107,97,0.2);
             background: white;
             color: #0b6b61;
             border-radius: 10px;
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
+            font-size: 0.9rem;
           }
 
           .page-btn:hover:not(:disabled) {
@@ -363,14 +370,10 @@ const ViewLabPersonnel = () => {
             color: white;
             border-color: #0b6b61;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(11, 107, 97, 0.3);
+            box-shadow: 0 4px 12px rgba(11,107,97,0.3);
           }
 
-          .page-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-          }
-
+          .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
           .page-btn.active {
             background: linear-gradient(135deg, #0b6b61 0%, #13a189 100%);
             color: white;
@@ -380,11 +383,11 @@ const ViewLabPersonnel = () => {
           .page-info {
             color: #374151;
             font-weight: 600;
-            padding: 0 0.5rem;
+            font-size: 0.9rem;
           }
 
-          .loading-state,
-          .empty-state {
+          /* ---------- LOADING / EMPTY ---------- */
+          .loading-state, .empty-state {
             text-align: center;
             padding: 3rem;
             color: #666;
@@ -394,8 +397,7 @@ const ViewLabPersonnel = () => {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #0b6b61;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            width: 50px; height: 50px;
             animation: spin 1s linear infinite;
             margin: 0 auto 1rem;
           }
@@ -405,18 +407,12 @@ const ViewLabPersonnel = () => {
             100% { transform: rotate(360deg); }
           }
 
-          .empty-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-          }
+          .empty-icon { font-size: 4rem; margin-bottom: 1rem; }
 
-          /* Modal Styles */
+          /* ---------- MODAL ---------- */
           .modal-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.6);
             display: flex;
             align-items: center;
@@ -429,7 +425,7 @@ const ViewLabPersonnel = () => {
             background: white;
             border-radius: 16px;
             padding: 2rem;
-            max-width: 600px;
+            max-width: 640px;
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
@@ -437,14 +433,25 @@ const ViewLabPersonnel = () => {
           }
 
           .modal-header {
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: 700;
             color: #0b6b61;
             margin-bottom: 1.5rem;
           }
 
+          /* two-column form grid on wider modals */
+          .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 1rem;
+          }
+
           .form-group {
             margin-bottom: 1rem;
+          }
+
+          .form-group.full-width {
+            grid-column: 1 / -1;
           }
 
           .form-group label {
@@ -452,16 +459,18 @@ const ViewLabPersonnel = () => {
             font-weight: 600;
             color: #0b6b61;
             margin-bottom: 0.4rem;
+            font-size: 0.9rem;
           }
 
           .form-group input,
           .form-group select {
             width: 100%;
-            padding: 0.75rem 1rem;
+            padding: 0.7rem 1rem;
             border: 2px solid #d0dada;
             border-radius: 10px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             transition: 0.25s ease;
+            box-sizing: border-box;
           }
 
           .form-group input:focus,
@@ -485,6 +494,7 @@ const ViewLabPersonnel = () => {
             font-weight: 600;
             cursor: pointer;
             transition: 0.2s ease;
+            font-size: 1rem;
           }
 
           .modal-btn-primary {
@@ -497,19 +507,10 @@ const ViewLabPersonnel = () => {
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
           }
 
-          .modal-btn-secondary {
-            background: #6c757d;
-            color: white;
-          }
+          .modal-btn-secondary { background: #6c757d; color: white; }
+          .modal-btn-secondary:hover { background: #5a6268; }
 
-          .modal-btn-secondary:hover {
-            background: #5a6268;
-          }
-
-          /* Delete Dialog */
-          .delete-dialog {
-            max-width: 400px;
-          }
+          .delete-dialog { max-width: 420px; }
 
           .delete-message {
             color: #555;
@@ -524,52 +525,64 @@ const ViewLabPersonnel = () => {
             border-radius: 8px;
             margin-bottom: 1.5rem;
             color: #856404;
+            font-size: 0.9rem;
           }
 
-          /* Responsive Design */
+          /* ---------- BREAKPOINTS ---------- */
+          @media (max-width: 900px) {
+            .form-grid {
+              grid-template-columns: 1fr;
+            }
+            .form-group.full-width {
+              grid-column: 1;
+            }
+          }
+
           @media (max-width: 768px) {
             .view-lab-content {
-              padding: 1.5rem 1rem;
+              padding: 1.25rem 0.75rem;
             }
-
             .view-lab-title {
-              font-size: 1.5rem;
+              font-size: 1.6rem;
             }
-
             .filters-section {
               flex-direction: column;
+              padding: 1rem;
             }
-
             .search-input,
             .filter-select {
               width: 100%;
               min-width: unset;
             }
-
-            .table-card {
-              overflow-x: auto;
-            }
-
-            .personnel-table {
-              min-width: 800px;
-            }
-
             .modal-content {
-              padding: 1.5rem;
+              padding: 1.25rem;
             }
-
             .modal-actions {
               flex-direction: column;
+            }
+          }
+
+          @media (max-width: 480px) {
+            .view-lab-title {
+              font-size: 1.3rem;
+            }
+            .action-btn {
+              padding: 0.4rem 0.7rem;
+              font-size: 0.8rem;
+            }
+            .page-btn {
+              padding: 0.45rem 0.8rem;
+              font-size: 0.85rem;
             }
           }
         `}
       </style>
 
       {/* ---------- PAGE LAYOUT ---------- */}
-      <div className="view-lab-page">
+      <div className="view-lab-page admin-page-container">
         <Sidebar />
 
-        <div className="view-lab-content">
+        <div className="view-lab-content admin-container">
           <h1 className="view-lab-title">🧪 Lab Personnel Management</h1>
 
           {/* Filters Section */}
@@ -614,6 +627,7 @@ const ViewLabPersonnel = () => {
               </div>
             ) : (
               <>
+                <div className="table-wrapper">
                 <table className="personnel-table">
                   <thead>
                     <tr>
@@ -634,6 +648,7 @@ const ViewLabPersonnel = () => {
                         <td>{person.phoneNum}</td>
                         <td>{person.specialization}</td>
                         <td>
+                          <div className="action-cell">
                           <button
                             className="action-btn edit-btn"
                             onClick={() => handleEdit(person)}
@@ -646,11 +661,13 @@ const ViewLabPersonnel = () => {
                           >
                             🗑️ Delete
                           </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+                </div>
 
                 {/* Pagination */}
                 {totalPages > 1 && (
@@ -686,6 +703,7 @@ const ViewLabPersonnel = () => {
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <h2 className="modal-header">Edit Lab Personnel</h2>
             <form onSubmit={handleEditSubmit}>
+              <div className="form-grid">
               <div className="form-group">
                 <label>Full Name</label>
                 <input
@@ -786,18 +804,6 @@ const ViewLabPersonnel = () => {
               </div>
 
               <div className="form-group">
-                <label>Address</label>
-                <input
-                  type="text"
-                  value={editFormData.address}
-                  onChange={(e) =>
-                    setEditFormData({ ...editFormData, address: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div className="form-group">
                 <label>Specialization</label>
                 <select
                   value={editFormData.specialization}
@@ -822,7 +828,19 @@ const ViewLabPersonnel = () => {
                 </select>
               </div>
 
-              <div className="form-group">
+              <div className="form-group full-width">
+                <label>Address</label>
+                <input
+                  type="text"
+                  value={editFormData.address}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, address: e.target.value })
+                  }
+                  required
+                />
+              </div>
+
+              <div className="form-group full-width">
                 <label>Qualification</label>
                 <input
                   type="text"
@@ -836,6 +854,7 @@ const ViewLabPersonnel = () => {
                   required
                 />
               </div>
+              </div>{/* end form-grid */}
 
               <div className="modal-actions">
                 <button type="submit" className="modal-btn modal-btn-primary">

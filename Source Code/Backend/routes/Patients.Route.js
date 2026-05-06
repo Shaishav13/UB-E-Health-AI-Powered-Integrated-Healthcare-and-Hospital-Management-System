@@ -70,7 +70,7 @@ router.post("/login", async (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, patient.password);
     
     if (isPasswordValid) {
-      const token = jwt.sign({ patientId: patient._id }, process.env.KEY, {
+      const token = jwt.sign({ patientId: patient._id.toString() }, process.env.KEY, {
         expiresIn: "24h",
       });
       res.send({

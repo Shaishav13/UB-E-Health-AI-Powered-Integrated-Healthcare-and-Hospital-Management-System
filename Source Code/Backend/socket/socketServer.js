@@ -206,7 +206,21 @@ async function _authMiddleware(socket, next) {
     let userId, userType, userName;
 
     if (decoded.userType === 'doctor' && decoded.doctorID) {
-      userId   = decoded.doctorID.toString();
+      // Resolve numeric doctorID to MongoDB _id — same as chatAuth.js REST middleware
+      try {
+        const mongoose = require('mongoose');
+        const Doctor = mongoose.model('Doctor');
+        const doctor = await Doctor.findOne({ doctorId: Number(decoded.doctorID) })
+          .select('_id')
+          .lean();
+        if (!doctor) {
+          return next(new Error('AUTH_FAILED: Doctor account not found'));
+        }
+        userId = doctor._id.toString();
+      } catch (dbErr) {
+        console.error('[SocketServer] Doctor lookup failed:', dbErr.message);
+        return next(new Error('AUTH_ERROR: Could not resolve doctor identity'));
+      }
       userType = 'doctor';
       userName = decoded.name || decoded.userName || 'Doctor';
     } else if (decoded.patientId) {

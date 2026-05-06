@@ -18,6 +18,7 @@
  */
 
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const auditLogger = require('../services/auditLogger');
 require('dotenv').config();
 
@@ -69,7 +70,7 @@ async function trackAuthFailure(ipAddress) {
  * Authenticate a request using the JWT in the Authorization header.
  * Sets `req.user` on success; returns 401/403 on failure.
  */
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
   const token = req.headers.authorization;
 
   if (!token) {
@@ -99,12 +100,35 @@ const authenticate = (req, res, next) => {
     // ── Determine user type and extract userId ──────────────────────────────
 
     if (decoded.userType === 'doctor' && decoded.doctorID) {
-      // Doctor token
-      req.user = {
-        userId: decoded.doctorID.toString(),
-        userType: 'doctor',
-        email: decoded.email || '',
-      };
+      // Doctor token carries a numeric doctorId — resolve it to the MongoDB _id
+      // so that all downstream services (chatService, Conversation model) can
+      // use a consistent ObjectId for the userId field.
+      try {
+        const Doctor = mongoose.model('Doctor');
+        const doctor = await Doctor.findOne({ doctorId: Number(decoded.doctorID) })
+          .select('_id email')
+          .lean();
+
+        if (!doctor) {
+          return res.status(403).json({
+            success: false,
+            message: 'Doctor account not found.',
+          });
+        }
+
+        req.user = {
+          userId: doctor._id.toString(), // ObjectId — works with chatService validation
+          numericId: decoded.doctorID.toString(), // keep numeric id for other uses
+          userType: 'doctor',
+          email: decoded.email || doctor.email || '',
+        };
+      } catch (dbErr) {
+        console.error('[chatAuth] Doctor lookup failed:', dbErr.message);
+        return res.status(500).json({
+          success: false,
+          message: 'Authentication error. Please try again.',
+        });
+      }
     } else if (decoded.patientId) {
       // Patient token (no userType field in existing patient JWTs)
       req.user = {

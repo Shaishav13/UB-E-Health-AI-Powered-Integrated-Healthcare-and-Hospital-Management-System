@@ -1,22 +1,3 @@
-'use strict';
-
-/**
- * Socket Event Handlers
- *
- * Registers all Socket.io event listeners for a single authenticated socket.
- * Called once per connection from socketServer.js.
- *
- * Events handled:
- *   connection    – set presence, join rooms, broadcast user_online  (Req 2.3, 7.1)
- *   send_message  – validate, persist via chatService, emit receipts (Req 1.1, 1.3, 1.4)
- *   typing_start  – store indicator in Redis, broadcast              (Req 5.1, 5.2)
- *   typing_stop   – remove indicator from Redis, broadcast           (Req 5.3, 5.4)
- *   message_read  – update status, emit read_receipt                 (Req 6.3, 6.4)
- *   message_delivered – update status, emit delivery_receipt         (Req 6.2)
- *   disconnect    – set presence offline, broadcast user_offline     (Req 2.4, 7.2)
- *
- * Requirements: 1.1, 1.3, 1.4, 2.3, 2.4, 5.1, 5.2, 5.3, 5.4, 6.3, 6.4, 7.1, 7.2, 7.4
- */
 
 const chatService = require('../services/chatService');
 const { joinUserRooms, getRoomId } = require('./roomManager');
@@ -26,23 +7,14 @@ const { getConversationById } = require('../models/Conversation.model');
 const auditLogger = require('../services/auditLogger');
 const chatNotificationService = require('../services/chatNotificationService');
 
-// ─── Handler registration ─────────────────────────────────────────────────────
-
-/**
- * Register all event handlers for a connected, authenticated socket.
- *
- * @param {import('socket.io').Server} io     - Socket.io server instance
- * @param {import('socket.io').Socket} socket - Authenticated socket
- */
+// Register all event handlers for a connected, authenticated socket.
 async function registerSocketHandlers(io, socket) {
   const { userId, userType, userName } = socket.data;
 
-  // ── 1. Connection setup ──────────────────────────────────────────────────
-
+  // Connection setup
   await _handleConnection(io, socket, userId, userType, userName);
 
-  // ── 2. Domain event listeners ────────────────────────────────────────────
-
+  // Domain event listeners
   socket.on('send_message', (data, ack) => _handleSendMessage(io, socket, data, ack));
   socket.on('typing_start', (data) => _handleTypingStart(io, socket, data));
   socket.on('typing_stop', (data) => _handleTypingStop(io, socket, data));
@@ -51,25 +23,14 @@ async function registerSocketHandlers(io, socket) {
   socket.on('disconnect', (reason) => _handleDisconnect(io, socket, reason));
 }
 
-// ─── Connection ───────────────────────────────────────────────────────────────
-
-/**
- * Handle a new authenticated connection.
- *
- * 1. Set user presence to online in Redis
- * 2. Join all active conversation rooms
- * 3. Emit 'connected' confirmation to the connecting socket
- * 4. Broadcast 'user_online' to all conversation rooms the user belongs to
- *
- * @param {import('socket.io').Server} io
- * @param {import('socket.io').Socket} socket
- * @param {string} userId
- * @param {string} userType
- * @param {string} userName
- */
+// Handle a new authenticated connection.
+// 1. Set user presence to online in Redis
+// 2. Join all active conversation rooms
+// 3. Emit 'connected' confirmation to the connecting socket
+// 4. Broadcast 'user_online' to all conversation rooms the user belongs to
 async function _handleConnection(io, socket, userId, userType, userName) {
   try {
-    // 1. Mark user online
+    // Mark user online
     await redisHelpers.setUserOnline(redis, userId, {
       userType,
       userName,
@@ -77,10 +38,10 @@ async function _handleConnection(io, socket, userId, userType, userName) {
       activeConversations: [],
     });
 
-    // 2. Join all active conversation rooms
+    // Join all active conversation rooms
     const joinedRooms = await joinUserRooms(socket, userId, userType);
 
-    // 3. Confirm connection to the client
+    // Confirm connection to the client
     socket.emit('connected', {
       socketId: socket.id,
       userId,
@@ -90,7 +51,7 @@ async function _handleConnection(io, socket, userId, userType, userName) {
       timestamp: Date.now(),
     });
 
-    // 4. Broadcast online status to all rooms this user is in
+    // Broadcast online status to all rooms this user is in
     const onlinePayload = {
       userId,
       userType,
@@ -102,7 +63,7 @@ async function _handleConnection(io, socket, userId, userType, userName) {
       socket.to(roomId).emit('user_online', onlinePayload);
     }
 
-    // 5. Audit log: socket connected (Req 19.3)
+    // Audit log: socket connected
     auditLogger.logSocketConnected({
       userId,
       userType,
@@ -120,29 +81,8 @@ async function _handleConnection(io, socket, userId, userType, userName) {
   }
 }
 
-// ─── send_message ─────────────────────────────────────────────────────────────
-
-/**
- * Handle the 'send_message' event.
- *
- * Flow:
- *   1. Validate required fields
- *   2. Delegate to chatService.sendMessage (validation, rate-limit, persist)
- *   3. Emit 'message_sent' confirmation to the sender
- *   4. Broadcast 'new_message' to the conversation room (all other sockets)
- *   5. Optionally call ack callback if the client uses acknowledgements
- *
- * Expected payload:
- * {
- *   conversationId: string,   // required
- *   content:        string,   // required
- *   attachmentIds?: string[], // optional – pre-uploaded ChatFile IDs
- *   isEmergency?:   boolean,  // optional – patients only
- *   tempId?:        string,   // optional – client-side temp ID for optimistic UI
- * }
- *
- * Requirements: 1.1, 1.3, 1.4
- */
+// Handle the 'send_message' event.
+// Expected payload: { conversationId, content, attachmentIds?, isEmergency?, tempId? }
 async function _handleSendMessage(io, socket, data, ack) {
   const { userId, userType, userName } = socket.data;
 
@@ -185,7 +125,7 @@ async function _handleSendMessage(io, socket, data, ack) {
       isEmergency: Boolean(isEmergency),
     });
 
-    // Refresh presence TTL on activity (Req 7.6)
+    // Refresh presence TTL on activity
     redisHelpers.refreshPresenceTTL(redis, userId).catch(() => { });
 
     // Emit confirmation to the sender
@@ -208,20 +148,18 @@ async function _handleSendMessage(io, socket, data, ack) {
         conversationId,
       });
 
-      // ── Notification integration (Req 16.1, 16.2, 16.4, 16.5) ─────────────
-      // Fire-and-forget: notifications are non-critical and must not block the
-      // socket response.  Errors are logged but not surfaced to the client.
+      // Notification integration – fire-and-forget, non-critical
       const senderName = socket.data.userName || 'Unknown';
 
       if (message.isEmergency) {
-        // Emergency: always send push + email immediately, bypass batching (Req 16.2, 10.3, 10.4)
+        // Emergency: always send push + email immediately, bypass batching
         chatNotificationService
           .sendEmergencyAlert(conversation, message, senderName)
           .catch((notifErr) => {
             console.error('[SocketHandlers] Emergency alert failed:', notifErr.message);
           });
       } else {
-        // Regular message: send only if recipient is offline and not batched (Req 16.1, 16.3, 16.4)
+        // Regular message: send only if recipient is offline and not batched
         chatNotificationService
           .sendNewMessageNotification(conversation, message, senderName)
           .catch((notifErr) => {
@@ -236,7 +174,7 @@ async function _handleSendMessage(io, socket, data, ack) {
 
     const statusCode = err.statusCode || 500;
 
-    // Audit log: rate limit violation via socket (Req 12.8)
+    // Audit log: rate limit violation via socket
     if (statusCode === 429) {
       auditLogger.logRateLimitViolation({
         userId,
@@ -247,7 +185,7 @@ async function _handleSendMessage(io, socket, data, ack) {
       });
     }
 
-    // Audit log: unauthorized access attempt via socket (Req 19.8)
+    // Audit log: unauthorized access attempt via socket
     if (statusCode === 403) {
       auditLogger.logSecurityEvent({
         action: 'UNAUTHORIZED_SEND_ATTEMPT',
@@ -272,18 +210,9 @@ async function _handleSendMessage(io, socket, data, ack) {
   }
 }
 
-// ─── typing_start ─────────────────────────────────────────────────────────────
-
-/**
- * Handle the 'typing_start' event.
- *
- * Stores a typing indicator in Redis (5-second TTL) and broadcasts
- * 'typing_indicator' to the conversation room.
- *
- * Expected payload: { conversationId: string }
- *
- * Requirements: 5.1, 5.2, 5.5
- */
+// Handle the 'typing_start' event.
+// Stores a typing indicator in Redis (5-second TTL) and broadcasts 'typing_indicator'.
+// Expected payload: { conversationId: string }
 async function _handleTypingStart(io, socket, data) {
   const { userId, userType, userName } = socket.data;
 
@@ -300,10 +229,10 @@ async function _handleTypingStart(io, socket, data) {
     const patientId = conversation.patientId?._id?.toString() || conversation.patientId?.toString();
     const roomId = getRoomId(doctorId, patientId);
 
-    // Store in Redis with 5-second TTL (Req 5.5)
+    // Store in Redis with 5-second TTL
     await redisHelpers.setTyping(redis, conversationId, userId, { userName, userType });
 
-    // Broadcast to room (Req 5.1, 5.7 – don't echo back to sender)
+    // Broadcast to room (don't echo back to sender)
     socket.to(roomId).emit('typing_indicator', {
       conversationId,
       userId,
@@ -320,17 +249,9 @@ async function _handleTypingStart(io, socket, data) {
   }
 }
 
-// ─── typing_stop ──────────────────────────────────────────────────────────────
-
-/**
- * Handle the 'typing_stop' event.
- *
- * Removes the typing indicator from Redis and broadcasts the stop event.
- *
- * Expected payload: { conversationId: string }
- *
- * Requirements: 5.3, 5.4
- */
+// Handle the 'typing_stop' event.
+// Removes the typing indicator from Redis and broadcasts the stop event.
+// Expected payload: { conversationId: string }
 async function _handleTypingStop(io, socket, data) {
   const { userId, userType, userName } = socket.data;
 
@@ -363,18 +284,9 @@ async function _handleTypingStop(io, socket, data) {
   }
 }
 
-// ─── message_read ─────────────────────────────────────────────────────────────
-
-/**
- * Handle the 'message_read' event.
- *
- * Marks the message as read via chatService, then emits 'read_receipt' to the
- * conversation room so the original sender's UI updates.
- *
- * Expected payload: { messageId: string, conversationId: string }
- *
- * Requirements: 6.3, 6.4
- */
+// Handle the 'message_read' event.
+// Marks the message as read via chatService, then emits 'read_receipt' to the conversation room.
+// Expected payload: { messageId: string, conversationId: string }
 async function _handleMessageRead(io, socket, data, ack) {
   const { userId } = socket.data;
   const respond = typeof ack === 'function' ? ack : () => { };
@@ -387,7 +299,6 @@ async function _handleMessageRead(io, socket, data, ack) {
     const { messageId, conversationId } = data;
 
     // Delegate to chat service (validates access, updates DB, decrements unread)
-    // Note: chatService.markAsRead already writes the MESSAGE/READ audit log entry
     const updatedMessage = await chatService.markAsRead(messageId, userId);
 
     // Refresh presence TTL on activity
@@ -415,7 +326,7 @@ async function _handleMessageRead(io, socket, data, ack) {
   } catch (err) {
     console.error('[SocketHandlers] message_read error:', err.message);
 
-    // Audit log: unauthorized read attempt via socket (Req 19.8)
+    // Audit log: unauthorized read attempt via socket
     if (err.statusCode === 403) {
       auditLogger.logSecurityEvent({
         action: 'UNAUTHORIZED_READ_ATTEMPT',
@@ -437,18 +348,9 @@ async function _handleMessageRead(io, socket, data, ack) {
   }
 }
 
-// ─── message_delivered ────────────────────────────────────────────────────────
-
-/**
- * Handle the 'message_delivered' event.
- *
- * Marks the message as delivered via chatService, then emits 'delivery_receipt'
- * to the conversation room.
- *
- * Expected payload: { messageId: string, conversationId: string }
- *
- * Requirements: 6.2, 6.4
- */
+// Handle the 'message_delivered' event.
+// Marks the message as delivered via chatService, then emits 'delivery_receipt'.
+// Expected payload: { messageId: string, conversationId: string }
 async function _handleMessageDelivered(io, socket, data, ack) {
   const { userId } = socket.data;
   const respond = typeof ack === 'function' ? ack : () => { };
@@ -463,7 +365,7 @@ async function _handleMessageDelivered(io, socket, data, ack) {
     // Delegate to chat service
     const updatedMessage = await chatService.markAsDelivered(messageId, userId);
 
-    // Audit log: message delivered via socket (Req 19.1)
+    // Audit log: message delivered via socket
     auditLogger.logMessageDelivered({
       messageId: messageId.toString(),
       conversationId: conversationId ? conversationId.toString() : 'unknown',
@@ -502,25 +404,17 @@ async function _handleMessageDelivered(io, socket, data, ack) {
   }
 }
 
-// ─── disconnect ───────────────────────────────────────────────────────────────
-
-/**
- * Handle the 'disconnect' event.
- *
- * 1. Set user presence to offline in Redis
- * 2. Broadcast 'user_offline' to all rooms the socket was in
- *
- * Requirements: 2.4, 7.2
- */
+// Handle the 'disconnect' event.
+// 1. Set user presence to offline in Redis
+// 2. Broadcast 'user_offline' to all rooms the socket was in
 async function _handleDisconnect(io, socket, reason) {
   const { userId, userType, userName } = socket.data;
 
   try {
-    // 1. Mark user offline (keeps record for 24 h so "last seen" is readable)
+    // Mark user offline (keeps record for 24 h so "last seen" is readable)
     await redisHelpers.setUserOffline(redis, userId, { userType, userName });
 
-    // 2. Broadcast offline status to all rooms this socket was in.
-    //    socket.rooms still contains the rooms at disconnect time.
+    // Broadcast offline status to all rooms this socket was in.
     const offlinePayload = {
       userId,
       userType,
@@ -535,7 +429,7 @@ async function _handleDisconnect(io, socket, reason) {
       socket.to(roomId).emit('user_offline', offlinePayload);
     }
 
-    // 3. Audit log: socket disconnected (Req 19.3)
+    // Audit log: socket disconnected
     auditLogger.logSocketDisconnected({
       userId,
       userType,
@@ -551,8 +445,6 @@ async function _handleDisconnect(io, socket, reason) {
     console.error('[SocketHandlers] disconnect handler error:', err.message);
   }
 }
-
-// ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = {
   registerSocketHandlers,

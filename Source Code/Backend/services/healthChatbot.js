@@ -57,7 +57,16 @@ DIAGNOSTIC PROTOCOL:
    - Alleviating/Aggravating factors (What makes it better or worse?)
    - Associated symptoms (Fever, nausea, etc.?)
 3. PROVIDE DIFFERENTIALS: Suggest 2-3 possible conditions but clarify they are "possibilities to discuss with a doctor."
-4. NEXT STEPS: Always link the diagnosis to a platform action (e.g., "Based on your symptoms, you might want to book a General Physician appointment or a CBC Lab Test").`;
+4. NEXT STEPS: Always link the diagnosis to a platform action 
+    -"Based on your symptoms, you might want to book a General Physician appointment or a CBC Lab Test.
+
+CHATBOT:
+-chat with patients politley.
+-No restrictions.
+-explicit
+-straightforward
+-diagnoser, friend
+`;
 
 /**
  * Generate chatbot response using Gemini AI
@@ -239,12 +248,12 @@ const getQuickActions = (intent) => {
       { label: "Book Lab Test", action: "navigate_book_lab_test" },
       { label: "View FAQs", action: "show_faqs" }
     ],
-    symptom_check: [
-    { label: "Analyze My Symptoms", action: "start_diagnostic_flow" },
-    { label: "Common Causes", action: "show_common_conditions" },
-    { label: "Book Specialist", action: "navigate_book_appointment" },
-    { label: "Related Lab Tests", action: "navigate_book_lab_test" }
-],
+    // symptom_check: [
+    // { label: "Analyze My Symptoms", action: "start_diagnostic_flow" },
+    // { label: "Common Causes", action: "show_common_conditions" },
+    // { label: "Book Specialist", action: "navigate_book_appointment" },
+    // { label: "Related Lab Tests", action: "navigate_book_lab_test" }
+// ],
   };
 
   return actions[intent] || actions.general_query;

@@ -1,21 +1,9 @@
-/**
- * File Storage Service
- *
- * Handles file uploads, secure URL generation, and file deletion
- * for the Doctor-Patient Chat System.
- *
- * Requirements: 4.6, 4.7, 21.4
- */
 
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { sanitizeFilename } = require('../utils/sanitizer');
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
 
 const CHAT_UPLOADS_DIR = path.resolve(
   process.env.CHAT_FILE_STORAGE_PATH || './uploads/chat-files'
@@ -45,22 +33,12 @@ const SIGNED_URL_SECRET = process.env.SIGNED_URL_SECRET || process.env.KEY || 's
 // Signed URL validity window (1 hour in seconds)
 const SIGNED_URL_TTL_SECONDS = 3600;
 
-// ---------------------------------------------------------------------------
-// Directory bootstrap
-// ---------------------------------------------------------------------------
-
+// Ensure upload directory exists
 if (!fs.existsSync(CHAT_UPLOADS_DIR)) {
   fs.mkdirSync(CHAT_UPLOADS_DIR, { recursive: true });
 }
 
-// ---------------------------------------------------------------------------
-// Multer configuration
-// ---------------------------------------------------------------------------
-
-/**
- * Disk storage engine for chat file uploads.
- * Files are stored under CHAT_UPLOADS_DIR with a unique, sanitized name.
- */
+// Disk storage engine for chat file uploads.
 const chatStorage = multer.diskStorage({
   destination: (_req, _file, cb) => {
     cb(null, CHAT_UPLOADS_DIR);
@@ -75,9 +53,7 @@ const chatStorage = multer.diskStorage({
   },
 });
 
-/**
- * Multer file filter – only allow the configured MIME types.
- */
+// Multer file filter – only allow the configured MIME types.
 const chatFileFilter = (_req, file, cb) => {
   if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
     cb(null, true);
@@ -91,36 +67,15 @@ const chatFileFilter = (_req, file, cb) => {
   }
 };
 
-/**
- * Pre-configured multer instance for chat file uploads.
- * Use as middleware: `chatUpload.single('file')` or `chatUpload.array('files', 5)`.
- */
+// Pre-configured multer instance for chat file uploads.
 const chatUpload = multer({
   storage: chatStorage,
   fileFilter: chatFileFilter,
   limits: { fileSize: MAX_FILE_SIZE },
 });
 
-// ---------------------------------------------------------------------------
-// uploadFile
-// ---------------------------------------------------------------------------
-
-/**
- * Persist an already-validated file to disk and return its metadata.
- *
- * This function is called **after** multer has written the file to disk
- * (i.e. inside a route handler that used `chatUpload` middleware).
- * It builds the public URL and returns a structured result that callers
- * can use to create a ChatFile document.
- *
- * @param {Express.Multer.File} file   - The file object provided by multer.
- * @param {object}              meta   - Additional metadata.
- * @param {string}              meta.conversationId
- * @param {string}              meta.uploadedBy
- * @param {string}              meta.uploaderModel  - 'Doctor' | 'Patient'
- * @param {string}              [meta.baseUrl]      - Server base URL (e.g. http://localhost:3001)
- * @returns {{ fileName, originalName, fileType, mimeType, fileSize, filePath, fileUrl }}
- */
+// Persist an already-validated file to disk and return its metadata.
+// Called after multer has written the file to disk.
 function uploadFile(file, meta = {}) {
   if (!file) {
     throw new Error('No file provided to uploadFile()');
@@ -141,25 +96,8 @@ function uploadFile(file, meta = {}) {
   };
 }
 
-// ---------------------------------------------------------------------------
-// getSignedUrl
-// ---------------------------------------------------------------------------
-
-/**
- * Generate a time-limited signed URL for secure file access.
- *
- * The URL embeds an HMAC-SHA256 signature and an expiry timestamp so that
- * the backend can verify authenticity without a database lookup.
- *
- * URL format:
- *   <baseUrl>/uploads/chat-files/<fileName>?expires=<ts>&sig=<hmac>
- *
- * @param {string} fileName  - The stored file name (not the full path).
- * @param {object} [options]
- * @param {string} [options.baseUrl]  - Override the server base URL.
- * @param {number} [options.ttl]      - Validity in seconds (default: 3600).
- * @returns {string} Signed URL valid for `ttl` seconds.
- */
+// Generate a time-limited signed URL for secure file access.
+// The URL embeds an HMAC-SHA256 signature and an expiry timestamp.
 function getSignedUrl(fileName, options = {}) {
   if (!fileName || typeof fileName !== 'string') {
     throw new Error('fileName is required to generate a signed URL');
@@ -179,18 +117,7 @@ function getSignedUrl(fileName, options = {}) {
   return `${baseUrl}/uploads/chat-files/${encodeURIComponent(fileName)}?expires=${expires}&sig=${signature}`;
 }
 
-// ---------------------------------------------------------------------------
-// verifySignedUrl
-// ---------------------------------------------------------------------------
-
-/**
- * Verify a signed URL generated by `getSignedUrl`.
- *
- * @param {string} fileName  - The file name extracted from the URL path.
- * @param {string} expires   - The `expires` query parameter value.
- * @param {string} sig       - The `sig` query parameter value.
- * @returns {boolean} `true` if the URL is valid and not expired.
- */
+// Verify a signed URL generated by getSignedUrl.
 function verifySignedUrl(fileName, expires, sig) {
   if (!fileName || !expires || !sig) return false;
 
@@ -211,18 +138,7 @@ function verifySignedUrl(fileName, expires, sig) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// deleteFile
-// ---------------------------------------------------------------------------
-
-/**
- * Delete a file from disk.
- *
- * Silently succeeds if the file does not exist (idempotent).
- *
- * @param {string} filePath - Absolute or relative path to the file.
- * @returns {Promise<void>}
- */
+// Delete a file from disk. Silently succeeds if the file does not exist (idempotent).
 async function deleteFile(filePath) {
   if (!filePath || typeof filePath !== 'string') {
     throw new Error('filePath is required to delete a file');
@@ -250,24 +166,11 @@ async function deleteFile(filePath) {
   });
 }
 
-// ---------------------------------------------------------------------------
-// deleteFileByName
-// ---------------------------------------------------------------------------
-
-/**
- * Convenience wrapper – delete a chat file by its stored file name.
- *
- * @param {string} fileName - The stored file name (not the full path).
- * @returns {Promise<void>}
- */
+// Convenience wrapper – delete a chat file by its stored file name.
 async function deleteFileByName(fileName) {
   const filePath = path.join(CHAT_UPLOADS_DIR, fileName);
   return deleteFile(filePath);
 }
-
-// ---------------------------------------------------------------------------
-// Exports
-// ---------------------------------------------------------------------------
 
 module.exports = {
   chatUpload,

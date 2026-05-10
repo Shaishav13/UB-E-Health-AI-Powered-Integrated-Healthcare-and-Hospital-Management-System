@@ -1,21 +1,6 @@
-/**
- * Thumbnail Generation Service
- *
- * Generates 200×200 JPEG thumbnails for image attachments in the
- * Doctor-Patient Chat System using the `sharp` library.
- * Non-image files are handled gracefully (returns null without throwing).
- *
- * Also provides image compression before storage to reduce file sizes.
- *
- * Requirements: 4.5, 20.4
- */
 
 const path = require('path');
 const fs = require('fs');
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
 
 const THUMBNAIL_WIDTH = 200;
 const THUMBNAIL_HEIGHT = 200;
@@ -23,56 +8,26 @@ const THUMBNAIL_QUALITY = 80; // JPEG quality (0-100)
 const THUMBNAIL_SUFFIX = '_thumb';
 const THUMBNAIL_EXT = '.jpg';
 
-/** MIME types that support thumbnail generation */
+// MIME types that support thumbnail generation
 const IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png']);
 
-/**
- * Compression settings for images stored as chat attachments.
- * Applied before storage to reduce bandwidth and disk usage (Req 20.4).
- */
+// Compression settings for images stored as chat attachments.
 const COMPRESSION_SETTINGS = {
   'image/jpeg': { quality: 85, progressive: true },
   'image/png':  { compressionLevel: 8, adaptiveFiltering: true },
 };
 
-/** Maximum dimension (width or height) for stored images. Larger images are resized. */
+// Maximum dimension (width or height) for stored images. Larger images are resized.
 const MAX_IMAGE_DIMENSION = 2048;
 
-// ---------------------------------------------------------------------------
-// generateThumbnail
-// ---------------------------------------------------------------------------
-
-/**
- * Generate a 200×200 JPEG thumbnail for an image file.
- *
- * The thumbnail is written to the same directory as the source file with
- * `_thumb` appended before the extension (e.g. `photo-123_thumb.jpg`).
- *
- * For non-image files (PDF, DOC, DOCX) the function returns `null` without
- * throwing, allowing callers to treat thumbnail generation as optional.
- *
- * @param {object} file
- * @param {string} file.path     - Absolute path to the source file on disk.
- * @param {string} file.mimetype - MIME type of the source file.
- * @param {string} file.filename - Stored file name (used to derive thumbnail name).
- * @returns {Promise<{ thumbnailPath: string, thumbnailUrl: string } | null>}
- *   Resolves with thumbnail metadata, or `null` for non-image files.
- *
- * @example
- * const result = await generateThumbnail({
- *   path: '/uploads/chat-files/photo-abc123.jpg',
- *   mimetype: 'image/jpeg',
- *   filename: 'photo-abc123.jpg',
- * });
- * // result => { thumbnailPath: '/uploads/chat-files/photo-abc123_thumb.jpg',
- * //             thumbnailUrl: 'http://localhost:3001/uploads/chat-files/photo-abc123_thumb.jpg' }
- */
+// Generate a 200×200 JPEG thumbnail for an image file.
+// For non-image files (PDF, DOC, DOCX) the function returns null without throwing.
 async function generateThumbnail(file) {
   if (!file || !file.path || !file.mimetype || !file.filename) {
     throw new Error('generateThumbnail: file object must have path, mimetype, and filename');
   }
 
-  // Non-image files – return null gracefully (Requirement 4.5)
+  // Non-image files – return null gracefully
   if (!IMAGE_MIME_TYPES.has(file.mimetype)) {
     return null;
   }
@@ -114,23 +69,9 @@ async function generateThumbnail(file) {
   return { thumbnailPath, thumbnailUrl, thumbnailFilename };
 }
 
-// ---------------------------------------------------------------------------
-// generateThumbnailAsync
-// ---------------------------------------------------------------------------
-
-/**
- * Generate a thumbnail asynchronously without blocking the upload response.
- *
- * Fires off thumbnail generation in the background and calls the optional
- * `onComplete` callback when done. Errors are logged but not propagated.
- *
- * This allows the file upload API to respond immediately while the thumbnail
- * is generated in the background (Req 20.4).
- *
- * @param {object}   file
- * @param {Function} [onComplete]  - Called with (error, result) when done
- * @returns {void}  Returns immediately; thumbnail is generated in background
- */
+// Generate a thumbnail asynchronously without blocking the upload response.
+// Fires off thumbnail generation in the background and calls the optional
+// onComplete callback when done. Errors are logged but not propagated.
 function generateThumbnailAsync(file, onComplete) {
   // Use setImmediate to defer to the next event loop iteration
   setImmediate(async () => {
@@ -144,22 +85,9 @@ function generateThumbnailAsync(file, onComplete) {
   });
 }
 
-// ---------------------------------------------------------------------------
-// compressImage
-// ---------------------------------------------------------------------------
-
-/**
- * Compress an image file in-place before storage.
- *
- * Applies lossy/lossless compression and resizes images larger than
- * MAX_IMAGE_DIMENSION to reduce storage and bandwidth costs (Req 20.4).
- *
- * @param {object} file
- * @param {string} file.path     - Absolute path to the file on disk.
- * @param {string} file.mimetype - MIME type of the file.
- * @param {string} file.filename - Stored file name.
- * @returns {Promise<{ compressed: boolean, originalSize: number, compressedSize: number }>}
- */
+// Compress an image file in-place before storage.
+// Applies lossy/lossless compression and resizes images larger than
+// MAX_IMAGE_DIMENSION to reduce storage and bandwidth costs.
 async function compressImage(file) {
   if (!file || !file.path || !file.mimetype) {
     return { compressed: false, originalSize: 0, compressedSize: 0 };
@@ -218,18 +146,8 @@ async function compressImage(file) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// deleteThumbnail
-// ---------------------------------------------------------------------------
-
-/**
- * Delete a thumbnail file from disk.
- *
- * Silently succeeds if the file does not exist (idempotent).
- *
- * @param {string} thumbnailPath - Absolute path to the thumbnail file.
- * @returns {Promise<void>}
- */
+// Delete a thumbnail file from disk.
+// Silently succeeds if the file does not exist (idempotent).
 async function deleteThumbnail(thumbnailPath) {
   if (!thumbnailPath) return;
 
@@ -243,23 +161,10 @@ async function deleteThumbnail(thumbnailPath) {
   });
 }
 
-// ---------------------------------------------------------------------------
-// isImageFile
-// ---------------------------------------------------------------------------
-
-/**
- * Returns `true` if the given MIME type supports thumbnail generation.
- *
- * @param {string} mimetype
- * @returns {boolean}
- */
+// Returns true if the given MIME type supports thumbnail generation.
 function isImageFile(mimetype) {
   return IMAGE_MIME_TYPES.has(mimetype);
 }
-
-// ---------------------------------------------------------------------------
-// Exports
-// ---------------------------------------------------------------------------
 
 module.exports = {
   generateThumbnail,
@@ -272,5 +177,3 @@ module.exports = {
   THUMBNAIL_QUALITY,
   MAX_IMAGE_DIMENSION,
 };
-
-

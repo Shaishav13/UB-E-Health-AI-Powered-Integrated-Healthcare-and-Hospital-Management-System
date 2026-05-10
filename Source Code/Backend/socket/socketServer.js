@@ -1,4 +1,3 @@
-'use strict';
 
 const { Server } = require('socket.io');
 const { createAdapter } = require('@socket.io/redis-adapter');

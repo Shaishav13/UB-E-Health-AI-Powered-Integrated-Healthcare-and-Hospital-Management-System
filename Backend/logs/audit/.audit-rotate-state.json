@@ -1,0 +1,25 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 2555
+    },
+    "auditLog": "D:\\project\\E-Health-Management-Hub-main\\E-Health-Management-Hub-main\\Backend\\logs\\audit\\.audit-rotate-state.json",
+    "files": [
+        {
+            "date": 1777436074180,
+            "name": "D:\\project\\E-Health-Management-Hub-main\\E-Health-Management-Hub-main\\Backend\\logs\\audit\\audit-2026-04-29.log",
+            "hash": "c77ceb2f5182322d4c1a6e6b8fe01e6541aa93429dc66b468c658c3097cbb24e"
+        },
+        {
+            "date": 1777523519746,
+            "name": "D:\\project\\E-Health-Management-Hub-main\\E-Health-Management-Hub-main\\Backend\\logs\\audit\\audit-2026-04-30.log",
+            "hash": "07361e98bde802d52fb414d9b27f12d252cfdd64d2f23d9e1435af0e73e62ef8"
+        },
+        {
+            "date": 1778434084585,
+            "name": "D:\\project\\E-Health-Management-Hub-main\\E-Health-Management-Hub-main\\Source Code\\Backend\\logs\\audit\\audit-2026-05-10.log",
+            "hash": "3d737d5e32752c5ad9e49298a3c93365ce1a4e36d8b69488a328483ffb09b12d"
+        }
+    ],
+    "hashType": "sha256"
+}

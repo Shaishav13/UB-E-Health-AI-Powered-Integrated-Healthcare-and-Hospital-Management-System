@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Modal } from "antd";
 import { FaHeart, FaUsers, FaStar, FaBookMedical, FaShieldAlt, FaFileContract, FaEnvelope, FaPhone, FaMapMarkerAlt } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import LogoImg from "../img/logo2.png";
+
 
 const Footer = () => {
   const [aboutOpen, setAboutOpen] = useState(false);
@@ -18,7 +20,11 @@ const Footer = () => {
           {/* Brand Section */}
           <div className="footer-section brand-section">
             <div className="footer-logo">
-              <span className="logo-icon">🏥</span>
+              <img 
+    src={LogoImg} 
+    alt="UB E-Health Logo" 
+    style={{ width: '40px', height: '40px', objectFit: 'contain' }} 
+  />
               <span className="logo-text">UB E-Health</span>
             </div>
             <p className="footer-tagline">
@@ -96,7 +102,7 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="footer-bottom">
-          <p>&copy; {new Date().getFullYear()} UB E-Health. All rights reserved.</p>
+          <p><span>Udta Birdie Inc.</span>&copy; {new Date().getFullYear()} UB E-Health. All rights reserved.</p>
           <p className="footer-credits">
             Developed with <FaHeart style={{ color: '#ef4444', fontSize: '0.9rem' }} /> by Shaishav
           </p>
@@ -478,10 +484,11 @@ const Footer = () => {
 
         .footer-content {
           max-width: 1400px;
-          margin: 0 auto 2rem;
+          margin: 0 auto;
           display: grid;
           grid-template-columns: 2fr 1fr 1fr 1fr;
-          gap: 2.5rem;
+          gap: 3rem;
+          margin-bottom: 2rem;
         }
 
         @media (max-width: 1024px) {
@@ -489,23 +496,12 @@ const Footer = () => {
             grid-template-columns: repeat(2, 1fr);
             gap: 2rem;
           }
-          .brand-section {
-            grid-column: 1 / -1;
-            padding-right: 0 !important;
-          }
         }
 
         @media (max-width: 640px) {
-          .ub-footer {
-            padding: 2rem 1.25rem 1rem;
-          }
           .footer-content {
             grid-template-columns: 1fr;
-            gap: 1.75rem;
-          }
-          .brand-section {
-            grid-column: 1;
-            padding-right: 0 !important;
+            gap: 2rem;
           }
         }
 
@@ -515,7 +511,7 @@ const Footer = () => {
         }
 
         .brand-section {
-          padding-right: 1rem;
+          padding-right: 2rem;
         }
 
         .footer-logo {
@@ -525,7 +521,9 @@ const Footer = () => {
           margin-bottom: 1rem;
         }
 
-        .logo-icon { font-size: 2rem; }
+        .logo-icon {
+          font-size: 2rem;
+        }
 
         .logo-text {
           font-size: 1.5rem;
@@ -533,7 +531,7 @@ const Footer = () => {
         }
 
         .footer-tagline {
-          color: rgba(255,255,255,0.9);
+          color: rgba(255, 255, 255, 0.9);
           line-height: 1.6;
           margin-bottom: 1.5rem;
         }
@@ -548,20 +546,19 @@ const Footer = () => {
           display: flex;
           align-items: center;
           gap: 0.75rem;
-          color: rgba(255,255,255,0.9);
+          color: rgba(255, 255, 255, 0.9);
           font-size: 0.9rem;
         }
 
         .contact-item svg {
           font-size: 1rem;
-          color: rgba(255,255,255,0.7);
-          flex-shrink: 0;
+          color: rgba(255, 255, 255, 0.7);
         }
 
         .footer-title {
           font-size: 1.1rem;
           font-weight: 700;
-          margin-bottom: 1.25rem;
+          margin-bottom: 1.5rem;
           color: white;
         }
 
@@ -571,58 +568,56 @@ const Footer = () => {
           margin: 0;
           display: flex;
           flex-direction: column;
-          gap: 0.5rem;
+          gap: 0.75rem;
         }
 
         .footer-links li {
           display: flex;
           align-items: center;
           gap: 0.75rem;
-          color: rgba(255,255,255,0.9);
+          color: rgba(255, 255, 255, 0.9);
           cursor: pointer;
           transition: all 0.3s ease;
-          padding: 0.45rem 0.5rem;
+          padding: 0.5rem;
           border-radius: 6px;
-          font-size: 0.95rem;
         }
 
         .footer-links li:hover {
           color: white;
-          background: rgba(255,255,255,0.1);
+          background: rgba(255, 255, 255, 0.1);
           transform: translateX(5px);
         }
 
         .link-icon {
           font-size: 1rem;
-          color: rgba(255,255,255,0.7);
-          flex-shrink: 0;
+          color: rgba(255, 255, 255, 0.7);
         }
 
         .footer-bottom {
           max-width: 1400px;
           margin: 0 auto;
-          padding-top: 1.5rem;
-          border-top: 1px solid rgba(255,255,255,0.2);
+          padding-top: 2rem;
+          border-top: 1px solid rgba(255, 255, 255, 0.2);
           display: flex;
           justify-content: space-between;
           align-items: center;
           flex-wrap: wrap;
-          gap: 0.75rem;
+          gap: 1rem;
         }
 
         .footer-bottom p {
           margin: 0;
-          color: rgba(255,255,255,0.8);
-          font-size: 0.875rem;
+          color: rgba(255, 255, 255, 0.8);
+          font-size: 0.9rem;
         }
 
         .footer-credits {
           display: flex;
           align-items: center;
-          gap: 0.4rem;
+          gap: 0.5rem;
         }
 
-        @media (max-width: 480px) {
+        @media (max-width: 640px) {
           .footer-bottom {
             flex-direction: column;
             text-align: center;

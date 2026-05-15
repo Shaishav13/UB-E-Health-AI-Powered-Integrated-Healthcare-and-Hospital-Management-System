@@ -1,12 +1,11 @@
 ﻿import { useState, useEffect, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
-import { FaComments, FaUserMd, FaUser, FaPlus, FaSpinner } from "react-icons/fa";
+import { FaComments } from "react-icons/fa";
 import { MdMarkChatUnread } from "react-icons/md";
 import Sidebar from "../../GlobalFiles/Sidebar";
 import ConversationList from "../../../../../Components/Chat/ConversationList";
 import ChatWindow from "../../../../../Components/Chat/ChatWindow";
-import Footer from "../../../../../Components/Footer";
 import {
   setActiveConversation,
   clearActiveConversation,
@@ -150,143 +149,27 @@ const Chat = () => {
 
           {/* Main chat area */}
           <div className="chat-page-body">
-            {/* ── Assigned contacts panel ─────────────────────────────────── */}
-            <div className="chat-contacts-panel">
-              <div className="chat-contacts-header">
-                <h2 className="chat-contacts-title">
-                  {currentUser?.userType === "doctor"
-                    ? "My Patients"
-                    : "My Doctor"}
-                </h2>
-                <span className="chat-contacts-subtitle">
-                  {currentUser?.userType === "doctor"
-                    ? "Start a chat with any assigned patient"
-                    : "Start a chat with your assigned doctor"}
-                </span>
-              </div>
-
-              <div className="chat-contacts-list">
-                {contactsLoading ? (
-                  <div className="chat-contacts-loading">
-                    <FaSpinner className="spin-icon" />
-                    <span>Loading contacts…</span>
-                  </div>
-                ) : contacts.length === 0 ? (
-                  <div className="chat-contacts-empty">
-                    {currentUser?.userType === "doctor" ? (
-                      <FaUser size={36} className="chat-contacts-empty-icon" />
-                    ) : (
-                      <FaUserMd size={36} className="chat-contacts-empty-icon" />
-                    )}
-                    <p className="chat-contacts-empty-text">
-                      {contactsMessage ||
-                        (currentUser?.userType === "patient"
-                          ? "You have no assigned doctor yet. Please book an appointment first."
-                          : "No patients assigned to you yet.")}
-                    </p>
-                  </div>
-                ) : (
-                  contacts.map((contact) => (
-                    <div key={contact._id} className="chat-contact-card">
-                      {/* Avatar */}
-                      <div className="chat-contact-avatar">
-                        {contact.profilePicture ? (
-                          <img
-                            src={contact.profilePicture}
-                            alt={contact.name}
-                            className="chat-contact-avatar-img"
-                          />
-                        ) : (
-                          <span className="chat-contact-avatar-letter">
-                            {contact.name?.charAt(0).toUpperCase() || "?"}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Info */}
-                      <div className="chat-contact-info">
-                        <div className="chat-contact-name">
-                          {contact.role === "doctor" ? "Dr. " : ""}
-                          {contact.name}
-                        </div>
-                        <div className="chat-contact-meta">
-                          {contact.role === "doctor" ? (
-                            <>
-                              <FaUserMd size={11} />
-                              <span>{contact.department || "Doctor"}</span>
-                            </>
-                          ) : (
-                            <>
-                              <FaUser size={11} />
-                              <span>
-                                {contact.gender
-                                  ? `${contact.gender}, ${contact.age} yrs`
-                                  : "Patient"}
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Start chat button */}
-                      <button
-                        className="chat-contact-btn"
-                        onClick={() => handleStartChat(contact)}
-                        disabled={startingChat === contact._id}
-                        title={`Start chat with ${contact.name}`}
-                        aria-label={`Start chat with ${contact.name}`}
-                      >
-                        {startingChat === contact._id ? (
-                          <FaSpinner className="spin-icon" size={14} />
-                        ) : (
-                          <>
-                            <FaPlus size={11} />
-                            <span>Chat</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
             {/* ── Conversation list + chat window ─────────────────────────── */}
             <div className="chat-main-area">
-              {/* Conversation list */}
-              <div
-                className={
-                  "chat-list-panel" +
-                  (mobileShowWindow ? " chat-list-panel-hidden" : "")
-                }
-              >
+              <div className={"chat-list-panel" + (mobileShowWindow ? " chat-list-panel-hidden" : "")}>
                 <ConversationList
                   onSelectConversation={handleSelectConversation}
                   activeConversationId={selectedConversation?._id}
+                  contacts={contacts}
+                  contactsLoading={contactsLoading}
+                  onStartChat={handleStartChat}
                 />
               </div>
 
-              {/* Chat window */}
-              <div
-                className={
-                  "chat-window-panel" +
-                  (mobileShowWindow ? " chat-window-panel-visible" : "")
-                }
-              >
+              <div className={"chat-window-panel" + (mobileShowWindow ? " chat-window-panel-visible" : "")}>
                 {selectedConversation ? (
-                  <ChatWindow
-                    conversation={selectedConversation}
-                    onClose={handleCloseWindow}
-                  />
+                  <ChatWindow conversation={selectedConversation} onClose={handleCloseWindow} />
                 ) : (
                   <div className="chat-window-placeholder">
-                    <FaComments size={56} className="chat-placeholder-icon" />
-                    <h3 className="chat-placeholder-title">
-                      Select a conversation
-                    </h3>
+                    <FaComments size={48} className="chat-placeholder-icon" />
+                    <h3 className="chat-placeholder-title">Select a conversation</h3>
                     <p className="chat-placeholder-text">
-                      Choose an existing conversation from the list, or start a
-                      new one using the contacts panel on the left.
+                      Choose a conversation from the list, or use <strong>+ New</strong> to start one.
                     </p>
                   </div>
                 )}
@@ -295,7 +178,6 @@ const Chat = () => {
           </div>
         </div>
       </div>
-      <Footer />
     </>
   );
 };

@@ -767,8 +767,8 @@ router.get('/assigned-contacts', async (req, res) => {
     }
 
     if (userType === 'doctor') {
-      // userId for doctors is the numeric doctorId (from JWT), not the ObjectId
-      const doctor = await Doctor.findOne({ doctorId: Number(userId) }).lean();
+      // userId is the MongoDB _id (resolved in chatAuth.js), not the numeric doctorId
+      const doctor = await Doctor.findById(userId).lean();
       if (!doctor) {
         return sendError(res, 404, 'Doctor not found');
       }

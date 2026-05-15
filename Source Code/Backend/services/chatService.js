@@ -481,8 +481,28 @@ async function deleteMessage(messageId, userId) {
     throw createError('Access denied: you are not a participant in this conversation', 403);
   }
 
-  // Only the sender can delete their own message
-  if (message.senderId.toString() !== userId.toString()) {
+  // Only the sender can delete their own message.
+  // senderId may be a populated object { _id, name, ... } or a plain ObjectId string
+  const rawSenderId = message.senderId?._id || message.senderId;
+  const senderIdStr = rawSenderId ? rawSenderId.toString() : '';
+  const userIdStr = userId.toString();
+  let isSender = senderIdStr === userIdStr;
+
+  if (!isSender) {
+    // Fallback: if senderId looks like a numeric doctor ID, resolve it to MongoDB _id
+    if (/^\d+$/.test(senderIdStr)) {
+      try {
+        const mongoose = require('mongoose');
+        const Doctor = mongoose.model('Doctor');
+        const doctor = await Doctor.findOne({ doctorId: Number(senderIdStr) }).select('_id').lean();
+        if (doctor && doctor._id.toString() === userIdStr) {
+          isSender = true;
+        }
+      } catch (_) {}
+    }
+  }
+
+  if (!isSender) {
     throw createError('Only the sender can delete their own message', 403);
   }
 

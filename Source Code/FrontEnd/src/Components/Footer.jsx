@@ -103,9 +103,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="footer-bottom">
           <p><span>Udta Birdie Inc.</span>&copy; {new Date().getFullYear()} UB E-Health. All rights reserved.</p>
-          <p className="footer-credits">
-            Developed with <FaHeart style={{ color: '#ef4444', fontSize: '0.9rem' }} /> by Shaishav
-          </p>
+
         </div>
       </footer>
 
